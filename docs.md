@@ -1,27 +1,22 @@
 # Landing Page Builder — Project Docs
 
-## Phase 0 — Research & decisions
+## Phase 0 — Research & Decisions
 
-### Status: not started
+### Status: in progress
 
-### To decide (together with Claude)
+### Steps
 
-- [ ] Block schema — how do we represent a page as data?
-- [ ] Block types — which blocks for MVP?
-- [ ] Customization model — how do users edit blocks?
-- [ ] Tech stack — framework, state management, styling
-- [ ] Folder structure
-- [ ] How to think ahead for a smoother DX and avoid problems later
-
-### Research notes
-
-(paste your notes here after trying Carrd, Framer, Webflow, Unbounce)
+- [x] **Step 1: Competitive Research** → `research/competitive-analysis.md`
+- [ ] **Step 2: MVP Feature Set** → `decisions/001-mvp-features.md`
+- [ ] **Step 3: Tech Stack + Architecture** → `decisions/002-tech-stack.md`, `decisions/003-block-schema.md`, etc.
+- [ ] **Step 4: Folder Structure + Code Standards + Git Rules** → `.claude/rules/code-standards.md`, `.claude/rules/git.md`
+- [ ] **Step 5: Roadmap** → Roadmap section below
 
 ---
 
-## Decisions made
+## Roadmap
 
-(nothing yet — this grows as we build)
+(to be filled in Step 5)
 
 ---
 
