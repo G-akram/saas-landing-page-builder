@@ -7,7 +7,7 @@
 ### Steps
 
 - [x] **Step 1: Competitive Research** → `research/competitive-analysis.md`
-- [ ] **Step 2: MVP Feature Set** → `decisions/001-mvp-features.md`
+- [x] **Step 2: MVP Feature Set** → `decisions/001-mvp-features.md`
 - [ ] **Step 3: Tech Stack + Architecture** → `decisions/002-tech-stack.md`, `decisions/003-block-schema.md`, etc.
 - [ ] **Step 4: Folder Structure + Code Standards + Git Rules** → `.claude/rules/code-standards.md`, `.claude/rules/git.md`
 - [ ] **Step 5: Roadmap** → Roadmap section below
