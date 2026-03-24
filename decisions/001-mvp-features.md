@@ -9,12 +9,14 @@
 ### MVP Features
 
 **Editor**
-- Section-based editor (page = vertical stack of sections)
+- Section-based editor (page = vertical stack of sections) — see ADR-002
 - Drag-to-reorder sections
 - Pre-built block library: Hero, Features, CTA, Pricing, Testimonials, Footer (6 types)
 - Block variants (e.g. "Hero style 1/2/3") — key differentiator vs Carrd
 - Inline text editing
 - Right sidebar property panel
+- Dark theme by default (editor chrome only — canvas is isolated, always shows real design)
+- Light theme toggle (design tokens / CSS custom properties enable swapping)
 
 **Customization**
 - Per-element styles (colors, fonts, spacing, backgrounds)
@@ -47,6 +49,7 @@
 - Version history
 - Starter templates (pre-built full pages)
 - Smart Traffic (AI-driven variant routing)
+- Editor i18n (no hardcoded strings from day 1, implement translations in v1.1)
 
 ### Later
 
@@ -55,6 +58,7 @@
 - Popups + sticky bars
 - Team collaboration
 - Code export
+- Published page i18n (locale variants — complex interaction with A/B variants)
 
 ## Rationale
 
@@ -64,6 +68,10 @@
 - **Auth in MVP:** Multi-user product from day 1. Removes "how do we add users later?" concern. Needed for dashboard, page ownership, and publishing.
 - **Per-element styles over class-based:** Simpler to implement, easier for users (see research). No CSS knowledge required.
 - **Desktop-first + auto-stack:** Covers 80% of responsive needs. Per-breakpoint overrides add complexity — deferred to v1.1.
+- **Dark theme by default:** Framer uses dark-only. Modern dev/design tools trend dark. Signals senior styling skills (design tokens, CSS custom properties, theme context, canvas isolation). Light toggle included — proves the system works both ways.
+- **Editor i18n in v1.1, not MVP:** i18n is a real senior skill worth demonstrating. No architectural cost if we avoid hardcoded strings from day 1. Actual translations deferred to v1.1.
+- **No published site themes:** Landing pages aren't apps — visitors don't need dark mode. Users already control every color via per-element styles. No competitor does this.
+- **No published page i18n in MVP:** Locale × A/B variant = combinatorial explosion. Deferred, but schema should not block it.
 
 ## Consequences
 
