@@ -11,7 +11,7 @@
 - [ ] **Step 3: Tech Stack + Architecture**
   - [x] ADR-003: Tech stack — Next.js full-stack monolith → `decisions/003-tech-stack.md`
   - [x] ADR-004: State management + editor data flow → `decisions/004-state-management.md`
-  - [ ] ADR-005: Block schema design
+  - [x] ADR-005: Block schema design → `decisions/005-block-schema.md`
   - [ ] ADR-006: Styling (editor UI)
   - [ ] ADR-007: Database + auth
   - [ ] ADR-008: Publishing pipeline
