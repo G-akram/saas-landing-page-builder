@@ -12,7 +12,7 @@
   - [x] ADR-003: Tech stack — Next.js full-stack monolith → `decisions/003-tech-stack.md`
   - [x] ADR-004: State management + editor data flow → `decisions/004-state-management.md`
   - [x] ADR-005: Block schema design → `decisions/005-block-schema.md`
-  - [ ] ADR-006: Styling (editor UI)
+  - [x] ADR-006: Styling — Tailwind + shadcn/ui → `decisions/006-styling.md`
   - [ ] ADR-007: Database + auth
   - [ ] ADR-008: Publishing pipeline
 - [ ] **Step 4: Folder Structure + Code Standards + Git Rules** → `.claude/rules/code-standards.md`, `.claude/rules/git.md`
