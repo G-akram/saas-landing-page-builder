@@ -386,10 +386,104 @@ Visitor
        └─ Visitor sees the page — no JS, no hydration, no loading
 ```
 
+## Interactive Elements — JS Strategy
+
+MVP published pages ship zero JavaScript. But post-MVP element types (video embeds, email forms, carousels) will need interactivity. This section documents the architectural approach so the publishing pipeline accommodates it without redesign.
+
+### The principle: JS is additive, not baseline
+
+A published page with only static elements (heading, text, button, image, icon) ships **zero JS** — exactly as described above. JavaScript is only emitted when the page contains an element type that requires it. A page that doesn't use a carousel never downloads carousel code.
+
+### What needs JS and what doesn't
+
+| Element | Needs JS? | Rendering strategy |
+|---|---|---|
+| Heading, Text, Icon | No | Pure HTML |
+| Button | No | `<a>` tag — links are native HTML |
+| Image | No | `<img>` tag |
+| Video | No | `<iframe>` embed (YouTube/Vimeo) — the third-party player handles everything |
+| Email form | Yes | Vanilla JS for validation, async submit, success/error message without page reload |
+| Carousel / Slider | Yes | Vanilla JS for slide transitions, navigation, auto-play |
+| Scroll animations | Yes | Vanilla JS using Intersection Observer API |
+| Countdown timer | Yes | Vanilla JS updating the DOM on interval |
+
+### The approach: inline vanilla `<script>` blocks
+
+When the renderer encounters an interactive element type, it appends a small self-contained `<script>` block to the HTML output. No framework, no bundler, no hydration.
+
+```html
+<!-- Only present if the page contains a carousel -->
+<script>
+  (function() {
+    document.querySelectorAll('[data-carousel]').forEach(function(el) {
+      // ~30 lines of vanilla slide logic
+    });
+  })();
+</script>
+```
+
+**Why vanilla JS, not React hydration:**
+
+| Factor | Inline vanilla JS | React partial hydration |
+|---|---|---|
+| **Baseline cost** | 0 KB (no framework) | ~40 KB gzipped (React runtime) |
+| **Per-element cost** | 1-3 KB per interactive type | Similar component size + hydration overhead |
+| **Complexity** | Script runs immediately, no build step | Needs bundler, code splitting, hydration boundaries |
+| **Independence** | Published page is fully self-contained | Published page depends on a JS bundle |
+| **Debugging** | View source → read the script | React DevTools, source maps, etc. |
+
+For a landing page with 1-2 interactive elements, shipping 40 KB of React to run 30 lines of carousel logic is unjustifiable.
+
+**Why not third-party embeds for everything:**
+
+Embeds (like Formspree `<iframe>` for forms) seem simpler but have real downsides:
+- Can't style to match the page — the embed has its own CSS
+- User depends on a third-party service's availability and pricing
+- Data (form submissions) lives outside our system — harder to build analytics on
+
+Third-party embeds make sense for **video** (YouTube/Vimeo already handle playback, DRM, adaptive streaming — reimplementing this would be absurd). They don't make sense for forms or carousels where we control the experience.
+
+### How this affects the renderer
+
+The renderer stays a pure function: `(pageJSON) → HTML string`. The only change is that it conditionally appends `<script>` blocks:
+
+```
+renderPage(page)
+  → render sections and elements to HTML (existing flow)
+  → collect which interactive element types are used
+  → if any: append their corresponding <script> blocks before </body>
+  → return complete HTML string
+```
+
+Each interactive element type has a corresponding JS module — a plain `.js` file containing the vanilla script. The renderer reads it and inlines it. One script per element **type**, not per element **instance** (a page with 3 carousels gets one carousel script that targets all `[data-carousel]` elements).
+
+### Schema impact
+
+New interactive element types are additions to ADR-005's `ElementType` union and `ElementContent` discriminated union:
+
+```typescript
+// Post-MVP additions
+type ElementType =
+  | 'heading' | 'text' | 'button' | 'image' | 'icon'  // MVP
+  | 'video' | 'form' | 'carousel'                       // post-MVP
+
+type ElementContent =
+  | { type: 'video'; provider: 'youtube' | 'vimeo'; videoId: string }
+  | { type: 'form'; fields: FormField[]; submitUrl: string; successMessage: string }
+  | { type: 'carousel'; slides: CarouselSlide[] }
+  // ... existing types
+```
+
+The schema extension pattern is the same as adding any new element type — no structural change to the 2-level hierarchy (ADR-005).
+
+### Timeline
+
+None of this is MVP. The MVP element set (`heading | text | button | image | icon`) is fully static. This section exists so that when we add interactive elements post-MVP, the publishing pipeline doesn't need redesigning — it just needs a conditional `<script>` append step.
+
 ## Consequences
 
 - **`publishedPages` table** stores rendered HTML — one row per variant per page. This is the published artifact, not the source (source is `pages.document` JSONB).
-- **No JavaScript in published pages** at MVP. Pure HTML + inline CSS. This is the fastest and most SEO-friendly output, but means no interactivity (no form submissions, no animations beyond CSS). Interactive elements are a post-MVP concern.
+- **No JavaScript in published pages** at MVP. Pure HTML + inline CSS. Post-MVP interactive elements (forms, carousels) use inline vanilla `<script>` blocks — see "Interactive Elements — JS Strategy" section above.
 - **SEO metadata** (`PageSEO`) is a small schema addition to ADR-005's Page interface. Optional fields with sensible auto-generated defaults.
 - **Subdomain routing** requires Vercel wildcard domain config and Next.js middleware. This is configuration, not architectural complexity.
 - **The renderer is a plain function** — takes page JSON, returns HTML string. Not coupled to Next.js. This matters for the ADR-003 migration path: if we later extract publishing to a worker, the render function moves with zero changes.
