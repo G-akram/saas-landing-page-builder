@@ -14,7 +14,7 @@
   - [x] ADR-005: Block schema design → `decisions/005-block-schema.md`
   - [x] ADR-006: Styling — Tailwind + shadcn/ui → `decisions/006-styling.md`
   - [x] ADR-007: Database + auth — Neon (PostgreSQL) + Drizzle ORM + NextAuth.js → `decisions/007-database-auth.md`
-  - [ ] ADR-008: Publishing pipeline
+  - [x] ADR-008: Publishing pipeline — explicit build-on-publish, same app, static HTML → `decisions/008-publishing-pipeline.md`
 - [ ] **Step 4: Folder Structure + Code Standards + Git Rules** → `.claude/rules/code-standards.md`, `.claude/rules/git.md`
 - [ ] **Step 5: Roadmap** → Roadmap section below
 
