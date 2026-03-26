@@ -4,6 +4,13 @@ node_modules/
 # Next.js
 .next/
 out/
+next-env.d.ts
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# Claude local settings
+.claude/settings.local.json
 
 # Build artifacts
 dist/
