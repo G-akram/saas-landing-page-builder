@@ -73,6 +73,14 @@ export default tseslint.config(
     },
   },
 
+  // Relax rules for shadcn/ui generated components
+  {
+    files: ['src/components/ui/**/*.tsx'],
+    rules: {
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+    },
+  },
+
   // Ignore generated and config files from strict TS checking
   {
     ignores: [

@@ -68,7 +68,7 @@ export function CreatePageDialog(): React.JSX.Element {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsOpen(false)}
+              onClick={() => { setIsOpen(false) }}
               disabled={isPending}
             >
               Cancel

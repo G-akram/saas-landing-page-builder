@@ -1,10 +1,25 @@
 import { and, desc, eq } from 'drizzle-orm'
 
 import { db, pages } from '@/shared/db'
-import { PageDocumentSchema } from '@/shared/types'
+import { z } from 'zod'
+
+import { type PageDocument, PageDocumentSchema } from '@/shared/types'
 import { logger } from '@/shared/lib/logger'
 
-export async function getPagesByUser(userId: string) {
+interface PageSummary {
+  id: string
+  name: string
+  slug: string
+  status: 'draft' | 'published'
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface PageWithDocument extends PageSummary {
+  document: PageDocument
+}
+
+export async function getPagesByUser(userId: string): Promise<PageSummary[]> {
   return db
     .select({
       id: pages.id,
@@ -19,7 +34,7 @@ export async function getPagesByUser(userId: string) {
     .orderBy(desc(pages.updatedAt))
 }
 
-export async function getPageById(pageId: string, userId: string) {
+export async function getPageById(pageId: string, userId: string): Promise<PageWithDocument | null> {
   const rows = await db
     .select()
     .from(pages)
@@ -33,7 +48,7 @@ export async function getPageById(pageId: string, userId: string) {
   if (!parsed.success) {
     logger.error('Invalid page document in DB', {
       pageId,
-      errors: parsed.error.flatten().fieldErrors,
+      errors: z.treeifyError(parsed.error),
     })
     return null
   }
