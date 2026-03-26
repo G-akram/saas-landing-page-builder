@@ -10,4 +10,4 @@ See `.claude/rules/` for how we work together.
 
 ## Current state
 
-See `docs.md` for project status, decisions, and what's next.
+See `docs/` for architecture and API docs, `ROADMAP.md` for phases and progress.
