@@ -34,7 +34,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 
 ## Phase 1 — Foundation
 
-**Status: not started**
+**Status: in progress**
 
 **Why second:** Everything else depends on this. You can't build the editor without a DB to save to. You can't test saving without auth. The schema must be migrated before any editor state is designed, because the shape of `Page → Variants → Sections → Elements` drives every other data structure.
 
@@ -44,6 +44,17 @@ Each phase produces a working vertical slice. You can demo something real at the
 - NextAuth.js: sign up, log in, session, protected routes
 - Dashboard: create page, list pages, delete page
 - Pages save to and load from DB (no editor yet — just raw JSON round-trip)
+
+**Implementation approach:** See `decisions/011-phase1-approach.md` for rationale.
+
+**Steps:**
+- [ ] Scaffold: Next.js + TypeScript + Tailwind + shadcn/ui + ESLint strict + Prettier + path aliases
+- [ ] Folder structure per ADR-009 (module dirs, barrel exports, shared/)
+- [ ] Drizzle schema + Neon migration (users, accounts, sessions, pages, publishedPages)
+- [ ] Zod schemas in `shared/types/` (Page → Variant → Section → Element per ADR-005)
+- [ ] NextAuth.js v5 (Google + GitHub OAuth, Drizzle adapter, middleware, protected routes)
+- [ ] Dashboard: create page, list pages, delete page
+- [ ] Page round-trip: load from DB, display document (proves full data path)
 
 **Deliverables:**
 - Sign up, log in, create a named page, see it in the dashboard, delete it
