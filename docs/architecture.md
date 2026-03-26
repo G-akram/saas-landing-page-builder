@@ -32,6 +32,54 @@ User
 
 See `decisions/005-block-schema.md` for the full schema and field definitions.
 
+## State management
+
+Two Zustand stores with distinct lifecycles. Components orchestrate; stores stay decoupled.
+
+### Store responsibilities
+
+| | `documentStore` | `uiStore` |
+|---|---|---|
+| **Holds** | Page content (sections, elements, styles) | Editor UI (selection, mode, panels) |
+| **Persisted?** | Yes — auto-save serializes to DB | No — reset every page load |
+| **Undo/redo?** | Yes — users undo content changes | No — "undo selecting a panel" is meaningless |
+| **Shape** | Always a valid `PageDocument` (Zod schema) | Flat flags and IDs, no schema constraint |
+| **Lifecycle** | Survives reload (via DB round-trip) | Dies on unmount |
+
+### How they interact
+
+One-way only: **UI actions trigger document mutations, never the reverse.**
+
+`documentStore` never calls `uiStore`. It doesn't know the UI store exists. Components (and later XState) sit one layer above both stores and coordinate.
+
+### Example: user edits an element's color
+
+```
+1. User clicks a red button in the canvas
+   → component calls uiStore.selectElement('element-42')
+   → uiStore: selectedElementId = 'element-42', editorMode = 'selected'
+
+2. Properties panel reads BOTH stores
+   → uiStore.selectedElementId       → knows WHAT is selected
+   → documentStore.document.variants → finds element-42, reads styles.color = '#ff0000'
+   → renders a color picker showing red
+
+3. User picks blue
+   → component calls documentStore.updateElementStyles('element-42', { color: '#0000ff' })
+   → undo snapshot pushed, document mutates
+   → canvas re-renders (subscribes to same document) → button turns blue
+   → panel re-renders → color picker shows blue
+```
+
+### What coordinates the stores
+
+| Phase | Coordinator | How |
+|---|---|---|
+| Steps 1–5 | Components (event handlers) | `onClick` → call uiStore + documentStore |
+| Step 6+ | XState machine | Machine transitions trigger store updates via actions |
+
+See `decisions/004-state-management.md` for the full rationale and `decisions/015-store-implementation.md` for implementation decisions (snapshot undo, history cap, structuredClone).
+
 ## Key decisions
 
 | Decision | ADR |
@@ -43,3 +91,5 @@ See `decisions/005-block-schema.md` for the full schema and field definitions.
 | Database + auth (Neon + Drizzle + NextAuth.js) | `decisions/007-database-auth.md` |
 | Publishing pipeline (static HTML, same app) | `decisions/008-publishing-pipeline.md` |
 | Key libraries (dnd-kit, Zod, RHF, TanStack Query, Lucide) | `decisions/010-key-libraries.md` |
+| Phase 2 step order (stores → canvas → DnD → auto-save → XState → chrome) | `decisions/014-phase2-approach.md` |
+| Store implementation (snapshot undo, history cap, two stores, no Immer) | `decisions/015-store-implementation.md` |
