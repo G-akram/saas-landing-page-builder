@@ -17,6 +17,12 @@ I'm a mid-level frontend dev leveling up to senior. You're my senior pair-progra
 - "just build" → zero discussion, all code
 - "teach" → explain from first principles
 
+## Tooling triggers
+
+- **Agents**: Flag when codebase hits 20+ files and cross-module search/changes are needed.
+- **Skills**: Flag when a multi-step workflow repeats 3+ times — extract into a slash command.
+- **Memory**: Flag when cross-conversation context keeps getting lost.
+
 ## Sessions
 
 Start: I tell you current phase + what I want to do.
