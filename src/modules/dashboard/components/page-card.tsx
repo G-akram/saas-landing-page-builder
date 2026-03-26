@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -49,7 +50,9 @@ export function PageCard({ id, name, slug, status, updatedAt }: PageCardProps): 
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg">{name}</CardTitle>
+            <Link href={`/editor/${id}`} className="hover:underline">
+              <CardTitle className="text-lg">{name}</CardTitle>
+            </Link>
             <CardDescription>/{slug}</CardDescription>
           </div>
           <span className="bg-secondary text-secondary-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">

@@ -34,7 +34,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 
 ## Phase 1 — Foundation
 
-**Status: in progress**
+**Status: complete**
 
 **Why second:** Everything else depends on this. You can't build the editor without a DB to save to. You can't test saving without auth. The schema must be migrated before any editor state is designed, because the shape of `Page → Variants → Sections → Elements` drives every other data structure.
 
@@ -54,7 +54,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] Zod schemas in `shared/types/` (Page → Variant → Section → Element per ADR-005)
 - [x] NextAuth.js v5 (Google + GitHub OAuth, Drizzle adapter, middleware, protected routes)
 - [x] Dashboard: create page, list pages, delete page
-- [ ] Page round-trip: load from DB, display document (proves full data path)
+- [x] Page round-trip: load from DB, display document (proves full data path)
 
 **Deliverables:**
 - Sign up, log in, create a named page, see it in the dashboard, delete it
