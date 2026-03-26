@@ -1,5 +1,7 @@
 import { integer, jsonb, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core'
 
+import { type PageDocument } from '@/shared/types'
+
 // ── Auth tables (required by NextAuth.js v5 Drizzle adapter) ─────────────────
 
 export const users = pgTable('users', {
@@ -64,7 +66,7 @@ export const pages = pgTable('pages', {
     .references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
-  document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+  document: jsonb('document').$type<PageDocument>().notNull(),
   status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
