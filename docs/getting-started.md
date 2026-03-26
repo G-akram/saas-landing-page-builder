@@ -1,4 +1,4 @@
-# Getting Started
+bn# Getting Started
 
 ## Prerequisites
 
@@ -20,8 +20,8 @@ pnpm dev
 
 ## Environment variables
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | Neon PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | Random secret for NextAuth.js session signing |
-| `NEXTAUTH_URL` | Base URL of the app (e.g. `http://localhost:3000`) |
+| Variable          | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `DATABASE_URL`    | Neon PostgreSQL connection string                  |
+| `NEXTAUTH_SECRET` | Random secret for NextAuth.js session signing      |
+| `NEXTAUTH_URL`    | Base URL of the app (e.g. `http://localhost:3000`) |
