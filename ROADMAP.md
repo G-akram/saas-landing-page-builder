@@ -53,7 +53,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] Drizzle schema + Neon migration (users, accounts, sessions, pages, publishedPages)
 - [x] Zod schemas in `shared/types/` (Page → Variant → Section → Element per ADR-005)
 - [x] NextAuth.js v5 (Google + GitHub OAuth, Drizzle adapter, middleware, protected routes)
-- [ ] Dashboard: create page, list pages, delete page
+- [x] Dashboard: create page, list pages, delete page
 - [ ] Page round-trip: load from DB, display document (proves full data path)
 
 **Deliverables:**

@@ -1,25 +1,65 @@
+import { redirect } from 'next/navigation'
+
 import { auth, signOut } from '@/shared/lib/auth'
+import { getPagesByUser } from '@/modules/dashboard/queries/page-queries'
+import { CreatePageDialog } from '@/modules/dashboard/components/create-page-dialog'
+import { PageCard } from '@/modules/dashboard/components/page-card'
+import { EmptyState } from '@/modules/dashboard/components/empty-state'
 import { Button } from '@/components/ui/button'
 
 export default async function DashboardPage(): Promise<React.JSX.Element> {
   const session = await auth()
 
+  if (!session?.user?.id) {
+    redirect('/login')
+  }
+
+  const userPages = await getPagesByUser(session.user.id)
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p className="text-muted-foreground text-sm">
-        Signed in as {session?.user?.email}
-      </p>
-      <form
-        action={async () => {
-          'use server'
-          await signOut({ redirectTo: '/login' })
-        }}
-      >
-        <Button type="submit" variant="outline">
-          Sign out
-        </Button>
-      </form>
+    <div className="mx-auto min-h-screen max-w-4xl px-6 py-10">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Pages</h1>
+          <p className="text-muted-foreground text-sm">
+            {session.user.email}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <CreatePageDialog />
+          <form
+            action={async () => {
+              'use server'
+              await signOut({ redirectTo: '/login' })
+            }}
+          >
+            <Button type="submit" variant="ghost" size="sm">
+              Sign out
+            </Button>
+          </form>
+        </div>
+      </div>
+
+      {/* Page list */}
+      <div className="mt-8">
+        {userPages.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {userPages.map((page) => (
+              <PageCard
+                key={page.id}
+                id={page.id}
+                name={page.name}
+                slug={page.slug}
+                status={page.status}
+                updatedAt={page.updatedAt}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
