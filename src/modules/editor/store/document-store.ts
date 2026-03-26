@@ -131,7 +131,8 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
 
       const newDoc = mapVariantSections(state.document, variantId, (sections) => {
         const result = [...sections]
-        const [moved] = result.splice(fromIndex, 1)
+        const moved = result.splice(fromIndex, 1)[0]
+        if (!moved) return sections
         result.splice(toIndex, 0, moved)
         return result
       })
@@ -188,6 +189,7 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
       if (!state.document || state.undoStack.length === 0) return state
 
       const previous = state.undoStack[state.undoStack.length - 1]
+      if (!previous) return state
       return {
         document: previous,
         isDirty: true,
@@ -202,6 +204,7 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
       if (!state.document || state.redoStack.length === 0) return state
 
       const next = state.redoStack[state.redoStack.length - 1]
+      if (!next) return state
       return {
         document: next,
         isDirty: true,

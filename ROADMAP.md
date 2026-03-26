@@ -85,7 +85,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 
 **Steps:**
 - [x] Zustand stores (`useDocumentStore` + `useUIStore`) with undo/redo
-- [ ] Editor route + canvas rendering (Server Component → client `EditorShell` → section stack)
+- [x] Editor route + canvas rendering (Server Component → client `EditorShell` → section stack)
 - [ ] dnd-kit: drag to reorder sections (with undo/redo integration)
 - [ ] Add section (type picker) + delete section (with undo/redo)
 - [ ] Auto-save: debounced write-back to DB via TanStack Query mutation + status indicator

@@ -4,7 +4,7 @@ export default function EditorLayout({
   children: React.ReactNode
 }): React.JSX.Element {
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-gray-950 text-white">
       {children}
     </div>
   )

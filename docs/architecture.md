@@ -32,6 +32,24 @@ User
 
 See `decisions/005-block-schema.md` for the full schema and field definitions.
 
+## Editor rendering pipeline
+
+Server Component → Client boundary → Zustand stores → React tree.
+
+```
+/editor/[pageId]/page.tsx  (Server Component)
+  ├── auth() + getPageById()  → fetches from DB, validates with Zod
+  └── <EditorShell>           (Client Component — 'use client' boundary)
+        ├── useEffect → initializeDocument(doc) + resetUI()
+        ├── <header>           Top bar (page name, save status)
+        └── <EditorCanvas>     Reads documentStore, renders active variant
+              └── <SectionRenderer>  One per section, shows elements preview
+```
+
+**Why this split:** The Server Component owns data fetching (auth, DB, Zod validation). The client boundary (`EditorShell`) owns interactivity. Data crosses the boundary once as a serialized prop — no client-side refetch needed.
+
+**Store initialization:** `initializeDocument()` runs in `useEffect` (not render), because Zustand `set()` triggers re-renders. A `useRef` guard prevents StrictMode double-init in dev.
+
 ## State management
 
 Two Zustand stores with distinct lifecycles. Components orchestrate; stores stay decoupled.

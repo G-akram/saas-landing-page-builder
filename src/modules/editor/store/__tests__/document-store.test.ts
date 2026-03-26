@@ -64,8 +64,10 @@ describe('useDocumentStore', () => {
       const doc = createTestDocument()
       useDocumentStore.getState().initializeDocument(doc)
 
-      doc.variants[0].name = 'Mutated'
-      expect(useDocumentStore.getState().document?.variants[0].name).toBe('Default')
+      const firstVariant = doc.variants[0]
+      if (!firstVariant) throw new Error('Test setup: missing variant')
+      firstVariant.name = 'Mutated'
+      expect(useDocumentStore.getState().document?.variants[0]?.name).toBe('Default')
     })
   })
 
