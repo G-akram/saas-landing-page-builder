@@ -15,6 +15,7 @@
   - [x] ADR-006: Styling — Tailwind + shadcn/ui → `decisions/006-styling.md`
   - [x] ADR-007: Database + auth — Neon (PostgreSQL) + Drizzle ORM + NextAuth.js → `decisions/007-database-auth.md`
   - [x] ADR-008: Publishing pipeline — explicit build-on-publish, same app, static HTML → `decisions/008-publishing-pipeline.md`
+  - [x] ADR-010: Key libraries — dnd-kit, Zod, RHF, Lucide, TanStack Query → `decisions/010-key-libraries.md`
 - [x] **Step 4: Folder Structure + Code Standards + Git Rules**
   - [x] ADR-009: Module-based folder structure → `decisions/009-folder-structure.md`
   - [x] Code standards → `.claude/rules/code-standards.md`
