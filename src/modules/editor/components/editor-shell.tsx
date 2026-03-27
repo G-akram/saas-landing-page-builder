@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { type PageDocument } from '@/shared/types'
 import { useDocumentStore, useUIStore } from '@/modules/editor'
 
+import { useAutoSave } from '../hooks/use-auto-save'
 import { EditorCanvas } from './editor-canvas'
+import { SaveStatusIndicator } from './save-status-indicator'
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -26,6 +28,8 @@ export function EditorShell({
   const initializeDocument = useDocumentStore((s) => s.initializeDocument)
   const resetUI = useUIStore((s) => s.resetUI)
   const isInitialized = useRef(false)
+
+  const saveStatus = useAutoSave(pageId)
 
   // Initialize stores once on mount (or when page changes)
   useEffect(() => {
@@ -52,10 +56,7 @@ export function EditorShell({
           <h1 className="text-sm font-medium text-white">{pageName}</h1>
         </div>
 
-        <div className="text-xs text-gray-500">
-          {/* Save status indicator goes here in Step 5 */}
-          Draft
-        </div>
+        <SaveStatusIndicator status={saveStatus} />
       </header>
 
       {/* Canvas area — scrollable, centered */}
