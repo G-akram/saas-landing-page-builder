@@ -2,6 +2,8 @@
 
 import { type Section, type Element as PageElement } from '@/shared/types'
 
+import { ElementRenderer } from './element-renderer'
+
 // ── Props ───────────────────────────────────────────────────────────────────
 
 interface SectionRendererProps {
@@ -13,9 +15,15 @@ interface SectionRendererProps {
 // ── Layout alignment → Tailwind class (static strings survive purge) ────────
 
 const ALIGN_CLASS: Record<Section['layout']['align'], string> = {
-  left: 'items-start',
-  center: 'items-center',
-  right: 'items-end',
+  left: 'items-start text-left',
+  center: 'items-center text-center',
+  right: 'items-end text-right',
+}
+
+const VERTICAL_ALIGN_CLASS: Record<Section['layout']['verticalAlign'], string> = {
+  top: 'justify-start',
+  center: 'justify-center',
+  bottom: 'justify-end',
 }
 
 // ── Section type display config ─────────────────────────────────────────────
@@ -29,21 +37,46 @@ const SECTION_LABELS: Record<Section['type'], string> = {
   footer: 'Footer',
 }
 
-// ── Element preview (minimal text representation) ───────────────────────────
+// ── Background helpers ──────────────────────────────────────────────────────
 
-function getElementPreview(element: PageElement): string {
-  switch (element.content.type) {
-    case 'heading':
-      return element.content.text
-    case 'text':
-      return element.content.text
-    case 'button':
-      return `[${element.content.text}]`
+function buildBackgroundStyle(bg: Section['background']): React.CSSProperties {
+  switch (bg.type) {
+    case 'color':
+      return { backgroundColor: bg.value }
+    case 'gradient':
+      return { background: bg.value }
     case 'image':
-      return `📷 ${element.content.alt}`
-    case 'icon':
-      return `⬡ ${element.content.name}`
+      return {
+        backgroundImage: `url(${bg.value})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
   }
+}
+
+/** Best-effort dark detection for solid colors. Gradients/images default to light. */
+function isDarkBackground(bg: Section['background']): boolean {
+  if (bg.type !== 'color') return false
+  return isDark(bg.value)
+}
+
+// ── Slot grouping ───────────────────────────────────────────────────────────
+
+/** Group elements by slot number, preserving order within each group. */
+function groupBySlot(elements: PageElement[]): Map<number, PageElement[]> {
+  const groups = new Map<number, PageElement[]>()
+  const sorted = [...elements].sort((a, b) => a.slot - b.slot)
+
+  for (const el of sorted) {
+    const group = groups.get(el.slot)
+    if (group) {
+      group.push(el)
+    } else {
+      groups.set(el.slot, [el])
+    }
+  }
+
+  return groups
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -53,15 +86,12 @@ export function SectionRenderer({
   isSelected,
   onSelect,
 }: SectionRendererProps): React.JSX.Element {
-  const bgValue =
-    section.background.type === 'color' ? section.background.value : '#ffffff'
-
-  // Determine if background is dark to pick text color
-  const isDarkBg = isDark(bgValue)
-  const textClass = isDarkBg ? 'text-white' : 'text-gray-900'
+  const isDarkBg = isDarkBackground(section.background)
+  const textColorClass = isDarkBg ? 'text-white' : 'text-gray-900'
   const mutedClass = isDarkBg ? 'text-white/60' : 'text-gray-500'
+  const { layout } = section
 
-  const sortedElements = [...section.elements].sort((a, b) => a.slot - b.slot)
+  const slotGroups = groupBySlot(section.elements)
 
   return (
     <div
@@ -73,11 +103,12 @@ export function SectionRenderer({
           : 'ring-1 ring-white/10 hover:ring-white/25'
       }`}
       style={{
-        backgroundColor: bgValue,
+        ...buildBackgroundStyle(section.background),
         paddingTop: `${String(section.padding.top)}px`,
         paddingBottom: `${String(section.padding.bottom)}px`,
         paddingLeft: `${String(section.padding.left)}px`,
         paddingRight: `${String(section.padding.right)}px`,
+        position: 'relative',
       }}
       onClick={() => {
         onSelect(section.id)
@@ -89,8 +120,17 @@ export function SectionRenderer({
         }
       }}
     >
+      {/* Background overlay for image backgrounds */}
+      {section.background.overlay ? (
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ backgroundColor: section.background.overlay }}
+        />
+      ) : null}
+
       {/* Section type badge */}
-      <div className="absolute top-2 left-2">
+      <div className="absolute top-2 left-2 z-10">
         <span
           className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
             isDarkBg
@@ -102,22 +142,25 @@ export function SectionRenderer({
         </span>
       </div>
 
-      {/* Elements preview */}
-      <div
-        className={`flex flex-col ${ALIGN_CLASS[section.layout.align]}`}
-        style={{ gap: `${String(section.layout.gap)}px` }}
-      >
-        {sortedElements.length > 0 ? (
-          sortedElements.map((element) => (
-            <ElementPreview
-              key={element.id}
-              element={element}
-              textClass={textClass}
+      {/* Content */}
+      <div className="relative z-[1]">
+        {section.elements.length > 0 ? (
+          layout.type === 'grid' && layout.columns ? (
+            <GridLayout
+              layout={layout}
+              slotGroups={slotGroups}
+              textColorClass={textColorClass}
             />
-          ))
+          ) : (
+            <StackLayout
+              layout={layout}
+              slotGroups={slotGroups}
+              textColorClass={textColorClass}
+            />
+          )
         ) : (
           <p className={`text-sm italic ${mutedClass}`}>
-            Empty section — add elements in Phase 3
+            Empty section — add elements
           </p>
         )}
       </div>
@@ -125,86 +168,83 @@ export function SectionRenderer({
   )
 }
 
-// ── Element preview component ───────────────────────────────────────────────
+// ── Grid layout ─────────────────────────────────────────────────────────────
 
-interface ElementPreviewProps {
-  element: PageElement
-  textClass: string
+interface LayoutProps {
+  layout: Section['layout']
+  slotGroups: Map<number, PageElement[]>
+  textColorClass: string
 }
 
-function ElementPreview({
-  element,
-  textClass,
-}: ElementPreviewProps): React.JSX.Element {
-  const preview = getElementPreview(element)
+function GridLayout({
+  layout,
+  slotGroups,
+  textColorClass,
+}: LayoutProps): React.JSX.Element {
+  const columns = layout.columns ?? 1
+  const alignClass = ALIGN_CLASS[layout.align]
+  const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
 
-  switch (element.content.type) {
-    case 'heading':
-      return (
-        <p
-          className={`font-bold ${textClass}`}
-          style={{
-            fontSize: element.styles.fontSize
-              ? `${String(element.styles.fontSize)}px`
-              : undefined,
-            textAlign: element.styles.textAlign ?? undefined,
-            color: element.styles.color ?? undefined,
-          }}
-        >
-          {preview}
-        </p>
-      )
+  // Build column indices 0..columns-1
+  const columnIndices = Array.from({ length: columns }, (_, i) => i)
 
-    case 'button':
-      return (
-        <span
-          className="inline-block cursor-default rounded"
-          style={{
-            fontSize: element.styles.fontSize
-              ? `${String(element.styles.fontSize)}px`
-              : undefined,
-            fontWeight: element.styles.fontWeight ?? undefined,
-            color: element.styles.color ?? undefined,
-            backgroundColor: element.styles.backgroundColor ?? undefined,
-            borderRadius: element.styles.borderRadius
-              ? `${String(element.styles.borderRadius)}px`
-              : undefined,
-            paddingTop: element.styles.padding
-              ? `${String(element.styles.padding.top)}px`
-              : undefined,
-            paddingBottom: element.styles.padding
-              ? `${String(element.styles.padding.bottom)}px`
-              : undefined,
-            paddingLeft: element.styles.padding
-              ? `${String(element.styles.padding.left)}px`
-              : undefined,
-            paddingRight: element.styles.padding
-              ? `${String(element.styles.padding.right)}px`
-              : undefined,
-          }}
-        >
-          {element.content.text}
-        </span>
-      )
+  return (
+    <div
+      className="grid"
+      style={{
+        gridTemplateColumns: `repeat(${String(columns)}, 1fr)`,
+        gap: `${String(layout.gap)}px`,
+      }}
+    >
+      {columnIndices.map((colIndex) => {
+        const elements = slotGroups.get(colIndex) ?? []
+        return (
+          <div
+            key={colIndex}
+            className={`flex flex-col ${alignClass} ${vAlignClass}`}
+            style={{ gap: `${String(Math.min(layout.gap, 16))}px` }}
+          >
+            {elements.map((element) => (
+              <ElementRenderer
+                key={element.id}
+                element={element}
+                textColorClass={textColorClass}
+              />
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
-    default:
-      return (
-        <p
-          className={textClass}
-          style={{
-            fontSize: element.styles.fontSize
-              ? `${String(element.styles.fontSize)}px`
-              : undefined,
-            textAlign: element.styles.textAlign ?? undefined,
-            color: element.styles.color ?? undefined,
-            maxWidth: element.styles.maxWidth ?? undefined,
-            lineHeight: element.styles.lineHeight ?? undefined,
-          }}
-        >
-          {preview}
-        </p>
-      )
-  }
+// ── Stack layout ────────────────────────────────────────────────────────────
+
+function StackLayout({
+  layout,
+  slotGroups,
+  textColorClass,
+}: LayoutProps): React.JSX.Element {
+  const alignClass = ALIGN_CLASS[layout.align]
+  const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
+
+  // Flatten all groups in slot order
+  const allElements = [...slotGroups.values()].flat()
+
+  return (
+    <div
+      className={`flex flex-col ${alignClass} ${vAlignClass}`}
+      style={{ gap: `${String(layout.gap)}px` }}
+    >
+      {allElements.map((element) => (
+        <ElementRenderer
+          key={element.id}
+          element={element}
+          textColorClass={textColorClass}
+        />
+      ))}
+    </div>
+  )
 }
 
 // ── Utility ─────────────────────────────────────────────────────────────────
