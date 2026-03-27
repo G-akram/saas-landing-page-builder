@@ -10,7 +10,7 @@
 
 **Why:** Positional insertion requires the UI to communicate a target index — a separate insert-zone UX problem (hover zones between sections, insert indicators). Drag-to-reorder already exists (Step 3). The user workflow is: add at end → drag to position. Two well-defined operations beat one complex one.
 
-**If this needs to change:** Add `atIndex?: number` to the store action and default to `sections.length`. The UI change (insert zones) is the harder part, not the store.
+**Deferred, not dropped:** The right UX is hover-reveal `+` zones between sections (Webflow/Framer pattern). This pairs with the section list panel (Step 7) and is built then — not now. The store already accepts `atIndex?: number`. The UI work is what's deferred.
 
 ## Decision 2: Section Template Registry in `editor/lib/`
 

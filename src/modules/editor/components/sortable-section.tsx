@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Trash2 } from 'lucide-react'
 
 import { type Section } from '@/shared/types'
 
@@ -14,6 +14,7 @@ interface SortableSectionProps {
   section: Section
   isSelected: boolean
   onSelect: (sectionId: string) => void
+  onDelete: () => void
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ export function SortableSection({
   section,
   isSelected,
   onSelect,
+  onDelete,
 }: SortableSectionProps): React.JSX.Element {
   const {
     attributes,
@@ -50,6 +52,16 @@ export function SortableSection({
       >
         <GripVertical className="h-5 w-5 text-gray-500" />
       </div>
+
+      {/* Delete button */}
+      <button
+        type="button"
+        onClick={onDelete}
+        aria-label="Delete section"
+        className="absolute top-2 right-2 z-10 rounded p-1 opacity-0 transition-opacity group-hover/sortable:opacity-100 hover:bg-red-500/20 hover:text-red-400 text-gray-500"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
 
       {/*
         Keep SectionRenderer mounted so dnd-kit can measure the exact element height.

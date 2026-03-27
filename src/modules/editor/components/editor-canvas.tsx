@@ -20,6 +20,7 @@ import {
 
 import { useDocumentStore, useUIStore } from '@/modules/editor'
 
+import { AddSectionButton } from './add-section-button'
 import { SectionRenderer } from './section-renderer'
 import { SortableSection } from './sortable-section'
 
@@ -28,6 +29,8 @@ import { SortableSection } from './sortable-section'
 export function EditorCanvas(): React.JSX.Element {
   const document = useDocumentStore((s) => s.document)
   const reorderSections = useDocumentStore((s) => s.reorderSections)
+  const addSection = useDocumentStore((s) => s.addSection)
+  const deleteSection = useDocumentStore((s) => s.deleteSection)
   const selectedSectionId = useUIStore((s) => s.selectedSectionId)
   const selectSection = useUIStore((s) => s.selectSection)
   const setEditorMode = useUIStore((s) => s.setEditorMode)
@@ -130,6 +133,9 @@ export function EditorCanvas(): React.JSX.Element {
                     section={section}
                     isSelected={selectedSectionId === section.id}
                     onSelect={selectSection}
+                    onDelete={() => {
+                      deleteSection(activeVariant.id, section.id)
+                    }}
                   />
                 </div>
               ))}
@@ -142,6 +148,14 @@ export function EditorCanvas(): React.JSX.Element {
         DragOverlay renders as a portal to document.body — escapes scroll/overflow constraints.
         Renders a non-interactive clone of the dragged section at the cursor position.
       */}
+      <div className="relative mx-auto w-full max-w-4xl pl-8 pt-2">
+        <AddSectionButton
+          onAdd={(type) => {
+            addSection(activeVariant.id, type)
+          }}
+        />
+      </div>
+
       <DragOverlay>
         {activeDragSection ? (
           // Slight rotation + strong ring makes the clone obvious against the dark canvas.
