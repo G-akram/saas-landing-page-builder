@@ -98,6 +98,48 @@ One-way only: **UI actions trigger document mutations, never the reverse.**
 
 See `decisions/004-state-management.md` for the full rationale and `decisions/015-store-implementation.md` for implementation decisions (snapshot undo, history cap, structuredClone).
 
+## Editor panel layout
+
+The editor UI has three distinct zones with non-overlapping responsibilities:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Top bar: page name · save status · back button      │
+├──────────────┬──────────────────────────┬────────────┤
+│  Left panel  │       Canvas             │Right panel │
+│              │                          │            │
+│ Section list │  Sections (drag to       │ Properties │
+│ (navigate +  │  reorder, click to       │ (selected  │
+│  jump to)    │  select)                 │  section   │
+│              │                          │  or elem.) │
+└──────────────┴──────────────────────────┴────────────┘
+```
+
+### Left panel — Section List
+
+- Compact list of all sections in order (mirrors canvas stack)
+- Click to jump to / select a section
+- Navigation aid — no editing happens here
+
+### Right panel — Properties
+
+- Only active when a section or element is selected
+- Shows editable properties of the selected item: colors, fonts, spacing, background, padding
+- Phase 3: inline text editing triggers reflected here
+
+### Canvas
+
+- The primary editing surface — what the page will look like
+- Sections render as a vertical stack, drag-to-reorder in place
+- Click a section to select it (drives right panel)
+- "Add section" button below the stack opens a Dialog type picker
+
+### Why this split
+
+Panels are for tools you interact with **while** the canvas is visible. Type picking (adding a section) is a one-shot decision — it opens a Dialog (modal), not a panel. See ADR-017 for rationale.
+
+The right panel is only rendered when something is selected — it has no persistent state to show otherwise. The left panel is always visible to aid navigation on longer pages.
+
 ## Key decisions
 
 | Decision | ADR |
@@ -111,3 +153,5 @@ See `decisions/004-state-management.md` for the full rationale and `decisions/01
 | Key libraries (dnd-kit, Zod, RHF, TanStack Query, Lucide) | `decisions/010-key-libraries.md` |
 | Phase 2 step order (stores → canvas → DnD → auto-save → XState → chrome) | `decisions/014-phase2-approach.md` |
 | Store implementation (snapshot undo, history cap, two stores, no Immer) | `decisions/015-store-implementation.md` |
+| dnd-kit implementation (transform-commit, DragOverlay portal, ghost placeholder, handle isolation) | `decisions/016-dnd-implementation.md` |
+| Add/delete section (end-only insert, template registry, Dialog picker, immediate delete) | `decisions/017-add-delete-section.md` |
