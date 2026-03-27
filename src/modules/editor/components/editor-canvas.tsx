@@ -39,6 +39,10 @@ export function EditorCanvas(): React.JSX.Element {
     actor,
     (state) => state.context.selectedSectionId,
   )
+  const selectedElementId = useSelector(
+    actor,
+    (state) => state.context.selectedElementId,
+  )
 
   // Tracks which section is being dragged — drives DragOverlay rendering
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
@@ -138,8 +142,12 @@ export function EditorCanvas(): React.JSX.Element {
                   <SortableSection
                     section={section}
                     isSelected={selectedSectionId === section.id}
+                    selectedElementId={selectedElementId}
                     onSelect={(sectionId) => {
                       actor.send({ type: 'SELECT_SECTION', sectionId })
+                    }}
+                    onSelectElement={(elementId) => {
+                      actor.send({ type: 'SELECT_ELEMENT', elementId })
                     }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)

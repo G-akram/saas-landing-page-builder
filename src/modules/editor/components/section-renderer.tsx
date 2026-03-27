@@ -3,13 +3,16 @@
 import { type Section, type Element as PageElement } from '@/shared/types'
 
 import { ElementRenderer } from './element-renderer'
+import { SelectableElement } from './selectable-element'
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
 interface SectionRendererProps {
   section: Section
   isSelected: boolean
+  selectedElementId?: string | null
   onSelect: (sectionId: string) => void
+  onSelectElement?: (elementId: string) => void
 }
 
 // ── Layout alignment → Tailwind class (static strings survive purge) ────────
@@ -84,7 +87,9 @@ function groupBySlot(elements: PageElement[]): Map<number, PageElement[]> {
 export function SectionRenderer({
   section,
   isSelected,
+  selectedElementId,
   onSelect,
+  onSelectElement,
 }: SectionRendererProps): React.JSX.Element {
   const isDarkBg = isDarkBackground(section.background)
   const textColorClass = isDarkBg ? 'text-white' : 'text-gray-900'
@@ -150,12 +155,16 @@ export function SectionRenderer({
               layout={layout}
               slotGroups={slotGroups}
               textColorClass={textColorClass}
+              selectedElementId={selectedElementId}
+              onSelectElement={onSelectElement}
             />
           ) : (
             <StackLayout
               layout={layout}
               slotGroups={slotGroups}
               textColorClass={textColorClass}
+              selectedElementId={selectedElementId}
+              onSelectElement={onSelectElement}
             />
           )
         ) : (
@@ -174,12 +183,16 @@ interface LayoutProps {
   layout: Section['layout']
   slotGroups: Map<number, PageElement[]>
   textColorClass: string
+  selectedElementId: string | null | undefined
+  onSelectElement: ((elementId: string) => void) | undefined
 }
 
 function GridLayout({
   layout,
   slotGroups,
   textColorClass,
+  selectedElementId,
+  onSelectElement,
 }: LayoutProps): React.JSX.Element {
   const columns = layout.columns ?? 1
   const alignClass = ALIGN_CLASS[layout.align]
@@ -205,11 +218,17 @@ function GridLayout({
             style={{ gap: `${String(Math.min(layout.gap, 16))}px` }}
           >
             {elements.map((element) => (
-              <ElementRenderer
+              <SelectableElement
                 key={element.id}
-                element={element}
-                textColorClass={textColorClass}
-              />
+                elementId={element.id}
+                isSelected={selectedElementId === element.id}
+                onSelect={onSelectElement}
+              >
+                <ElementRenderer
+                  element={element}
+                  textColorClass={textColorClass}
+                />
+              </SelectableElement>
             ))}
           </div>
         )
@@ -224,6 +243,8 @@ function StackLayout({
   layout,
   slotGroups,
   textColorClass,
+  selectedElementId,
+  onSelectElement,
 }: LayoutProps): React.JSX.Element {
   const alignClass = ALIGN_CLASS[layout.align]
   const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
@@ -237,11 +258,17 @@ function StackLayout({
       style={{ gap: `${String(layout.gap)}px` }}
     >
       {allElements.map((element) => (
-        <ElementRenderer
+        <SelectableElement
           key={element.id}
-          element={element}
-          textColorClass={textColorClass}
-        />
+          elementId={element.id}
+          isSelected={selectedElementId === element.id}
+          onSelect={onSelectElement}
+        >
+          <ElementRenderer
+            element={element}
+            textColorClass={textColorClass}
+          />
+        </SelectableElement>
       ))}
     </div>
   )

@@ -13,7 +13,9 @@ import { SectionRenderer } from './section-renderer'
 interface SortableSectionProps {
   section: Section
   isSelected: boolean
+  selectedElementId: string | null
   onSelect: (sectionId: string) => void
+  onSelectElement: (elementId: string) => void
   onDelete: () => void
 }
 
@@ -22,7 +24,9 @@ interface SortableSectionProps {
 export function SortableSection({
   section,
   isSelected,
+  selectedElementId,
   onSelect,
+  onSelectElement,
   onDelete,
 }: SortableSectionProps): React.JSX.Element {
   const {
@@ -82,7 +86,9 @@ export function SortableSection({
         <SectionRenderer
           section={section}
           isSelected={isSelected}
+          selectedElementId={selectedElementId}
           onSelect={onSelect}
+          onSelectElement={onSelectElement}
         />
       )}
     </div>
