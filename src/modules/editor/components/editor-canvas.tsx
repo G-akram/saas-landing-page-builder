@@ -147,7 +147,7 @@ export function EditorCanvas(): React.JSX.Element {
                       actor.send({ type: 'SELECT_SECTION', sectionId })
                     }}
                     onSelectElement={(elementId) => {
-                      actor.send({ type: 'SELECT_ELEMENT', elementId })
+                      actor.send({ type: 'SELECT_ELEMENT', elementId, sectionId: section.id })
                     }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)

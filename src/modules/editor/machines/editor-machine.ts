@@ -11,7 +11,7 @@ interface EditorMachineContext {
 
 type EditorMachineEvent =
   | { type: 'SELECT_SECTION'; sectionId: string | null }
-  | { type: 'SELECT_ELEMENT'; elementId: string | null }
+  | { type: 'SELECT_ELEMENT'; elementId: string | null; sectionId: string }
   | { type: 'DESELECT' }
   | { type: 'DRAG_START' }
   | { type: 'DRAG_END' }
@@ -43,6 +43,14 @@ export const editorMachine = createMachine({
             selectedElementId: null,
           }),
         },
+        // Clicking an element directly (without first clicking the section) also enters 'selected'
+        SELECT_ELEMENT: {
+          target: 'selected',
+          actions: assign({
+            selectedSectionId: ({ event }) => event.sectionId,
+            selectedElementId: ({ event }) => event.elementId,
+          }),
+        },
         DRAG_START: { target: 'dragging' },
         TOGGLE_PREVIEW: { target: 'previewing' },
       },
@@ -70,9 +78,10 @@ export const editorMachine = createMachine({
             }),
           },
         ],
-        // Internal transition — state label stays 'selected', only context updates
+        // Internal transition — updates both IDs so cross-section element clicks work
         SELECT_ELEMENT: {
           actions: assign({
+            selectedSectionId: ({ event }) => event.sectionId,
             selectedElementId: ({ event }) => event.elementId,
           }),
         },

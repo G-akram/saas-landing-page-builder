@@ -127,3 +127,34 @@
     @apply font-sans;
     }
 }
+
+@layer base {
+  /* Force native <select> and its options to dark mode inside the editor */
+  .dark select {
+    color-scheme: dark;
+  }
+  .dark option {
+    background-color: rgb(17 24 39); /* gray-900 equivalent */
+    color: rgb(255 255 255);
+  }
+}
+
+@layer utilities {
+  .scrollbar-editor {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.12) transparent;
+  }
+  .scrollbar-editor::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-editor::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-editor::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 0.12);
+    border-radius: 9999px;
+  }
+  .scrollbar-editor::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(255 255 255 / 0.25);
+  }
+}

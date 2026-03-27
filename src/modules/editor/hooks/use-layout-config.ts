@@ -10,16 +10,17 @@ import { type EditorMode } from '../machines/editor-machine'
 export interface LayoutConfig {
   showSidebar: boolean
   showTopBar: boolean
+  showRightPanel: boolean
   canvasMode: 'edit' | 'preview'
 }
 
 // ── Mode → layout mapping ───────────────────────────────────────────────────
 
 const LAYOUT_BY_MODE: Record<EditorMode, LayoutConfig> = {
-  idle: { showSidebar: true, showTopBar: true, canvasMode: 'edit' },
-  selected: { showSidebar: true, showTopBar: true, canvasMode: 'edit' },
-  dragging: { showSidebar: true, showTopBar: true, canvasMode: 'edit' },
-  previewing: { showSidebar: false, showTopBar: true, canvasMode: 'preview' },
+  idle: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
+  selected: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
+  dragging: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
+  previewing: { showSidebar: false, showTopBar: true, showRightPanel: false, canvasMode: 'preview' },
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────

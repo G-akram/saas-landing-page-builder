@@ -52,7 +52,7 @@ describe('editorMachine', () => {
 
     it('clears selectedElementId when re-selecting a section', () => {
       actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-1' })
-      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1' })
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
       actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-2' })
       expect(ctx(actor).selectedElementId).toBeNull()
     })
@@ -68,8 +68,24 @@ describe('editorMachine', () => {
   describe('SELECT_ELEMENT', () => {
     it('updates selectedElementId without changing state', () => {
       actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-1' })
-      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1' })
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
       expect(mode(actor)).toBe('selected')
+      expect(ctx(actor).selectedElementId).toBe('el-1')
+      expect(ctx(actor).selectedSectionId).toBe('sec-1')
+    })
+
+    it('updates selectedSectionId when element is in a different section', () => {
+      actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-1' })
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-2', sectionId: 'sec-2' })
+      expect(mode(actor)).toBe('selected')
+      expect(ctx(actor).selectedSectionId).toBe('sec-2')
+      expect(ctx(actor).selectedElementId).toBe('el-2')
+    })
+
+    it('idle → selected when clicking element directly (no prior section click)', () => {
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
+      expect(mode(actor)).toBe('selected')
+      expect(ctx(actor).selectedSectionId).toBe('sec-1')
       expect(ctx(actor).selectedElementId).toBe('el-1')
     })
   })
@@ -77,7 +93,7 @@ describe('editorMachine', () => {
   describe('DESELECT', () => {
     it('selected → idle and clears all selection', () => {
       actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-1' })
-      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1' })
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
       actor.send({ type: 'DESELECT' })
       expect(mode(actor)).toBe('idle')
       expect(ctx(actor).selectedSectionId).toBeNull()

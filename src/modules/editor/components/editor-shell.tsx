@@ -10,11 +10,13 @@ import { useAutoSave } from '../hooks/use-auto-save'
 import { useLayoutConfig } from '../hooks/use-layout-config'
 import { EditorCanvas } from './editor-canvas'
 import { EditorTopBar } from './editor-top-bar'
+import { PropertyPanel } from './property-panel'
 import { SectionListPanel } from './section-list-panel'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const SIDEBAR_WIDTH = 240
+const RIGHT_PANEL_WIDTH = 280
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -42,7 +44,7 @@ function EditorLayout({
   const isInitialized = useRef(false)
 
   const saveStatus = useAutoSave(pageId)
-  const { showSidebar, showTopBar, canvasMode } = useLayoutConfig()
+  const { showSidebar, showTopBar, showRightPanel, canvasMode } = useLayoutConfig()
 
   // Initialize stores once on mount (or when page changes).
   useEffect(() => {
@@ -61,11 +63,11 @@ function EditorLayout({
       style={{
         display: 'grid',
         gridTemplateAreas: `
-          "header header"
-          "sidebar canvas"
+          "header header header"
+          "sidebar canvas properties"
         `,
         gridTemplateRows: showTopBar ? '48px 1fr' : '0px 1fr',
-        gridTemplateColumns: showSidebar ? `${String(SIDEBAR_WIDTH)}px 1fr` : '0px 1fr',
+        gridTemplateColumns: `${showSidebar ? String(SIDEBAR_WIDTH) : '0'}px 1fr ${showRightPanel ? String(RIGHT_PANEL_WIDTH) : '0'}px`,
       }}
     >
       {/* Top bar — grid area: header */}
@@ -92,11 +94,19 @@ function EditorLayout({
 
       {/* Canvas — grid area: canvas */}
       <main
-        className="overflow-y-auto p-8"
+        className="scrollbar-editor overflow-y-auto p-8"
         style={{ gridArea: 'canvas' }}
       >
         <EditorCanvas />
       </main>
+
+      {/* Right panel — grid area: properties */}
+      <div
+        className="overflow-hidden"
+        style={{ gridArea: 'properties' }}
+      >
+        {showRightPanel && <PropertyPanel />}
+      </div>
     </div>
   )
 }
