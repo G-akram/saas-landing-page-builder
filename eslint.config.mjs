@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint'
 import nextPlugin from '@next/eslint-plugin-next'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import boundariesPlugin from 'eslint-plugin-boundaries'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -69,6 +70,47 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': [
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
+    },
+  },
+
+  // Module boundary enforcement (ADR-009 dependency direction)
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    plugins: {
+      boundaries: boundariesPlugin,
+    },
+    settings: {
+      'boundaries/elements': [
+        { type: 'shared', pattern: ['src/shared/*'], capture: ['category'] },
+        { type: 'auth', pattern: ['src/modules/auth/*'], capture: ['segment'] },
+        { type: 'editor', pattern: ['src/modules/editor/*'], capture: ['segment'] },
+        { type: 'publishing', pattern: ['src/modules/publishing/*'], capture: ['segment'] },
+        { type: 'dashboard', pattern: ['src/modules/dashboard/*'], capture: ['segment'] },
+        { type: 'app', pattern: ['src/app/*'], capture: ['segment'] },
+        { type: 'ui', pattern: ['src/components/ui/*'], capture: ['segment'] },
+      ],
+    },
+    rules: {
+      'boundaries/dependencies': [
+        'error',
+        {
+          default: 'disallow',
+          rules: [
+            // shared → nothing (base layer, no module imports)
+            { from: { type: 'shared' }, allow: { to: { type: ['shared', 'ui'] } } },
+            // auth → shared only
+            { from: { type: 'auth' }, allow: { to: { type: ['shared', 'auth', 'ui'] } } },
+            // editor → auth + shared
+            { from: { type: 'editor' }, allow: { to: { type: ['shared', 'auth', 'editor', 'ui'] } } },
+            // publishing → editor + auth + shared
+            { from: { type: 'publishing' }, allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'ui'] } } },
+            // dashboard → all modules + shared
+            { from: { type: 'dashboard' }, allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'ui'] } } },
+            // app routes → everything (thin composition layer)
+            { from: { type: 'app' }, allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'app', 'ui'] } } },
+          ],
+        },
       ],
     },
   },
