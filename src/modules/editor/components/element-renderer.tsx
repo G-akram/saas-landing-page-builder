@@ -113,6 +113,9 @@ function useInlineEditing(
       e.preventDefault()
       ref.current?.blur()
     }
+    // Stop all non-Escape keys from bubbling to parent handlers (section
+    // role="button" intercepts Space/Enter, dnd-kit intercepts arrows).
+    e.stopPropagation()
   }
 
   function onPaste(e: React.ClipboardEvent<HTMLElement>): void {
@@ -165,7 +168,7 @@ function HeadingElement({
       ref={ref}
       contentEditable={isEditing}
       suppressContentEditableWarning
-      className={`font-bold ${element.styles.color ? '' : textColorClass} ${isEditing ? 'outline-none' : ''}`}
+      className={`font-bold ${element.styles.color ? '' : textColorClass} ${isEditing ? 'outline-none break-words' : ''}`}
       style={buildBaseStyles(element.styles)}
       {...(isEditing ? { onBlur, onKeyDown, onPaste } : {})}
     >
@@ -200,7 +203,7 @@ function TextElement({
       ref={ref}
       contentEditable={isEditing}
       suppressContentEditableWarning
-      className={`${element.styles.color ? '' : textColorClass} ${isEditing ? 'outline-none' : ''}`}
+      className={`${element.styles.color ? '' : textColorClass} ${isEditing ? 'outline-none break-words' : ''}`}
       style={buildBaseStyles(element.styles)}
       {...(isEditing ? { onBlur, onKeyDown, onPaste } : {})}
     >
@@ -236,7 +239,7 @@ function ButtonElement({
       ref={ref}
       contentEditable={isEditing}
       suppressContentEditableWarning
-      className={`inline-block cursor-default ${isEditing ? 'outline-none' : ''}`}
+      className={`inline-block cursor-default ${isEditing ? 'outline-none break-words' : ''}`}
       style={{
         ...buildBaseStyles(styles),
         backgroundColor: styles.backgroundColor ?? undefined,

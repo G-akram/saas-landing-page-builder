@@ -53,14 +53,20 @@ export function EditorCanvas(): React.JSX.Element {
   // Tracks which section is being dragged — drives DragOverlay rendering
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
 
+  const isEditing = editingElementId !== null
+
+  const pointerSensor = useSensor(PointerSensor, {
+    // Require 8px movement before starting drag — prevents accidental drags on click
+    activationConstraint: { distance: 8 },
+  })
+  const keyboardSensor = useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates,
+  })
+
+  // Disable keyboard sensor while editing so arrow keys work in contentEditable
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      // Require 8px movement before starting drag — prevents accidental drags on click
-      activationConstraint: { distance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    pointerSensor,
+    ...(isEditing ? [] : [keyboardSensor]),
   )
 
   if (!document) {
