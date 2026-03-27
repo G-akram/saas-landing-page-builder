@@ -2,7 +2,7 @@ import { createMachine, assign } from 'xstate'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type EditorMode = 'idle' | 'selected' | 'dragging' | 'previewing'
+export type EditorMode = 'idle' | 'selected' | 'editing' | 'dragging' | 'previewing'
 
 interface EditorMachineContext {
   selectedSectionId: string | null
@@ -17,6 +17,8 @@ type EditorMachineEvent =
   | { type: 'DRAG_END' }
   | { type: 'DRAG_CANCEL' }
   | { type: 'TOGGLE_PREVIEW' }
+  | { type: 'EDIT_START'; elementId: string; sectionId: string }
+  | { type: 'EDIT_END' }
 
 // ── Machine ──────────────────────────────────────────────────────────────────
 
@@ -92,7 +94,44 @@ export const editorMachine = createMachine({
             selectedElementId: null,
           }),
         },
+        // Double-click on a selected element enters inline editing
+        EDIT_START: {
+          target: 'editing',
+          actions: assign({
+            selectedSectionId: ({ event }) => event.sectionId,
+            selectedElementId: ({ event }) => event.elementId,
+          }),
+        },
         DRAG_START: { target: 'dragging' },
+        TOGGLE_PREVIEW: { target: 'previewing' },
+      },
+    },
+
+    // Inline text editing is active. DRAG_START and SELECT_ELEMENT are
+    // intentionally absent — impossible while typing (see ADR-024).
+    editing: {
+      on: {
+        // Blur fires synchronously before click, so save is committed before
+        // any subsequent SELECT_ELEMENT or TOGGLE_PREVIEW events arrive.
+        EDIT_END: { target: 'selected' },
+        DESELECT: {
+          target: 'idle',
+          actions: assign({ selectedSectionId: null, selectedElementId: null }),
+        },
+        SELECT_SECTION: [
+          {
+            guard: ({ event }) => event.sectionId !== null,
+            target: 'selected',
+            actions: assign({
+              selectedSectionId: ({ event }) => event.sectionId,
+              selectedElementId: null,
+            }),
+          },
+          {
+            target: 'idle',
+            actions: assign({ selectedSectionId: null, selectedElementId: null }),
+          },
+        ],
         TOGGLE_PREVIEW: { target: 'previewing' },
       },
     },

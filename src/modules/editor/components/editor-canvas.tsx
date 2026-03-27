@@ -33,6 +33,7 @@ export function EditorCanvas(): React.JSX.Element {
   const reorderSections = useDocumentStore((s) => s.reorderSections)
   const addSection = useDocumentStore((s) => s.addSection)
   const deleteSection = useDocumentStore((s) => s.deleteSection)
+  const updateElement = useDocumentStore((s) => s.updateElement)
 
   const actor = useEditorActor()
   const selectedSectionId = useSelector(
@@ -42,6 +43,11 @@ export function EditorCanvas(): React.JSX.Element {
   const selectedElementId = useSelector(
     actor,
     (state) => state.context.selectedElementId,
+  )
+  // Only expose editingElementId while in the 'editing' state so element
+  // renderers know to activate contentEditable.
+  const editingElementId = useSelector(actor, (state) =>
+    state.matches('editing') ? state.context.selectedElementId : null,
   )
 
   // Tracks which section is being dragged — drives DragOverlay rendering
@@ -78,6 +84,31 @@ export function EditorCanvas(): React.JSX.Element {
   }
 
   const sectionIds = activeVariant.sections.map((s) => s.id)
+
+  function handleEditStart(elementId: string, sectionId: string): void {
+    actor.send({ type: 'EDIT_START', elementId, sectionId })
+  }
+
+  function handleEditEnd(): void {
+    actor.send({ type: 'EDIT_END' })
+  }
+
+  function handleInlineSave(sectionId: string, elementId: string, text: string): void {
+    if (!activeVariant) return
+    const section = activeVariant.sections.find((s) => s.id === sectionId)
+    const element = section?.elements.find((el) => el.id === elementId)
+    if (!element) return
+    const { content } = element
+    if (
+      content.type === 'heading' ||
+      content.type === 'text' ||
+      content.type === 'button'
+    ) {
+      updateElement(activeVariant.id, sectionId, elementId, {
+        content: { ...content, text },
+      })
+    }
+  }
 
   function handleDragStart(event: DragStartEvent): void {
     setActiveDragId(String(event.active.id))
@@ -143,11 +174,19 @@ export function EditorCanvas(): React.JSX.Element {
                     section={section}
                     isSelected={selectedSectionId === section.id}
                     selectedElementId={selectedElementId}
+                    editingElementId={editingElementId}
                     onSelect={(sectionId) => {
                       actor.send({ type: 'SELECT_SECTION', sectionId })
                     }}
                     onSelectElement={(elementId) => {
                       actor.send({ type: 'SELECT_ELEMENT', elementId, sectionId: section.id })
+                    }}
+                    onEditStart={(elementId) => {
+                      handleEditStart(elementId, section.id)
+                    }}
+                    onEditEnd={handleEditEnd}
+                    onInlineSave={(elementId, text) => {
+                      handleInlineSave(section.id, elementId, text)
                     }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)

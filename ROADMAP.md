@@ -151,7 +151,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Visual element rendering — upgrade SectionRenderer from text previews to styled elements (hybrid Tailwind + inline styles)
 - [x] Element selection + visual highlight — click element → XState `SELECT_ELEMENT` → highlight ring
 - [x] Property panel (right sidebar) — accordion sections for content, typography, colors, spacing, background
-- [ ] Inline text editing — double-click → `contentEditable` → blur-to-save
+- [x] Inline text editing — double-click → `contentEditable` → blur-to-save
 - [ ] Block picker with variant previews — upgrade add-section dialog with live mini-renders
 - [ ] Image upload/selection — local storage in dev, abstracted for future cloud swap
 - [ ] Mobile preview toggle — container queries, responsive reflow

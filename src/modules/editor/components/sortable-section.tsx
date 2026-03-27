@@ -14,8 +14,12 @@ interface SortableSectionProps {
   section: Section
   isSelected: boolean
   selectedElementId: string | null
+  editingElementId: string | null
   onSelect: (sectionId: string) => void
   onSelectElement: (elementId: string) => void
+  onEditStart: (elementId: string) => void
+  onEditEnd: () => void
+  onInlineSave: (elementId: string, text: string) => void
   onDelete: () => void
 }
 
@@ -25,8 +29,12 @@ export function SortableSection({
   section,
   isSelected,
   selectedElementId,
+  editingElementId,
   onSelect,
   onSelectElement,
+  onEditStart,
+  onEditEnd,
+  onInlineSave,
   onDelete,
 }: SortableSectionProps): React.JSX.Element {
   const {
@@ -87,8 +95,12 @@ export function SortableSection({
           section={section}
           isSelected={isSelected}
           selectedElementId={selectedElementId}
+          editingElementId={editingElementId}
           onSelect={onSelect}
           onSelectElement={onSelectElement}
+          onEditStart={onEditStart}
+          onEditEnd={onEditEnd}
+          onInlineSave={onInlineSave}
         />
       )}
     </div>

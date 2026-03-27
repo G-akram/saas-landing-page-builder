@@ -19,6 +19,7 @@ export interface LayoutConfig {
 const LAYOUT_BY_MODE: Record<EditorMode, LayoutConfig> = {
   idle: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
   selected: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
+  editing: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
   dragging: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
   previewing: { showSidebar: false, showTopBar: true, showRightPanel: false, canvasMode: 'preview' },
 }

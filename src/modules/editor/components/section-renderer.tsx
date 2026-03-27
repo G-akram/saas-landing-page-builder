@@ -11,8 +11,12 @@ interface SectionRendererProps {
   section: Section
   isSelected: boolean
   selectedElementId?: string | null
+  editingElementId?: string | null
   onSelect: (sectionId: string) => void
   onSelectElement?: (elementId: string) => void
+  onEditStart?: (elementId: string) => void
+  onEditEnd?: () => void
+  onInlineSave?: (elementId: string, text: string) => void
 }
 
 // ── Layout alignment → Tailwind class (static strings survive purge) ────────
@@ -88,8 +92,12 @@ export function SectionRenderer({
   section,
   isSelected,
   selectedElementId,
+  editingElementId,
   onSelect,
   onSelectElement,
+  onEditStart,
+  onEditEnd,
+  onInlineSave,
 }: SectionRendererProps): React.JSX.Element {
   const isDarkBg = isDarkBackground(section.background)
   const textColorClass = isDarkBg ? 'text-white' : 'text-gray-900'
@@ -156,7 +164,11 @@ export function SectionRenderer({
               slotGroups={slotGroups}
               textColorClass={textColorClass}
               selectedElementId={selectedElementId}
+              editingElementId={editingElementId}
               onSelectElement={onSelectElement}
+              onEditStart={onEditStart}
+              onEditEnd={onEditEnd}
+              onInlineSave={onInlineSave}
             />
           ) : (
             <StackLayout
@@ -164,7 +176,11 @@ export function SectionRenderer({
               slotGroups={slotGroups}
               textColorClass={textColorClass}
               selectedElementId={selectedElementId}
+              editingElementId={editingElementId}
               onSelectElement={onSelectElement}
+              onEditStart={onEditStart}
+              onEditEnd={onEditEnd}
+              onInlineSave={onInlineSave}
             />
           )
         ) : (
@@ -184,7 +200,11 @@ interface LayoutProps {
   slotGroups: Map<number, PageElement[]>
   textColorClass: string
   selectedElementId: string | null | undefined
+  editingElementId: string | null | undefined
   onSelectElement: ((elementId: string) => void) | undefined
+  onEditStart: ((elementId: string) => void) | undefined
+  onEditEnd: (() => void) | undefined
+  onInlineSave: ((elementId: string, text: string) => void) | undefined
 }
 
 function GridLayout({
@@ -192,7 +212,11 @@ function GridLayout({
   slotGroups,
   textColorClass,
   selectedElementId,
+  editingElementId,
   onSelectElement,
+  onEditStart,
+  onEditEnd,
+  onInlineSave,
 }: LayoutProps): React.JSX.Element {
   const columns = layout.columns ?? 1
   const alignClass = ALIGN_CLASS[layout.align]
@@ -222,11 +246,16 @@ function GridLayout({
                 key={element.id}
                 elementId={element.id}
                 isSelected={selectedElementId === element.id}
+                isEditing={editingElementId === element.id}
                 onSelect={onSelectElement}
+                onEditStart={onEditStart}
               >
                 <ElementRenderer
                   element={element}
                   textColorClass={textColorClass}
+                  isEditing={editingElementId === element.id}
+                  onInlineSave={(text) => onInlineSave?.(element.id, text)}
+                  onEditEnd={onEditEnd}
                 />
               </SelectableElement>
             ))}
@@ -244,7 +273,11 @@ function StackLayout({
   slotGroups,
   textColorClass,
   selectedElementId,
+  editingElementId,
   onSelectElement,
+  onEditStart,
+  onEditEnd,
+  onInlineSave,
 }: LayoutProps): React.JSX.Element {
   const alignClass = ALIGN_CLASS[layout.align]
   const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
@@ -262,11 +295,16 @@ function StackLayout({
           key={element.id}
           elementId={element.id}
           isSelected={selectedElementId === element.id}
+          isEditing={editingElementId === element.id}
           onSelect={onSelectElement}
+          onEditStart={onEditStart}
         >
           <ElementRenderer
             element={element}
             textColorClass={textColorClass}
+            isEditing={editingElementId === element.id}
+            onInlineSave={(text) => onInlineSave?.(element.id, text)}
+            onEditEnd={onEditEnd}
           />
         </SelectableElement>
       ))}

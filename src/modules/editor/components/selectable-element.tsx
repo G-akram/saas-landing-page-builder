@@ -5,22 +5,37 @@
 interface SelectableElementProps {
   elementId: string
   isSelected: boolean
+  isEditing: boolean
   onSelect: ((elementId: string) => void) | undefined
+  onEditStart: ((elementId: string) => void) | undefined
   children: React.ReactNode
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
 
 /**
- * Clickable wrapper that highlights the selected element and stops propagation
- * so the section's own click handler doesn't fire.
+ * Clickable wrapper that highlights the selected element and activates inline
+ * editing on double-click. When isEditing, pointer events on the wrapper are
+ * disabled so the contentEditable inside handles all mouse interactions.
  */
 export function SelectableElement({
   elementId,
   isSelected,
+  isEditing,
   onSelect,
+  onEditStart,
   children,
 }: SelectableElementProps): React.JSX.Element {
+  // While editing, render a plain div — no role/tabIndex/onClick so the
+  // contentEditable child owns all pointer and keyboard events.
+  if (isEditing) {
+    return (
+      <div className="relative rounded ring-2 ring-blue-400 ring-offset-1 ring-offset-transparent">
+        {children}
+      </div>
+    )
+  }
+
   return (
     <div
       role="button"
@@ -33,6 +48,10 @@ export function SelectableElement({
       onClick={(e) => {
         e.stopPropagation()
         onSelect?.(elementId)
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation()
+        onEditStart?.(elementId)
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
