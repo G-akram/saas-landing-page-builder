@@ -147,9 +147,9 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Implementation approach:** See `decisions/021-phase3-approach.md` for rationale.
 
 **Steps:**
-- [ ] Document store element actions (`updateElement`, `addElement`, `deleteElement`, `updateSectionStyles`) + block template definitions (6 types × 2-3 variants)
-- [ ] Visual element rendering — upgrade SectionRenderer from text previews to styled elements (hybrid Tailwind + inline styles)
-- [ ] Element selection + visual highlight — click element → XState `SELECT_ELEMENT` → highlight ring
+- [x] Document store element actions (`updateElement`, `addElement`, `deleteElement`, `updateSectionStyles`) + block template definitions (6 types × 2-3 variants)
+- [x] Visual element rendering — upgrade SectionRenderer from text previews to styled elements (hybrid Tailwind + inline styles)
+- [x] Element selection + visual highlight — click element → XState `SELECT_ELEMENT` → highlight ring
 - [ ] Property panel (right sidebar) — accordion sections for content, typography, colors, spacing, background
 - [ ] Inline text editing — double-click → `contentEditable` → blur-to-save
 - [ ] Block picker with variant previews — upgrade add-section dialog with live mini-renders
