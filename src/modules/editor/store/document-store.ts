@@ -1,62 +1,32 @@
 import { create } from 'zustand'
 
-import { type PageDocument, type Section, type SectionType } from '@/shared/types'
+import {
+  type PageDocument,
+  type Section,
+  type SectionType,
+  type Element as PageElement,
+} from '@/shared/types'
+import { BLOCK_TEMPLATE_BY_STYLE_ID, getDefaultTemplate } from '../lib/block-templates'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const HISTORY_LIMIT = 50
 
-// ── Default section factories ────────────────────────────────────────────────
+// ── Section factory ──────────────────────────────────────────────────────────
 
-const DEFAULT_SECTION_DEFAULTS: Record<
-  SectionType,
-  Pick<Section, 'variantStyleId' | 'layout' | 'background' | 'padding'>
-> = {
-  hero: {
-    variantStyleId: 'hero-1',
-    layout: { type: 'stack', gap: 24, align: 'center', verticalAlign: 'center' },
-    background: { type: 'color', value: '#ffffff' },
-    padding: { top: 80, bottom: 80, left: 24, right: 24 },
-  },
-  features: {
-    variantStyleId: 'features-1',
-    layout: { type: 'grid', columns: 3, gap: 32, align: 'center', verticalAlign: 'top' },
-    background: { type: 'color', value: '#f9fafb' },
-    padding: { top: 64, bottom: 64, left: 24, right: 24 },
-  },
-  cta: {
-    variantStyleId: 'cta-1',
-    layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
-    background: { type: 'color', value: '#2563eb' },
-    padding: { top: 64, bottom: 64, left: 24, right: 24 },
-  },
-  pricing: {
-    variantStyleId: 'pricing-1',
-    layout: { type: 'grid', columns: 3, gap: 24, align: 'center', verticalAlign: 'top' },
-    background: { type: 'color', value: '#ffffff' },
-    padding: { top: 64, bottom: 64, left: 24, right: 24 },
-  },
-  testimonials: {
-    variantStyleId: 'testimonials-1',
-    layout: { type: 'grid', columns: 2, gap: 24, align: 'center', verticalAlign: 'top' },
-    background: { type: 'color', value: '#f9fafb' },
-    padding: { top: 64, bottom: 64, left: 24, right: 24 },
-  },
-  footer: {
-    variantStyleId: 'footer-1',
-    layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
-    background: { type: 'color', value: '#111827' },
-    padding: { top: 48, bottom: 48, left: 24, right: 24 },
-  },
-}
+function createSection(type: SectionType, variantStyleId?: string): Section {
+  const template = variantStyleId
+    ? BLOCK_TEMPLATE_BY_STYLE_ID[variantStyleId] ?? getDefaultTemplate(type)
+    : getDefaultTemplate(type)
 
-function createSection(type: SectionType): Section {
-  const defaults = DEFAULT_SECTION_DEFAULTS[type]
   return {
     id: crypto.randomUUID(),
     type,
-    ...defaults,
-    elements: [],
+    variantStyleId: template.variantStyleId,
+    layout: { ...template.layout },
+    background: { ...template.background },
+    padding: { ...template.padding },
+    elements: template.createElements(),
   }
 }
 
@@ -75,8 +45,21 @@ interface DocumentState {
 interface DocumentActions {
   initializeDocument: (doc: PageDocument) => void
   reorderSections: (variantId: string, fromIndex: number, toIndex: number) => void
-  addSection: (variantId: string, type: SectionType, atIndex?: number) => void
+  addSection: (variantId: string, type: SectionType, atIndex?: number, variantStyleId?: string) => void
   deleteSection: (variantId: string, sectionId: string) => void
+  addElement: (variantId: string, sectionId: string, element: PageElement, atIndex?: number) => void
+  updateElement: (
+    variantId: string,
+    sectionId: string,
+    elementId: string,
+    updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>>,
+  ) => void
+  deleteElement: (variantId: string, sectionId: string, elementId: string) => void
+  updateSectionStyles: (
+    variantId: string,
+    sectionId: string,
+    updates: Partial<Pick<Section, 'layout' | 'background' | 'padding'>>,
+  ) => void
   undo: () => void
   redo: () => void
 }
@@ -107,6 +90,19 @@ function mapVariantSections(
       v.id === variantId ? { ...v, sections: transform(v.sections) } : v,
     ),
   }
+}
+
+function mapSectionElements(
+  doc: PageDocument,
+  variantId: string,
+  sectionId: string,
+  transform: (elements: PageElement[]) => PageElement[],
+): PageDocument {
+  return mapVariantSections(doc, variantId, (sections) =>
+    sections.map((s) =>
+      s.id === sectionId ? { ...s, elements: transform(s.elements) } : s,
+    ),
+  )
 }
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -152,11 +148,11 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     })
   },
 
-  addSection: (variantId, type, atIndex) => {
+  addSection: (variantId, type, atIndex, variantStyleId) => {
     set((state) => {
       if (!state.document) return state
 
-      const section = createSection(type)
+      const section = createSection(type, variantStyleId)
       const newDoc = mapVariantSections(state.document, variantId, (sections) => {
         const result = [...sections]
         const insertAt = atIndex ?? result.length
@@ -179,6 +175,94 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
 
       const newDoc = mapVariantSections(state.document, variantId, (sections) =>
         sections.filter((s) => s.id !== sectionId),
+      )
+
+      return {
+        document: newDoc,
+        isDirty: true,
+        undoStack: pushHistory(state.undoStack, state.document),
+        redoStack: [],
+      }
+    })
+  },
+
+  addElement: (variantId, sectionId, element, atIndex) => {
+    set((state) => {
+      if (!state.document) return state
+
+      const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) => {
+        const result = [...elements]
+        const insertAt = atIndex ?? result.length
+        result.splice(insertAt, 0, element)
+        return result
+      })
+
+      return {
+        document: newDoc,
+        isDirty: true,
+        undoStack: pushHistory(state.undoStack, state.document),
+        redoStack: [],
+      }
+    })
+  },
+
+  updateElement: (variantId, sectionId, elementId, updates) => {
+    set((state) => {
+      if (!state.document) return state
+
+      const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) =>
+        elements.map((el) => {
+          if (el.id !== elementId) return el
+          return {
+            ...el,
+            ...(updates.slot !== undefined && { slot: updates.slot }),
+            ...(updates.link !== undefined && { link: updates.link }),
+            ...(updates.content && { content: { ...el.content, ...updates.content } }),
+            ...(updates.styles && { styles: { ...el.styles, ...updates.styles } }),
+          }
+        }),
+      )
+
+      return {
+        document: newDoc,
+        isDirty: true,
+        undoStack: pushHistory(state.undoStack, state.document),
+        redoStack: [],
+      }
+    })
+  },
+
+  deleteElement: (variantId, sectionId, elementId) => {
+    set((state) => {
+      if (!state.document) return state
+
+      const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) =>
+        elements.filter((el) => el.id !== elementId),
+      )
+
+      return {
+        document: newDoc,
+        isDirty: true,
+        undoStack: pushHistory(state.undoStack, state.document),
+        redoStack: [],
+      }
+    })
+  },
+
+  updateSectionStyles: (variantId, sectionId, updates) => {
+    set((state) => {
+      if (!state.document) return state
+
+      const newDoc = mapVariantSections(state.document, variantId, (sections) =>
+        sections.map((s) => {
+          if (s.id !== sectionId) return s
+          return {
+            ...s,
+            ...(updates.layout && { layout: { ...s.layout, ...updates.layout } }),
+            ...(updates.background && { background: { ...s.background, ...updates.background } }),
+            ...(updates.padding && { padding: { ...s.padding, ...updates.padding } }),
+          }
+        }),
       )
 
       return {
