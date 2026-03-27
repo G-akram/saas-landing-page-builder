@@ -67,7 +67,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 
 ## Phase 2 — Editor Core
 
-**Status: not started**
+**Status: complete**
 
 **Why third:** Shell before content. State management and the drag-and-drop runtime must be proven before adding 6 complex block types. Building blocks first means constantly refactoring around a moving editor foundation.
 
@@ -90,7 +90,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] Add section (type picker) + delete section (with undo/redo)
 - [x] Auto-save: debounced write-back to DB via TanStack Query mutation + status indicator
 - [x] XState editor mode machine (idle ↔ selected ↔ dragging ↔ previewing)
-- [ ] Editor chrome: dark theme, top bar, section list panel, layout shell
+- [x] Editor chrome: dark theme, top bar, section list panel, layout shell
 
 **Deliverables:**
 - Open a page → see a canvas → drag sections around → changes persist on reload

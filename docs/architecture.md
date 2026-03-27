@@ -155,3 +155,4 @@ The right panel is only rendered when something is selected — it has no persis
 | Store implementation (snapshot undo, history cap, two stores, no Immer) | `decisions/015-store-implementation.md` |
 | dnd-kit implementation (transform-commit, DragOverlay portal, ghost placeholder, handle isolation) | `decisions/016-dnd-implementation.md` |
 | Add/delete section (end-only insert, template registry, Dialog picker, immediate delete) | `decisions/017-add-delete-section.md` |
+| Editor chrome (CSS Grid layout, mounted panels, useLayoutConfig, dark class scoping) | `decisions/020-editor-chrome.md` |

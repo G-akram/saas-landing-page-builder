@@ -1,15 +1,20 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import Link from 'next/link'
 
 import { type PageDocument } from '@/shared/types'
 import { useDocumentStore, useUIStore } from '@/modules/editor'
 import { EditorActorProvider } from '@/modules/editor'
 
 import { useAutoSave } from '../hooks/use-auto-save'
+import { useLayoutConfig } from '../hooks/use-layout-config'
 import { EditorCanvas } from './editor-canvas'
-import { SaveStatusIndicator } from './save-status-indicator'
+import { EditorTopBar } from './editor-top-bar'
+import { SectionListPanel } from './section-list-panel'
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const SIDEBAR_WIDTH = 240
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -19,23 +24,28 @@ interface EditorShellProps {
   document: PageDocument
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
+// ── Inner layout (needs XState actor context) ───────────────────────────────
 
-export function EditorShell({
+interface EditorLayoutProps {
+  pageId: string
+  pageName: string
+  document: PageDocument
+}
+
+function EditorLayout({
   pageId,
   pageName,
   document,
-}: EditorShellProps): React.JSX.Element {
+}: EditorLayoutProps): React.JSX.Element {
   const initializeDocument = useDocumentStore((s) => s.initializeDocument)
   const resetUI = useUIStore((s) => s.resetUI)
   const isInitialized = useRef(false)
 
   const saveStatus = useAutoSave(pageId)
+  const { showSidebar, showTopBar, canvasMode } = useLayoutConfig()
 
   // Initialize stores once on mount (or when page changes).
-  // XState actor resets automatically via EditorActorProvider's useState initializer.
   useEffect(() => {
-    // Guard against StrictMode double-invoke in dev
     if (isInitialized.current) return
     isInitialized.current = true
 
@@ -43,32 +53,66 @@ export function EditorShell({
     resetUI()
   }, [pageId, document, initializeDocument, resetUI])
 
+  const isPreviewMode = canvasMode === 'preview'
+
   return (
-    // EditorActorProvider creates the XState actor and makes it available to
-    // all children via useEditorActor(). Actor stops on unmount (page navigation).
-    <EditorActorProvider>
-      <div className="flex h-screen flex-col bg-gray-950">
-        {/* Top bar — minimal for now, expanded in Step 7 */}
-        <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="text-sm text-gray-400 transition-colors hover:text-white"
-            >
-              ← Back
-            </Link>
-            <div className="h-4 w-px bg-white/10" />
-            <h1 className="text-sm font-medium text-white">{pageName}</h1>
-          </div>
-
-          <SaveStatusIndicator status={saveStatus} />
-        </header>
-
-        {/* Canvas area — scrollable, centered */}
-        <main className="flex-1 overflow-y-auto p-8">
-          <EditorCanvas />
-        </main>
+    <div
+      className="dark h-screen bg-gray-950 text-white"
+      style={{
+        display: 'grid',
+        gridTemplateAreas: `
+          "header header"
+          "sidebar canvas"
+        `,
+        gridTemplateRows: showTopBar ? '48px 1fr' : '0px 1fr',
+        gridTemplateColumns: showSidebar ? `${String(SIDEBAR_WIDTH)}px 1fr` : '0px 1fr',
+      }}
+    >
+      {/* Top bar — grid area: header */}
+      <div
+        className="overflow-hidden"
+        style={{ gridArea: 'header' }}
+      >
+        {showTopBar && (
+          <EditorTopBar
+            pageName={pageName}
+            saveStatus={saveStatus}
+            isPreviewMode={isPreviewMode}
+          />
+        )}
       </div>
+
+      {/* Left sidebar — grid area: sidebar */}
+      <div
+        className="overflow-hidden"
+        style={{ gridArea: 'sidebar' }}
+      >
+        {showSidebar && <SectionListPanel />}
+      </div>
+
+      {/* Canvas — grid area: canvas */}
+      <main
+        className="overflow-y-auto p-8"
+        style={{ gridArea: 'canvas' }}
+      >
+        <EditorCanvas />
+      </main>
+    </div>
+  )
+}
+
+// ── Shell (provides context) ────────────────────────────────────────────────
+
+export function EditorShell({
+  pageId,
+  pageName,
+  document,
+}: EditorShellProps): React.JSX.Element {
+  // EditorActorProvider creates the XState actor and makes it available to
+  // all children via useEditorActor(). Actor stops on unmount (page navigation).
+  return (
+    <EditorActorProvider>
+      <EditorLayout pageId={pageId} pageName={pageName} document={document} />
     </EditorActorProvider>
   )
 }

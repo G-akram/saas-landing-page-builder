@@ -124,7 +124,7 @@ export function EditorCanvas(): React.JSX.Element {
         {activeVariant.sections.length === 0 ? (
           <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-white/10">
             <p className="text-gray-500">
-              No sections yet — add one in Step 4
+              No sections yet — click &quot;Add Section&quot; below
             </p>
           </div>
         ) : (

@@ -1,5 +1,7 @@
 export { EditorShell } from './editor-shell'
 export { EditorCanvas } from './editor-canvas'
+export { EditorTopBar } from './editor-top-bar'
+export { SectionListPanel } from './section-list-panel'
 export { SectionRenderer } from './section-renderer'
 export { SortableSection } from './sortable-section'
 export { AddSectionButton } from './add-section-button'
