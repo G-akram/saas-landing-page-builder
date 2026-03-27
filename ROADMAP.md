@@ -101,6 +101,34 @@ Each phase produces a working vertical slice. You can demo something real at the
 
 ---
 
+## Production Readiness — Tech Debt & Gaps
+
+Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, but must be addressed before any real deployment. Review this list at each phase boundary.
+
+### Server-side
+
+- [ ] **Rate limiting on server actions** — `savePage`, `createPage`, `deletePage` have no server-side throttling. Client debounce (2s) is not protection. Add per-userId rate limiting middleware.
+- [ ] **Optimistic locking on save** — Last write wins. If the same page is open in two tabs, one silently overwrites the other. Add `updatedAt` version check to `savePage` (compare client's `updatedAt` against DB before writing).
+- [ ] **Dashboard pagination** — `getPagesByUser` fetches all pages in one query. Fine for <50 pages, breaks at scale. Add cursor-based pagination.
+- [ ] **`deletePage` feedback** — Currently returns void on success. Client can't distinguish "page deleted" from "page didn't exist". Return affected row count.
+
+### Client-side
+
+- [ ] **Hook test coverage** — `useAutoSave` and `useLayoutConfig` have zero tests. Add vitest tests for debounce behavior, timer cleanup, reference equality checks, and mode-to-layout mapping.
+- [ ] **Integration tests** — No tests verify store + XState machine working together in a component context. Add React Testing Library tests for `EditorCanvas` and `EditorShell`.
+
+### Dependencies
+
+- [ ] **Upgrade `next-auth` to stable** — Currently on `5.0.0-beta.30`. Track the v5 stable release and upgrade immediately when available.
+
+### Performance (monitor, fix if needed)
+
+- [ ] Memoize `sectionIds` array in `EditorCanvas` (`useMemo`)
+- [ ] Memoize `sortedElements` in `SectionRenderer` (`useMemo`)
+- [ ] Consider combining multiple individual Zustand selectors in `EditorTopBar` into a single selector
+
+---
+
 ## Phase 3 — Block Library
 
 **Status: not started**
