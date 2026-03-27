@@ -104,6 +104,7 @@ export function EditorCanvas(): React.JSX.Element {
 
   return (
     <DndContext
+      id="editor-canvas-dnd"
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
