@@ -35,6 +35,7 @@ export function useAutoSave(pageId: string): SaveStatus {
     },
     onSuccess: (_, savedDoc) => {
       baselineDocRef.current = savedDoc
+      useDocumentStore.setState({ isDirty: false, baselineJson: JSON.stringify(savedDoc) })
       // Show 'saved' briefly then revert to 'idle'
       if (savedDisplayTimerRef.current) clearTimeout(savedDisplayTimerRef.current)
       savedDisplayTimerRef.current = setTimeout(reset, SAVED_DISPLAY_MS)

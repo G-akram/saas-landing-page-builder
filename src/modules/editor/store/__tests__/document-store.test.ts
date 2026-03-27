@@ -43,6 +43,7 @@ describe('useDocumentStore', () => {
     useDocumentStore.setState({
       document: null,
       isDirty: false,
+      baselineJson: null,
       undoStack: [],
       redoStack: [],
     })
@@ -196,6 +197,27 @@ describe('useDocumentStore', () => {
 
       useDocumentStore.getState().redo()
       expect(getSections()).toHaveLength(3)
+    })
+
+    it('undo back to initial state clears isDirty', () => {
+      useDocumentStore.getState().initializeDocument(createTestDocument(3))
+      useDocumentStore.getState().deleteSection('variant-1', 'section-0')
+
+      expect(useDocumentStore.getState().isDirty).toBe(true)
+
+      useDocumentStore.getState().undo()
+      expect(useDocumentStore.getState().isDirty).toBe(false)
+    })
+
+    it('redo after undo marks isDirty again', () => {
+      useDocumentStore.getState().initializeDocument(createTestDocument(3))
+      useDocumentStore.getState().deleteSection('variant-1', 'section-0')
+      useDocumentStore.getState().undo()
+
+      expect(useDocumentStore.getState().isDirty).toBe(false)
+
+      useDocumentStore.getState().redo()
+      expect(useDocumentStore.getState().isDirty).toBe(true)
     })
 
     it('undo is a no-op when stack is empty', () => {

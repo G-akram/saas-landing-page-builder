@@ -65,6 +65,9 @@ function createSection(type: SectionType): Section {
 interface DocumentState {
   document: PageDocument | null
   isDirty: boolean
+  /** JSON snapshot of the document at last save (or initial load). Used to detect
+   *  whether undo/redo has returned us to the saved state. */
+  baselineJson: string | null
   undoStack: PageDocument[]
   redoStack: PageDocument[]
 }
@@ -112,14 +115,17 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
   // State
   document: null,
   isDirty: false,
+  baselineJson: null,
   undoStack: [],
   redoStack: [],
 
   // Actions
   initializeDocument: (doc) => {
+    const cloned = structuredClone(doc)
     set({
-      document: structuredClone(doc),
+      document: cloned,
       isDirty: false,
+      baselineJson: JSON.stringify(cloned),
       undoStack: [],
       redoStack: [],
     })
@@ -190,9 +196,13 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
 
       const previous = state.undoStack[state.undoStack.length - 1]
       if (!previous) return state
+
+      const isBackAtBaseline =
+        state.baselineJson !== null && JSON.stringify(previous) === state.baselineJson
+
       return {
         document: previous,
-        isDirty: true,
+        isDirty: !isBackAtBaseline,
         undoStack: state.undoStack.slice(0, -1),
         redoStack: [...state.redoStack, structuredClone(state.document)],
       }
@@ -205,9 +215,13 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
 
       const next = state.redoStack[state.redoStack.length - 1]
       if (!next) return state
+
+      const isBackAtBaseline =
+        state.baselineJson !== null && JSON.stringify(next) === state.baselineJson
+
       return {
         document: next,
-        isDirty: true,
+        isDirty: !isBackAtBaseline,
         undoStack: [...state.undoStack, structuredClone(state.document)],
         redoStack: state.redoStack.slice(0, -1),
       }
