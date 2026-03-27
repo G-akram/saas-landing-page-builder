@@ -17,8 +17,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { useSelector } from '@xstate/react'
 
-import { useDocumentStore, useUIStore } from '@/modules/editor'
+import { useDocumentStore } from '@/modules/editor'
+import { useEditorActor } from '@/modules/editor'
 
 import { AddSectionButton } from './add-section-button'
 import { SectionRenderer } from './section-renderer'
@@ -31,9 +33,12 @@ export function EditorCanvas(): React.JSX.Element {
   const reorderSections = useDocumentStore((s) => s.reorderSections)
   const addSection = useDocumentStore((s) => s.addSection)
   const deleteSection = useDocumentStore((s) => s.deleteSection)
-  const selectedSectionId = useUIStore((s) => s.selectedSectionId)
-  const selectSection = useUIStore((s) => s.selectSection)
-  const setEditorMode = useUIStore((s) => s.setEditorMode)
+
+  const actor = useEditorActor()
+  const selectedSectionId = useSelector(
+    actor,
+    (state) => state.context.selectedSectionId,
+  )
 
   // Tracks which section is being dragged — drives DragOverlay rendering
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
@@ -72,14 +77,14 @@ export function EditorCanvas(): React.JSX.Element {
 
   function handleDragStart(event: DragStartEvent): void {
     setActiveDragId(String(event.active.id))
-    setEditorMode('dragging')
+    actor.send({ type: 'DRAG_START' })
   }
 
   function handleDragEnd(event: DragEndEvent): void {
     const { active, over } = event
 
     setActiveDragId(null)
-    setEditorMode(selectedSectionId ? 'selected' : 'idle')
+    actor.send({ type: 'DRAG_END' })
 
     if (!over || active.id === over.id || !activeVariant) return
 
@@ -94,7 +99,7 @@ export function EditorCanvas(): React.JSX.Element {
 
   function handleDragCancel(): void {
     setActiveDragId(null)
-    setEditorMode(selectedSectionId ? 'selected' : 'idle')
+    actor.send({ type: 'DRAG_CANCEL' })
   }
 
   // Section being dragged — used to render the DragOverlay clone
@@ -133,7 +138,9 @@ export function EditorCanvas(): React.JSX.Element {
                   <SortableSection
                     section={section}
                     isSelected={selectedSectionId === section.id}
-                    onSelect={selectSection}
+                    onSelect={(sectionId) => {
+                      actor.send({ type: 'SELECT_SECTION', sectionId })
+                    }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)
                     }}

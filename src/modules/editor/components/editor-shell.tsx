@@ -5,6 +5,7 @@ import Link from 'next/link'
 
 import { type PageDocument } from '@/shared/types'
 import { useDocumentStore, useUIStore } from '@/modules/editor'
+import { EditorActorProvider } from '@/modules/editor'
 
 import { useAutoSave } from '../hooks/use-auto-save'
 import { EditorCanvas } from './editor-canvas'
@@ -31,7 +32,8 @@ export function EditorShell({
 
   const saveStatus = useAutoSave(pageId)
 
-  // Initialize stores once on mount (or when page changes)
+  // Initialize stores once on mount (or when page changes).
+  // XState actor resets automatically via EditorActorProvider's useState initializer.
   useEffect(() => {
     // Guard against StrictMode double-invoke in dev
     if (isInitialized.current) return
@@ -42,27 +44,31 @@ export function EditorShell({
   }, [pageId, document, initializeDocument, resetUI])
 
   return (
-    <div className="flex h-screen flex-col bg-gray-950">
-      {/* Top bar — minimal for now, expanded in Step 7 */}
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-400 transition-colors hover:text-white"
-          >
-            ← Back
-          </Link>
-          <div className="h-4 w-px bg-white/10" />
-          <h1 className="text-sm font-medium text-white">{pageName}</h1>
-        </div>
+    // EditorActorProvider creates the XState actor and makes it available to
+    // all children via useEditorActor(). Actor stops on unmount (page navigation).
+    <EditorActorProvider>
+      <div className="flex h-screen flex-col bg-gray-950">
+        {/* Top bar — minimal for now, expanded in Step 7 */}
+        <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="text-sm text-gray-400 transition-colors hover:text-white"
+            >
+              ← Back
+            </Link>
+            <div className="h-4 w-px bg-white/10" />
+            <h1 className="text-sm font-medium text-white">{pageName}</h1>
+          </div>
 
-        <SaveStatusIndicator status={saveStatus} />
-      </header>
+          <SaveStatusIndicator status={saveStatus} />
+        </header>
 
-      {/* Canvas area — scrollable, centered */}
-      <main className="flex-1 overflow-y-auto p-8">
-        <EditorCanvas />
-      </main>
-    </div>
+        {/* Canvas area — scrollable, centered */}
+        <main className="flex-1 overflow-y-auto p-8">
+          <EditorCanvas />
+        </main>
+      </div>
+    </EditorActorProvider>
   )
 }

@@ -89,7 +89,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] dnd-kit: drag to reorder sections (with undo/redo integration)
 - [x] Add section (type picker) + delete section (with undo/redo)
 - [x] Auto-save: debounced write-back to DB via TanStack Query mutation + status indicator
-- [ ] XState editor mode machine (idle ↔ selected ↔ dragging)
+- [x] XState editor mode machine (idle ↔ selected ↔ dragging ↔ previewing)
 - [ ] Editor chrome: dark theme, top bar, section list panel, layout shell
 
 **Deliverables:**
