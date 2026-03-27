@@ -10,6 +10,14 @@ interface SectionRendererProps {
   onSelect: (sectionId: string) => void
 }
 
+// ── Layout alignment → Tailwind class (static strings survive purge) ────────
+
+const ALIGN_CLASS: Record<Section['layout']['align'], string> = {
+  left: 'items-start',
+  center: 'items-center',
+  right: 'items-end',
+}
+
 // ── Section type display config ─────────────────────────────────────────────
 
 const SECTION_LABELS: Record<Section['type'], string> = {
@@ -56,8 +64,9 @@ export function SectionRenderer({
   const sortedElements = [...section.elements].sort((a, b) => a.slot - b.slot)
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       className={`group relative w-full text-left transition-all ${
         isSelected
           ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-950'
@@ -72,6 +81,12 @@ export function SectionRenderer({
       }}
       onClick={() => {
         onSelect(section.id)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect(section.id)
+        }
       }}
     >
       {/* Section type badge */}
@@ -89,7 +104,7 @@ export function SectionRenderer({
 
       {/* Elements preview */}
       <div
-        className={`flex flex-col items-${section.layout.align}`}
+        className={`flex flex-col ${ALIGN_CLASS[section.layout.align]}`}
         style={{ gap: `${String(section.layout.gap)}px` }}
       >
         {sortedElements.length > 0 ? (
@@ -106,7 +121,7 @@ export function SectionRenderer({
           </p>
         )}
       </div>
-    </button>
+    </div>
   )
 }
 
