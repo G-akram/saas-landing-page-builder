@@ -162,7 +162,7 @@ const featuresGrid3: BlockTemplate = {
     icon(1, 'shield', { color: '#2563eb' }),
     heading(1, 'Secure by Default', 3, { fontSize: 20, fontWeight: 600, color: '#111827' }),
     text(1, 'Enterprise-grade security without the configuration headache.', { fontSize: 15, textAlign: 'center' }),
-    icon(2, 'bar-chart', { color: '#2563eb' }),
+    icon(2, 'chart-bar', { color: '#2563eb' }),
     heading(2, 'Analytics Built In', 3, { fontSize: 20, fontWeight: 600, color: '#111827' }),
     text(2, 'Track what matters with real-time dashboards and insights.', { fontSize: 15, textAlign: 'center' }),
   ],
