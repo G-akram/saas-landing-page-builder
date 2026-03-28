@@ -17,30 +17,43 @@ const SAVED_DISPLAY_MS = 3000
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
+interface SaveMutationInput {
+  doc: PageDocument
+  expectedUpdatedAt: string
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useAutoSave(pageId: string): SaveStatus {
+export function useAutoSave(pageId: string, initialUpdatedAt: string): SaveStatus {
   const document = useDocumentStore((s) => s.document)
 
   // Tracks the document reference at last save (or initial load).
   // null = hook hasn't run yet; used to skip the hydration fire.
   const baselineDocRef = useRef<PageDocument | null>(null)
+  const lastKnownUpdatedAtRef = useRef(initialUpdatedAt)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savedDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { mutate, isPending, isSuccess, isError, reset } = useMutation({
-    mutationFn: async (doc: PageDocument) => {
-      const result = await savePage(pageId, doc)
+    mutationFn: async ({ doc, expectedUpdatedAt }: SaveMutationInput): Promise<string> => {
+      const result = await savePage(pageId, doc, expectedUpdatedAt)
       if (!result.success) throw new Error(result.error ?? 'Save failed')
+      return result.updatedAt ?? expectedUpdatedAt
     },
-    onSuccess: (_, savedDoc) => {
-      baselineDocRef.current = savedDoc
-      useDocumentStore.setState({ isDirty: false, baselineJson: JSON.stringify(savedDoc) })
+    onSuccess: (updatedAt, { doc }) => {
+      baselineDocRef.current = doc
+      lastKnownUpdatedAtRef.current = updatedAt
+      useDocumentStore.setState({ isDirty: false, baselineJson: JSON.stringify(doc) })
       // Show 'saved' briefly then revert to 'idle'
       if (savedDisplayTimerRef.current) clearTimeout(savedDisplayTimerRef.current)
       savedDisplayTimerRef.current = setTimeout(reset, SAVED_DISPLAY_MS)
     },
   })
+
+  useEffect(() => {
+    baselineDocRef.current = null
+    lastKnownUpdatedAtRef.current = initialUpdatedAt
+  }, [pageId, initialUpdatedAt])
 
   // Clear display timer on unmount
   useEffect(() => {
@@ -63,7 +76,10 @@ export function useAutoSave(pageId: string): SaveStatus {
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
-      mutate(document)
+      mutate({
+        doc: document,
+        expectedUpdatedAt: lastKnownUpdatedAtRef.current,
+      })
     }, DEBOUNCE_MS)
 
     return () => {

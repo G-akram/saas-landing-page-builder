@@ -1,11 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, like } from 'drizzle-orm'
 
 import { auth } from '@/shared/lib/auth'
 import { createDefaultDocument } from '@/shared/lib/default-document'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
+import { logger } from '@/shared/lib/logger'
 import { db, pages } from '@/shared/db'
 
 const createLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
@@ -24,15 +25,15 @@ function slugify(text: string): string {
     .slice(0, SLUG_MAX_LENGTH)
 }
 
-async function generateUniqueSlug(baseName: string, userId: string): Promise<string> {
+async function generateUniqueSlug(baseName: string): Promise<string> {
   const baseSlug = slugify(baseName) || 'untitled'
 
-  const userPages = await db
+  const existing = await db
     .select({ slug: pages.slug })
     .from(pages)
-    .where(eq(pages.userId, userId))
+    .where(like(pages.slug, `${baseSlug}%`))
 
-  const existingSlugs = new Set(userPages.map((p) => p.slug))
+  const existingSlugs = new Set(existing.map((p) => p.slug))
 
   if (!existingSlugs.has(baseSlug)) return baseSlug
 
@@ -41,6 +42,15 @@ async function generateUniqueSlug(baseName: string, userId: string): Promise<str
     counter++
   }
   return `${baseSlug}-${String(counter)}`
+}
+
+function isUniqueConstraintError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    err.code === '23505'
+  )
 }
 
 interface ActionResult {
@@ -68,18 +78,32 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
     return { error: 'Page name must be 100 characters or less' }
   }
 
-  const slug = await generateUniqueSlug(trimmedName, session.user.id)
   const document = createDefaultDocument()
+  const maxInsertRetries = 3
 
-  await db.insert(pages).values({
-    userId: session.user.id,
-    name: trimmedName,
-    slug,
-    document,
-  })
+  for (let attempt = 0; attempt < maxInsertRetries; attempt++) {
+    const slug = await generateUniqueSlug(trimmedName)
 
-  revalidatePath('/dashboard')
-  return {}
+    try {
+      await db.insert(pages).values({
+        userId: session.user.id,
+        name: trimmedName,
+        slug,
+        document,
+      })
+
+      revalidatePath('/dashboard')
+      return {}
+    } catch (err) {
+      if (isUniqueConstraintError(err) && attempt < maxInsertRetries - 1) {
+        continue
+      }
+      logger.error('Failed to create page', { error: String(err), userId: session.user.id })
+      return { error: 'Failed to create page. Please try again.' }
+    }
+  }
+
+  return { error: 'Failed to create a unique slug. Please try again.' }
 }
 
 export async function deletePage(formData: FormData): Promise<ActionResult> {

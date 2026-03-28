@@ -24,6 +24,7 @@ const MOBILE_VIEWPORT_WIDTH = 375
 interface EditorShellProps {
   pageId: string
   pageName: string
+  pageUpdatedAt: string
   document: PageDocument
 }
 
@@ -32,26 +33,28 @@ interface EditorShellProps {
 interface EditorLayoutProps {
   pageId: string
   pageName: string
+  pageUpdatedAt: string
   document: PageDocument
 }
 
 function EditorLayout({
   pageId,
   pageName,
+  pageUpdatedAt,
   document,
 }: EditorLayoutProps): React.JSX.Element {
   const initializeDocument = useDocumentStore((s) => s.initializeDocument)
   const resetUI = useUIStore((s) => s.resetUI)
-  const isInitialized = useRef(false)
+  const initializedPageIdRef = useRef<string | null>(null)
 
   const previewViewport = useUIStore((s) => s.previewViewport)
-  const saveStatus = useAutoSave(pageId)
+  const saveStatus = useAutoSave(pageId, pageUpdatedAt)
   const { showSidebar, showTopBar, showRightPanel, canvasMode } = useLayoutConfig()
 
   // Initialize stores once on mount (or when page changes).
   useEffect(() => {
-    if (isInitialized.current) return
-    isInitialized.current = true
+    if (initializedPageIdRef.current === pageId) return
+    initializedPageIdRef.current = pageId
 
     initializeDocument(document)
     resetUI()
@@ -126,13 +129,19 @@ function EditorLayout({
 export function EditorShell({
   pageId,
   pageName,
+  pageUpdatedAt,
   document,
 }: EditorShellProps): React.JSX.Element {
   // EditorActorProvider creates the XState actor and makes it available to
   // all children via useEditorActor(). Actor stops on unmount (page navigation).
   return (
     <EditorActorProvider>
-      <EditorLayout pageId={pageId} pageName={pageName} document={document} />
+      <EditorLayout
+        pageId={pageId}
+        pageName={pageName}
+        pageUpdatedAt={pageUpdatedAt}
+        document={document}
+      />
     </EditorActorProvider>
   )
 }

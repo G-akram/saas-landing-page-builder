@@ -26,6 +26,7 @@ export default async function EditorPage({ params }: EditorPageProps): Promise<R
     <EditorShell
       pageId={page.id}
       pageName={page.name}
+      pageUpdatedAt={page.updatedAt.toISOString()}
       document={page.document}
     />
   )

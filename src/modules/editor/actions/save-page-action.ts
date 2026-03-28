@@ -14,6 +14,7 @@ const saveLimiter = createRateLimiter({ maxRequests: 20, windowMs: 60_000 })
 export interface SavePageResult {
   success: boolean
   error?: string
+  updatedAt?: string
 }
 
 // ── Action ───────────────────────────────────────────────────────────────────
@@ -21,6 +22,7 @@ export interface SavePageResult {
 export async function savePage(
   pageId: string,
   document: PageDocument,
+  expectedUpdatedAt?: string,
 ): Promise<SavePageResult> {
   const session = await auth()
   if (!session?.user?.id) {
@@ -38,10 +40,34 @@ export async function savePage(
     return { success: false, error: 'Invalid document structure' }
   }
 
-  await db
+  let expectedUpdatedAtDate: Date | null = null
+  if (expectedUpdatedAt !== undefined) {
+    expectedUpdatedAtDate = new Date(expectedUpdatedAt)
+    if (Number.isNaN(expectedUpdatedAtDate.getTime())) {
+      return { success: false, error: 'Invalid page version' }
+    }
+  }
+
+  const whereClause = expectedUpdatedAtDate
+    ? and(
+      eq(pages.id, pageId),
+      eq(pages.userId, session.user.id),
+      eq(pages.updatedAt, expectedUpdatedAtDate),
+    )
+    : and(eq(pages.id, pageId), eq(pages.userId, session.user.id))
+
+  const updatedRows = await db
     .update(pages)
     .set({ document: parsed.data, updatedAt: new Date() })
-    .where(and(eq(pages.id, pageId), eq(pages.userId, session.user.id)))
+    .where(whereClause)
+    .returning({ updatedAt: pages.updatedAt })
 
-  return { success: true }
+  const updatedRow = updatedRows[0]
+  if (!updatedRow) {
+    return expectedUpdatedAtDate
+      ? { success: false, error: 'Save conflict: page changed in another session. Refresh and try again.' }
+      : { success: false, error: 'Page not found or access denied' }
+  }
+
+  return { success: true, updatedAt: updatedRow.updatedAt.toISOString() }
 }
