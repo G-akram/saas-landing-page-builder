@@ -1,4 +1,4 @@
-import { readPublishedPageBySlug } from '@/modules/publishing/queries'
+import { readPublishedPageBySlug } from '@/modules/publishing'
 import { logger } from '@/shared/lib/logger'
 
 const HTML_CONTENT_TYPE = 'text/html; charset=utf-8'

@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 
-import { getPageById } from '@/modules/dashboard/queries/page-queries'
+import { getPageById } from '@/modules/dashboard'
 import { auth } from '@/shared/lib/auth'
 
 import { EditorPageClient } from './editor-page-client'

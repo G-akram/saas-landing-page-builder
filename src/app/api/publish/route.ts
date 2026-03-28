@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { publishPage } from '@/modules/publishing/actions'
+import { publishPage } from '@/modules/publishing'
 import { logger } from '@/shared/lib/logger'
 
 const PublishRequestSchema = z.object({

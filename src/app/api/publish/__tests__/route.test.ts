@@ -5,7 +5,7 @@ const mocked = vi.hoisted(() => ({
   loggerError: vi.fn(),
 }))
 
-vi.mock('@/modules/publishing/actions', () => ({
+vi.mock('@/modules/publishing', () => ({
   publishPage: mocked.publishPage,
 }))
 
@@ -171,3 +171,4 @@ describe('POST /api/publish', () => {
     expect(mocked.loggerError).toHaveBeenCalledTimes(1)
   })
 })
+

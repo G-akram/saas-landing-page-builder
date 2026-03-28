@@ -1,10 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { auth, signOut } from '@/shared/lib/auth'
-import { getPagesByUser } from '@/modules/dashboard/queries/page-queries'
-import { CreatePageDialog } from '@/modules/dashboard/components/create-page-dialog'
-import { PageCard } from '@/modules/dashboard/components/page-card'
-import { EmptyState } from '@/modules/dashboard/components/empty-state'
+import { CreatePageDialog, EmptyState, getPagesByUser, PageCard } from '@/modules/dashboard'
 import { Button } from '@/components/ui/button'
 
 export default async function DashboardPage(): Promise<React.JSX.Element> {

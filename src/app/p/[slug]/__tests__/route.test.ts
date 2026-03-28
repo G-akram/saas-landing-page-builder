@@ -5,7 +5,7 @@ const mocked = vi.hoisted(() => ({
   loggerError: vi.fn(),
 }))
 
-vi.mock('@/modules/publishing/queries', () => ({
+vi.mock('@/modules/publishing', () => ({
   readPublishedPageBySlug: mocked.readPublishedPageBySlug,
 }))
 
@@ -136,3 +136,4 @@ describe('GET /p/[slug]', () => {
     expect(mocked.readPublishedPageBySlug).not.toHaveBeenCalled()
   })
 })
+
