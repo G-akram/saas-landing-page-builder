@@ -2,7 +2,7 @@ import { integer, jsonb, pgTable, primaryKey, text, timestamp } from 'drizzle-or
 
 import { type PageDocument } from '@/shared/types'
 
-// ── Auth tables (required by NextAuth.js v5 Drizzle adapter) ─────────────────
+// Auth tables (required by NextAuth.js v5 Drizzle adapter)
 
 export const users = pgTable('users', {
   id: text('id')
@@ -53,10 +53,8 @@ export const verificationTokens = pgTable(
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
 )
 
-// ── App tables ────────────────────────────────────────────────────────────────
+// App tables
 
-// Typed as unknown until Zod schemas are defined in Step 4 (shared/types/).
-// Will be narrowed to PageDocument once that type exists.
 export const pages = pgTable('pages', {
   id: text('id')
     .primaryKey()
@@ -72,14 +70,20 @@ export const pages = pgTable('pages', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
 })
 
+// Published artifact metadata index.
+// HTML/CSS artifacts are stored in external storage; this table keeps lookup and integrity fields.
 export const publishedPages = pgTable('publishedPages', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   pageId: text('pageId')
     .notNull()
-    .references(() => pages.id, { onDelete: 'cascade' }),
+    .references(() => pages.id, { onDelete: 'cascade' })
+    .unique(),
   slug: text('slug').notNull().unique(),
-  html: text('html').notNull(),
+  variantId: text('variantId'),
+  storageProvider: text('storageProvider', { enum: ['local', 'object-storage'] }).notNull(),
+  storageKey: text('storageKey').notNull(),
+  contentHash: text('contentHash').notNull(),
   publishedAt: timestamp('publishedAt', { mode: 'date' }).notNull().defaultNow(),
 })

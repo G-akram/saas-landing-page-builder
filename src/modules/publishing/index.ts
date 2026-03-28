@@ -1,2 +1,2 @@
 // Public API for the publishing module.
-export {}
+export * from './types'
