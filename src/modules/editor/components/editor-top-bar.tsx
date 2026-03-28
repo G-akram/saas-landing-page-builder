@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Eye, Redo2, Undo2 } from 'lucide-react'
+import { ArrowLeft, Eye, Monitor, Redo2, Smartphone, Undo2 } from 'lucide-react'
 
 import { cn } from '@/shared/lib/utils'
-import { useDocumentStore } from '@/modules/editor'
+import { useDocumentStore, useUIStore } from '@/modules/editor'
 import { useEditorActor } from '@/modules/editor'
 
 import { type SaveStatus } from '../hooks/use-auto-save'
@@ -29,6 +29,8 @@ export function EditorTopBar({
   const redo = useDocumentStore((s) => s.redo)
   const hasUndo = useDocumentStore((s) => s.undoStack.length > 0)
   const hasRedo = useDocumentStore((s) => s.redoStack.length > 0)
+  const previewViewport = useUIStore((s) => s.previewViewport)
+  const setPreviewViewport = useUIStore((s) => s.setPreviewViewport)
   const actor = useEditorActor()
 
   function handleTogglePreview(): void {
@@ -50,26 +52,59 @@ export function EditorTopBar({
         <h1 className="text-sm font-medium text-white">{pageName}</h1>
       </div>
 
-      {/* Center — undo/redo */}
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={undo}
-          disabled={!hasUndo}
-          aria-label="Undo"
-          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-        >
-          <Undo2 className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={redo}
-          disabled={!hasRedo}
-          aria-label="Redo"
-          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-        >
-          <Redo2 className="h-4 w-4" />
-        </button>
+      {/* Center — undo/redo + viewport toggle */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={undo}
+            disabled={!hasUndo}
+            aria-label="Undo"
+            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+          >
+            <Undo2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={redo}
+            disabled={!hasRedo}
+            aria-label="Redo"
+            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+          >
+            <Redo2 className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="h-4 w-px bg-white/10" />
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => { setPreviewViewport('desktop') }}
+            aria-label="Desktop view"
+            className={cn(
+              'rounded p-1.5 transition-colors',
+              previewViewport === 'desktop'
+                ? 'bg-white/10 text-white'
+                : 'text-gray-400 hover:bg-white/5 hover:text-white',
+            )}
+          >
+            <Monitor className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => { setPreviewViewport('mobile') }}
+            aria-label="Mobile view"
+            className={cn(
+              'rounded p-1.5 transition-colors',
+              previewViewport === 'mobile'
+                ? 'bg-white/10 text-white'
+                : 'text-gray-400 hover:bg-white/5 hover:text-white',
+            )}
+          >
+            <Smartphone className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Right — save status + preview toggle */}

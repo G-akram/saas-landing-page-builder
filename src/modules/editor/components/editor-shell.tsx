@@ -17,6 +17,7 @@ import { SectionListPanel } from './section-list-panel'
 
 const SIDEBAR_WIDTH = 240
 const RIGHT_PANEL_WIDTH = 280
+const MOBILE_VIEWPORT_WIDTH = 375
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ function EditorLayout({
   const resetUI = useUIStore((s) => s.resetUI)
   const isInitialized = useRef(false)
 
+  const previewViewport = useUIStore((s) => s.previewViewport)
   const saveStatus = useAutoSave(pageId)
   const { showSidebar, showTopBar, showRightPanel, canvasMode } = useLayoutConfig()
 
@@ -56,6 +58,7 @@ function EditorLayout({
   }, [pageId, document, initializeDocument, resetUI])
 
   const isPreviewMode = canvasMode === 'preview'
+  const isMobileViewport = previewViewport === 'mobile'
 
   return (
     <div
@@ -97,7 +100,14 @@ function EditorLayout({
         className="scrollbar-editor overflow-y-auto p-8"
         style={{ gridArea: 'canvas' }}
       >
-        <EditorCanvas />
+        <div
+          className="@container mx-auto transition-[max-width] duration-300 ease-in-out"
+          style={{
+            maxWidth: isMobileViewport ? `${String(MOBILE_VIEWPORT_WIDTH)}px` : undefined,
+          }}
+        >
+          <EditorCanvas />
+        </div>
       </main>
 
       {/* Right panel — grid area: properties */}

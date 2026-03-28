@@ -154,7 +154,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Inline text editing — double-click → `contentEditable` → blur-to-save
 - [x] Block picker with variant previews — upgrade add-section dialog with live mini-renders
 - [x] Image upload/selection — local storage in dev, abstracted for future cloud swap
-- [ ] Mobile preview toggle — container queries, responsive reflow
+- [x] Mobile preview toggle — container queries, responsive reflow
 
 **Deliverables:**
 - Build a complete, realistic landing page end-to-end in the editor

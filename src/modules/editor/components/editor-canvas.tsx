@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useSelector } from '@xstate/react'
 
-import { useDocumentStore } from '@/modules/editor'
+import { useDocumentStore, useUIStore } from '@/modules/editor'
 import { useEditorActor } from '@/modules/editor'
 
 import { AddSectionButton } from './add-section-button'
@@ -34,6 +34,7 @@ export function EditorCanvas(): React.JSX.Element {
   const addSection = useDocumentStore((s) => s.addSection)
   const deleteSection = useDocumentStore((s) => s.deleteSection)
   const updateElement = useDocumentStore((s) => s.updateElement)
+  const isMobile = useUIStore((s) => s.previewViewport === 'mobile')
 
   const actor = useEditorActor()
   const selectedSectionId = useSelector(
@@ -173,6 +174,7 @@ export function EditorCanvas(): React.JSX.Element {
                   <SortableSection
                     section={section}
                     isSelected={selectedSectionId === section.id}
+                    isMobile={isMobile}
                     selectedElementId={selectedElementId}
                     editingElementId={editingElementId}
                     onSelect={(sectionId) => {
@@ -222,6 +224,7 @@ export function EditorCanvas(): React.JSX.Element {
             <SectionRenderer
               section={activeDragSection}
               isSelected={false}
+              isMobile={isMobile}
               onSelect={() => undefined}
             />
           </div>

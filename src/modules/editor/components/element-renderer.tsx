@@ -236,7 +236,7 @@ function ButtonElement({
       ref={ref}
       contentEditable={isEditing}
       suppressContentEditableWarning
-      className={`inline-block cursor-default ${isEditing ? 'outline-none' : ''}`}
+      className={`inline-block cursor-default @max-sm:block @max-sm:w-full @max-sm:text-center ${isEditing ? 'outline-none' : ''}`}
       style={{
         ...buildBaseStyles(styles),
         backgroundColor: styles.backgroundColor ?? undefined,
@@ -270,7 +270,7 @@ function ImageElement({
       <img
         src={src}
         alt={alt}
-        className="block"
+        className="block @max-sm:w-full"
         style={{
           maxWidth: styles.maxWidth ?? '100%',
           width: styles.width ?? undefined,

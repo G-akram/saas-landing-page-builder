@@ -17,6 +17,7 @@ import { SelectableElement } from './selectable-element'
 interface SectionRendererProps {
   section: Section
   isSelected: boolean
+  isMobile?: boolean
   selectedElementId?: string | null
   editingElementId?: string | null
   onSelect: (sectionId: string) => void
@@ -42,6 +43,7 @@ const SECTION_LABELS: Record<Section['type'], string> = {
 export function SectionRenderer({
   section,
   isSelected,
+  isMobile = false,
   selectedElementId,
   editingElementId,
   onSelect,
@@ -68,10 +70,10 @@ export function SectionRenderer({
       }`}
       style={{
         ...buildBackgroundStyle(section.background),
-        paddingTop: `${String(section.padding.top)}px`,
-        paddingBottom: `${String(section.padding.bottom)}px`,
-        paddingLeft: `${String(section.padding.left)}px`,
-        paddingRight: `${String(section.padding.right)}px`,
+        paddingTop: `${String(isMobile ? Math.round(section.padding.top * 0.6) : section.padding.top)}px`,
+        paddingBottom: `${String(isMobile ? Math.round(section.padding.bottom * 0.6) : section.padding.bottom)}px`,
+        paddingLeft: `${String(isMobile ? Math.round(section.padding.left * 0.5) : section.padding.left)}px`,
+        paddingRight: `${String(isMobile ? Math.round(section.padding.right * 0.5) : section.padding.right)}px`,
         position: 'relative',
       }}
       onClick={() => {
@@ -112,6 +114,7 @@ export function SectionRenderer({
           layout.type === 'grid' && layout.columns ? (
             <GridLayout
               layout={layout}
+              isMobile={isMobile}
               slotGroups={slotGroups}
               textColorClass={textColorClass}
               selectedElementId={selectedElementId}
@@ -124,6 +127,7 @@ export function SectionRenderer({
           ) : (
             <StackLayout
               layout={layout}
+              isMobile={isMobile}
               slotGroups={slotGroups}
               textColorClass={textColorClass}
               selectedElementId={selectedElementId}
@@ -148,6 +152,7 @@ export function SectionRenderer({
 
 interface LayoutProps {
   layout: Section['layout']
+  isMobile: boolean
   slotGroups: Map<number, PageElement[]>
   textColorClass: string
   selectedElementId: string | null | undefined
@@ -160,6 +165,7 @@ interface LayoutProps {
 
 function GridLayout({
   layout,
+  isMobile,
   slotGroups,
   textColorClass,
   selectedElementId,
@@ -170,27 +176,41 @@ function GridLayout({
   onInlineSave,
 }: LayoutProps): React.JSX.Element {
   const columns = layout.columns ?? 1
+  const effectiveColumns = isMobile ? 1 : columns
   const alignClass = ALIGN_CLASS[layout.align]
   const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
+  const effectiveGap = isMobile ? Math.round(layout.gap * 0.6) : layout.gap
 
-  // Build column indices 0..columns-1
-  const columnIndices = Array.from({ length: columns }, (_, i) => i)
+  // On mobile, flatten all slots into a single column
+  const columnIndices = isMobile
+    ? [0]
+    : Array.from({ length: columns }, (_, i) => i)
+
+  // When collapsed to single column, merge all slot groups in order
+  const getMobileElements = (): PageElement[] => {
+    const allElements: PageElement[] = []
+    for (let i = 0; i < columns; i++) {
+      const slotElements = slotGroups.get(i)
+      if (slotElements) allElements.push(...slotElements)
+    }
+    return allElements
+  }
 
   return (
     <div
       className="grid"
       style={{
-        gridTemplateColumns: `repeat(${String(columns)}, 1fr)`,
-        gap: `${String(layout.gap)}px`,
+        gridTemplateColumns: `repeat(${String(effectiveColumns)}, 1fr)`,
+        gap: `${String(effectiveGap)}px`,
       }}
     >
       {columnIndices.map((colIndex) => {
-        const elements = slotGroups.get(colIndex) ?? []
+        const elements = isMobile ? getMobileElements() : (slotGroups.get(colIndex) ?? [])
         return (
           <div
             key={colIndex}
             className={`flex flex-col ${alignClass} ${vAlignClass}`}
-            style={{ gap: `${String(Math.min(layout.gap, 16))}px` }}
+            style={{ gap: `${String(Math.min(effectiveGap, 16))}px` }}
           >
             {elements.map((element) => (
               <SelectableElement
@@ -222,6 +242,7 @@ function GridLayout({
 
 function StackLayout({
   layout,
+  isMobile,
   slotGroups,
   textColorClass,
   selectedElementId,
@@ -233,6 +254,7 @@ function StackLayout({
 }: LayoutProps): React.JSX.Element {
   const alignClass = ALIGN_CLASS[layout.align]
   const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
+  const effectiveGap = isMobile ? Math.round(layout.gap * 0.6) : layout.gap
 
   // Flatten all groups in slot order
   const allElements = [...slotGroups.values()].flat()
@@ -240,7 +262,7 @@ function StackLayout({
   return (
     <div
       className={`flex flex-col ${alignClass} ${vAlignClass}`}
-      style={{ gap: `${String(layout.gap)}px` }}
+      style={{ gap: `${String(effectiveGap)}px` }}
     >
       {allElements.map((element) => (
         <SelectableElement

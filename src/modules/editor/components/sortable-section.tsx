@@ -13,6 +13,7 @@ import { SectionRenderer } from './section-renderer'
 interface SortableSectionProps {
   section: Section
   isSelected: boolean
+  isMobile: boolean
   selectedElementId: string | null
   editingElementId: string | null
   onSelect: (sectionId: string) => void
@@ -28,6 +29,7 @@ interface SortableSectionProps {
 export function SortableSection({
   section,
   isSelected,
+  isMobile,
   selectedElementId,
   editingElementId,
   onSelect,
@@ -94,6 +96,7 @@ export function SortableSection({
         <SectionRenderer
           section={section}
           isSelected={isSelected}
+          isMobile={isMobile}
           selectedElementId={selectedElementId}
           editingElementId={editingElementId}
           onSelect={onSelect}
