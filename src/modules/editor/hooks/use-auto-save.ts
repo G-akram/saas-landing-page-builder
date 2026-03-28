@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
 
 import { type PageDocument } from '@/shared/types'
@@ -8,12 +8,8 @@ import { useDocumentStore } from '@/modules/editor'
 
 import { savePage } from '../actions/save-page-action'
 
-// ── Constants ────────────────────────────────────────────────────────────────
-
 const DEBOUNCE_MS = 2000
 const SAVED_DISPLAY_MS = 3000
-
-// ── Types ────────────────────────────────────────────────────────────────────
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
@@ -22,19 +18,31 @@ interface SaveMutationInput {
   expectedUpdatedAt: string
 }
 
-// ── Hook ─────────────────────────────────────────────────────────────────────
+export interface AutoSaveController {
+  status: SaveStatus
+  canManualSave: boolean
+  triggerManualSave: () => Promise<void>
+}
 
-export function useAutoSave(pageId: string, initialUpdatedAt: string): SaveStatus {
-  const document = useDocumentStore((s) => s.document)
+interface UseAutoSaveOptions {
+  enabled?: boolean
+}
 
-  // Tracks the document reference at last save (or initial load).
-  // null = hook hasn't run yet; used to skip the hydration fire.
+export function useAutoSave(
+  pageId: string,
+  initialUpdatedAt: string,
+  options: UseAutoSaveOptions = {},
+): AutoSaveController {
+  const isEnabled = options.enabled ?? true
+  const document = useDocumentStore((state) => state.document)
+  const isDirty = useDocumentStore((state) => state.isDirty)
+
   const baselineDocRef = useRef<PageDocument | null>(null)
   const lastKnownUpdatedAtRef = useRef(initialUpdatedAt)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savedDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { mutate, isPending, isSuccess, isError, reset } = useMutation({
+  const { mutateAsync, isPending, isSuccess, isError, reset } = useMutation({
     mutationFn: async ({ doc, expectedUpdatedAt }: SaveMutationInput): Promise<string> => {
       const result = await savePage(pageId, doc, expectedUpdatedAt)
       if (!result.success) throw new Error(result.error ?? 'Save failed')
@@ -44,7 +52,7 @@ export function useAutoSave(pageId: string, initialUpdatedAt: string): SaveStatu
       baselineDocRef.current = doc
       lastKnownUpdatedAtRef.current = updatedAt
       useDocumentStore.setState({ isDirty: false, baselineJson: JSON.stringify(doc) })
-      // Show 'saved' briefly then revert to 'idle'
+
       if (savedDisplayTimerRef.current) clearTimeout(savedDisplayTimerRef.current)
       savedDisplayTimerRef.current = setTimeout(reset, SAVED_DISPLAY_MS)
     },
@@ -53,42 +61,75 @@ export function useAutoSave(pageId: string, initialUpdatedAt: string): SaveStatu
   useEffect(() => {
     baselineDocRef.current = null
     lastKnownUpdatedAtRef.current = initialUpdatedAt
-  }, [pageId, initialUpdatedAt])
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    if (savedDisplayTimerRef.current) clearTimeout(savedDisplayTimerRef.current)
+    reset()
+  }, [pageId, initialUpdatedAt, isEnabled, reset])
 
-  // Clear display timer on unmount
   useEffect(() => {
     return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
       if (savedDisplayTimerRef.current) clearTimeout(savedDisplayTimerRef.current)
     }
   }, [])
 
   useEffect(() => {
+    if (!isEnabled) {
+      return
+    }
+
     if (!document) return
 
-    // First run after initializeDocument: establish baseline, skip save
     if (baselineDocRef.current === null) {
       baselineDocRef.current = document
       return
     }
 
-    // Same reference: no user edit since last save
     if (baselineDocRef.current === document) return
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
-      mutate({
+      void mutateAsync({
         doc: document,
         expectedUpdatedAt: lastKnownUpdatedAtRef.current,
+      }).catch(() => {
+        // Mutation status already exposes save error state.
       })
     }, DEBOUNCE_MS)
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     }
-  }, [document, mutate])
+  }, [document, isEnabled, mutateAsync])
 
-  if (isPending) return 'saving'
-  if (isError) return 'error'
-  if (isSuccess) return 'saved'
-  return 'idle'
+  const triggerManualSave = useCallback(async (): Promise<void> => {
+    if (!isEnabled || !document || isPending || !isDirty) {
+      return
+    }
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+
+    try {
+      await mutateAsync({
+        doc: document,
+        expectedUpdatedAt: lastKnownUpdatedAtRef.current,
+      })
+    } catch {
+      // Mutation status already exposes save error state.
+    }
+  }, [document, isDirty, isEnabled, isPending, mutateAsync])
+
+  const status: SaveStatus = isPending
+    ? 'saving'
+    : isError
+      ? 'error'
+      : isSuccess
+        ? 'saved'
+        : 'idle'
+
+  return {
+    status: isEnabled ? status : 'idle',
+    canManualSave: isEnabled && Boolean(document) && isDirty && !isPending,
+    triggerManualSave,
+  }
 }

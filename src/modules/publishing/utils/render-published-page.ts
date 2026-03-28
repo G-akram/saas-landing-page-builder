@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto'
+import { createRequire } from 'node:module'
 
-import { createElement } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
+import { createElement, type ReactElement } from 'react'
 
 import { PageDocumentSchema } from '@/shared/types'
 
 import {
   type BuildSeoMetadataInput,
+  type PublishedSeoMetadata,
   type RenderPublishedPageInput,
   type RenderPublishedPageResult,
 } from '../types'
@@ -15,17 +16,29 @@ import { buildPublishedSeoMetadata } from './publish-renderer-utils'
 
 const HTML_DOCTYPE = '<!DOCTYPE html>'
 
+interface RenderStaticDocumentInput {
+  sections: RenderPublishedPageInput['document']['variants'][number]['sections']
+  metadata: PublishedSeoMetadata
+  variantId: string
+}
+
+interface ReactDomServerNode {
+  renderToStaticMarkup: (element: ReactElement) => string
+}
+
+const require = createRequire(import.meta.url)
+
 export function renderPublishedPage(
   input: RenderPublishedPageInput,
-): RenderPublishedPageResult {
+): Promise<RenderPublishedPageResult> {
   const parsed = PageDocumentSchema.safeParse(input.document)
 
   if (!parsed.success) {
-    return {
+    return Promise.resolve({
       success: false,
       errorCode: 'INVALID_DOCUMENT',
       message: `Page document for ${input.pageId} is invalid`,
-    }
+    })
   }
 
   const activeVariant = parsed.data.variants.find(
@@ -33,11 +46,11 @@ export function renderPublishedPage(
   )
 
   if (!activeVariant) {
-    return {
+    return Promise.resolve({
       success: false,
       errorCode: 'ACTIVE_VARIANT_NOT_FOUND',
       message: `Active variant ${parsed.data.activeVariantId} was not found for page ${input.pageId}`,
-    }
+    })
   }
 
   const seoInput: BuildSeoMetadataInput = {
@@ -56,21 +69,38 @@ export function renderPublishedPage(
 
   const metadata = buildPublishedSeoMetadata(seoInput)
 
-  const markup = renderToStaticMarkup(
-    createElement(PublishedPageDocument, {
+  return Promise.resolve(
+    renderStaticDocument({
       sections: activeVariant.sections,
       metadata,
+      variantId: activeVariant.id,
     }),
   )
+}
 
-  const html = `${HTML_DOCTYPE}${markup}`
+function renderStaticDocument({
+  sections,
+  metadata,
+  variantId,
+}: RenderStaticDocumentInput): RenderPublishedPageResult {
+  const markup = getRenderToStaticMarkup()(createElement(PublishedPageDocument, {
+    sections,
+    metadata,
+  }))
+
+  const html = markup.startsWith(HTML_DOCTYPE) ? markup : `${HTML_DOCTYPE}${markup}`
   const contentHash = createHash('sha256').update(html).digest('hex')
 
   return {
     success: true,
     html,
     contentHash,
-    variantId: activeVariant.id,
+    variantId,
     metadata,
   }
+}
+
+function getRenderToStaticMarkup(): (element: ReactElement) => string {
+  const { renderToStaticMarkup } = require('react-dom/server.node') as ReactDomServerNode
+  return renderToStaticMarkup
 }

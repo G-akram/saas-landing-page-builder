@@ -59,7 +59,7 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
   }
 
   const liveUrl = buildLiveUrl(page.slug)
-  const renderResult = renderPublishedPage({
+  const renderResult = await renderPublishedPage({
     pageId: page.id,
     pageName: page.name,
     slug: page.slug,
@@ -91,42 +91,40 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
   const publishedAt = new Date()
 
   try {
-    await db.transaction(async (tx) => {
-      await tx
-        .insert(publishedPages)
-        .values({
-          pageId: page.id,
+    await db
+      .insert(publishedPages)
+      .values({
+        pageId: page.id,
+        slug: page.slug,
+        variantId: renderResult.variantId,
+        storageProvider: writeResult.storageProvider,
+        storageKey: writeResult.storageKey,
+        contentHash: renderResult.contentHash,
+        publishedAt,
+      })
+      .onConflictDoUpdate({
+        target: publishedPages.pageId,
+        set: {
           slug: page.slug,
           variantId: renderResult.variantId,
           storageProvider: writeResult.storageProvider,
           storageKey: writeResult.storageKey,
           contentHash: renderResult.contentHash,
           publishedAt,
-        })
-        .onConflictDoUpdate({
-          target: publishedPages.pageId,
-          set: {
-            slug: page.slug,
-            variantId: renderResult.variantId,
-            storageProvider: writeResult.storageProvider,
-            storageKey: writeResult.storageKey,
-            contentHash: renderResult.contentHash,
-            publishedAt,
-          },
-        })
+        },
+      })
 
-      await tx
-        .update(pages)
-        .set({ status: 'published', updatedAt: publishedAt })
-        .where(eq(pages.id, page.id))
-    })
+    await db
+      .update(pages)
+      .set({ status: 'published' })
+      .where(eq(pages.id, page.id))
   } catch (error) {
     const databaseCode = getDatabaseErrorCode(error)
     if (databaseCode === '23505') {
       return createPublishError('PUBLISH_CONFLICT', 'Publish conflict detected. Try publishing again.')
     }
 
-    logger.error('Publish transaction failed', {
+    logger.error('Publish persistence failed', {
       pageId: page.id,
       userId: session.user.id,
       error: getReadableErrorMessage(error),
@@ -230,5 +228,3 @@ function getReadableErrorMessage(error: unknown): string {
 
   return 'unknown error'
 }
-
-

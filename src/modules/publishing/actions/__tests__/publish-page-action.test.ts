@@ -5,7 +5,8 @@ import { type PageDocument } from '@/shared/types'
 const mocked = vi.hoisted(() => ({
   auth: vi.fn(),
   select: vi.fn(),
-  transaction: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
   revalidatePath: vi.fn(),
   renderPublishedPage: vi.fn(),
   writeArtifact: vi.fn(),
@@ -36,7 +37,8 @@ vi.mock('@/shared/lib/auth', () => ({
 vi.mock('@/shared/db', () => ({
   db: {
     select: mocked.select,
-    transaction: mocked.transaction,
+    insert: mocked.insert,
+    update: mocked.update,
   },
   pages: mocked.pagesTable,
   publishedPages: mocked.publishedPagesTable,
@@ -121,31 +123,17 @@ function mockSelectRows(rows: MockPageRow[]): void {
   mocked.select.mockReturnValue({ from: fromMock })
 }
 
-function mockTransactionSuccess(): void {
-  mocked.transaction.mockImplementation(async (callback: (tx: {
-    insert: (table: unknown) => {
-      values: (values: Record<string, unknown>) => {
-        onConflictDoUpdate: (input: Record<string, unknown>) => Promise<void>
-      }
-    }
-    update: (table: unknown) => {
-      set: (input: Record<string, unknown>) => {
-        where: (condition: unknown) => Promise<void>
-      }
-    }
-  }) => Promise<void>) => {
-    await callback({
-      insert: () => ({
-        values: () => ({
-          onConflictDoUpdate: () => Promise.resolve(),
-        }),
-      }),
-      update: () => ({
-        set: () => ({
-          where: () => Promise.resolve(),
-        }),
-      }),
-    })
+function mockPersistenceSuccess(): void {
+  mocked.insert.mockReturnValue({
+    values: vi.fn().mockReturnValue({
+      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+    }),
+  })
+
+  mocked.update.mockReturnValue({
+    set: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue(undefined),
+    }),
   })
 }
 
@@ -158,7 +146,7 @@ describe('publishPage', () => {
     mocked.auth.mockResolvedValue({ user: { id: 'user-1' } })
     mockSelectRows([createPageRow()])
 
-    mocked.renderPublishedPage.mockReturnValue({
+    mocked.renderPublishedPage.mockResolvedValue({
       success: true,
       html: '<!DOCTYPE html><html><body>Hello</body></html>',
       contentHash: 'a'.repeat(64),
@@ -178,7 +166,7 @@ describe('publishPage', () => {
       bytes: 44,
     })
 
-    mockTransactionSuccess()
+    mockPersistenceSuccess()
   })
 
   it('returns NOT_AUTHENTICATED when session is missing', async () => {
@@ -206,7 +194,7 @@ describe('publishPage', () => {
   })
 
   it('maps renderer failures to INVALID_DOCUMENT', async () => {
-    mocked.renderPublishedPage.mockReturnValue({
+    mocked.renderPublishedPage.mockResolvedValue({
       success: false,
       errorCode: 'ACTIVE_VARIANT_NOT_FOUND',
       message: 'Active variant not found',

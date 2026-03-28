@@ -1,7 +1,5 @@
 import { createElement } from 'react'
 
-import { icons, type LucideIcon } from 'lucide-react'
-
 import { type Element as PageElement } from '@/shared/types'
 
 import {
@@ -23,16 +21,20 @@ const HEADING_TAG_BY_LEVEL = {
   4: 'h4',
 } as const
 
-function kebabToPascal(value: string): string {
-  return value
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('')
-}
+function resolveIconMonogram(name: string): string {
+  const normalized = name.trim().toUpperCase()
+  if (normalized.length === 0) {
+    return 'I'
+  }
 
-function resolveIcon(name: string): LucideIcon | null {
-  const pascalName = kebabToPascal(name)
-  return (icons as Record<string, LucideIcon>)[pascalName] ?? null
+  const parts = normalized.split('-').filter((part) => part.length > 0)
+  if (parts.length >= 2) {
+    const first = parts[0]?.charAt(0) ?? ''
+    const second = parts[1]?.charAt(0) ?? ''
+    return `${first}${second}` || 'I'
+  }
+
+  return normalized.slice(0, 2)
 }
 
 function wrapWithLinkIfPresent(
@@ -157,30 +159,31 @@ function renderIcon(
     throw new Error('Expected icon element content')
   }
 
-  const icon = resolveIcon(element.content.name)
   const iconSize = element.styles.fontSize ?? 28
-
-  if (!icon) {
-    return createElement(
-      'span',
-      {
-        style: {
-          ...buildBaseElementStyle(element.styles),
-          color: element.styles.color ?? defaultTextColor,
-        },
+  const iconColor = element.styles.color ?? defaultTextColor
+  const iconNode = createElement(
+    'span',
+    {
+      'aria-hidden': true,
+      title: element.content.name,
+      style: {
+        ...buildBaseElementStyle(element.styles),
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: `${String(iconSize)}px`,
+        height: `${String(iconSize)}px`,
+        borderRadius: '9999px',
+        border: `1px solid ${iconColor}`,
+        color: iconColor,
+        fontSize: `${String(Math.max(10, Math.round(iconSize * 0.42)))}px`,
+        fontWeight: 600,
+        lineHeight: 1,
+        textTransform: 'uppercase',
       },
-      element.content.name,
-    )
-  }
-
-  const iconNode = createElement(icon, {
-    size: iconSize,
-    style: {
-      ...buildBaseElementStyle(element.styles),
-      color: element.styles.color ?? defaultTextColor,
     },
-    'aria-hidden': true,
-  })
+    resolveIconMonogram(element.content.name),
+  )
 
   return wrapWithLinkIfPresent(element, iconNode)
 }

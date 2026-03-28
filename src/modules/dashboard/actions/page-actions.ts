@@ -83,6 +83,7 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
 
   for (let attempt = 0; attempt < maxInsertRetries; attempt++) {
     const slug = await generateUniqueSlug(trimmedName)
+    const now = new Date()
 
     try {
       await db.insert(pages).values({
@@ -90,6 +91,8 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
         name: trimmedName,
         slug,
         document,
+        createdAt: now,
+        updatedAt: now,
       })
 
       revalidatePath('/dashboard')

@@ -1,9 +1,10 @@
 'use server'
 
-import { and, eq } from 'drizzle-orm'
+import { and, eq, gte, lt } from 'drizzle-orm'
 
 import { auth } from '@/shared/lib/auth'
 import { db, pages } from '@/shared/db'
+import { logger } from '@/shared/lib/logger'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { PageDocumentSchema, type PageDocument } from '@/shared/types'
 
@@ -48,19 +49,36 @@ export async function savePage(
     }
   }
 
-  const whereClause = expectedUpdatedAtDate
+  const optimisticLockUpperBound = expectedUpdatedAtDate
+    ? new Date(expectedUpdatedAtDate.getTime() + 1)
+    : null
+
+  const whereClause = expectedUpdatedAtDate && optimisticLockUpperBound
     ? and(
       eq(pages.id, pageId),
       eq(pages.userId, session.user.id),
-      eq(pages.updatedAt, expectedUpdatedAtDate),
+      // Match the same millisecond window to tolerate DB timestamp precision
+      // differences while preserving optimistic locking behavior.
+      gte(pages.updatedAt, expectedUpdatedAtDate),
+      lt(pages.updatedAt, optimisticLockUpperBound),
     )
     : and(eq(pages.id, pageId), eq(pages.userId, session.user.id))
 
-  const updatedRows = await db
-    .update(pages)
-    .set({ document: parsed.data, updatedAt: new Date() })
-    .where(whereClause)
-    .returning({ updatedAt: pages.updatedAt })
+  let updatedRows: { updatedAt: Date }[]
+  try {
+    updatedRows = await db
+      .update(pages)
+      .set({ document: parsed.data, updatedAt: new Date() })
+      .where(whereClause)
+      .returning({ updatedAt: pages.updatedAt })
+  } catch (error) {
+    logger.error('Failed to save page', {
+      pageId,
+      userId: session.user.id,
+      error: getReadableErrorMessage(error),
+    })
+    return { success: false, error: 'Save failed. Please try again.' }
+  }
 
   const updatedRow = updatedRows[0]
   if (!updatedRow) {
@@ -70,4 +88,12 @@ export async function savePage(
   }
 
   return { success: true, updatedAt: updatedRow.updatedAt.toISOString() }
+}
+
+function getReadableErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return 'unknown error'
 }

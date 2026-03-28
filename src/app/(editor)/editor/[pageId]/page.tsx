@@ -1,8 +1,9 @@
 import { notFound, redirect } from 'next/navigation'
 
-import { auth } from '@/shared/lib/auth'
 import { getPageById } from '@/modules/dashboard/queries/page-queries'
-import { EditorShell } from '@/modules/editor'
+import { auth } from '@/shared/lib/auth'
+
+import { EditorPageClient } from './editor-page-client'
 
 interface EditorPageProps {
   params: Promise<{ pageId: string }>
@@ -23,9 +24,11 @@ export default async function EditorPage({ params }: EditorPageProps): Promise<R
   }
 
   return (
-    <EditorShell
+    <EditorPageClient
       pageId={page.id}
       pageName={page.name}
+      pageSlug={page.slug}
+      pageStatus={page.status}
       pageUpdatedAt={page.updatedAt.toISOString()}
       document={page.document}
     />

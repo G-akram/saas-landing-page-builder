@@ -8,33 +8,32 @@ import { EditorActorProvider } from '@/modules/editor'
 
 import { useAutoSave } from '../hooks/use-auto-save'
 import { useLayoutConfig } from '../hooks/use-layout-config'
+import { usePublish, type EditorPublishResult } from '../hooks/use-publish'
 import { EditorCanvas } from './editor-canvas'
 import { EditorTopBar } from './editor-top-bar'
 import { PropertyPanel } from './property-panel'
 import { SectionListPanel } from './section-list-panel'
 
-// ── Constants ────────────────────────────────────────────────────────────────
-
 const SIDEBAR_WIDTH = 240
 const RIGHT_PANEL_WIDTH = 280
 const MOBILE_VIEWPORT_WIDTH = 375
-
-// ── Props ───────────────────────────────────────────────────────────────────
 
 interface EditorShellProps {
   pageId: string
   pageName: string
   pageUpdatedAt: string
   document: PageDocument
+  initialLiveUrl?: string | null
+  onPublish?: (() => Promise<EditorPublishResult>) | null
 }
-
-// ── Inner layout (needs XState actor context) ───────────────────────────────
 
 interface EditorLayoutProps {
   pageId: string
   pageName: string
   pageUpdatedAt: string
   document: PageDocument
+  initialLiveUrl?: string | null
+  onPublish?: (() => Promise<EditorPublishResult>) | null
 }
 
 function EditorLayout({
@@ -42,21 +41,33 @@ function EditorLayout({
   pageName,
   pageUpdatedAt,
   document,
+  initialLiveUrl,
+  onPublish,
 }: EditorLayoutProps): React.JSX.Element {
   const [isHydrated, setIsHydrated] = useState(false)
-  const initializeDocument = useDocumentStore((s) => s.initializeDocument)
-  const resetUI = useUIStore((s) => s.resetUI)
+  const initializeDocument = useDocumentStore((state) => state.initializeDocument)
+  const resetUI = useUIStore((state) => state.resetUI)
   const initializedPageIdRef = useRef<string | null>(null)
+  const isAutoSaveEnabled = initializedPageIdRef.current === pageId
 
-  const previewViewport = useUIStore((s) => s.previewViewport)
-  const saveStatus = useAutoSave(pageId, pageUpdatedAt)
+  const previewViewport = useUIStore((state) => state.previewViewport)
+  const {
+    status: saveStatus,
+    canManualSave,
+    triggerManualSave,
+  } = useAutoSave(pageId, pageUpdatedAt, { enabled: isAutoSaveEnabled })
+  const { publishState, publishGate, triggerPublish } = usePublish({
+    pageId,
+    initialLiveUrl: initialLiveUrl ?? null,
+    onPublish: onPublish ?? null,
+    saveStatus,
+  })
   const { showSidebar, showTopBar, showRightPanel, canvasMode } = useLayoutConfig()
 
   useEffect(() => {
     setIsHydrated(true)
   }, [])
 
-  // Initialize stores once on mount (or when page changes).
   useEffect(() => {
     if (initializedPageIdRef.current === pageId) return
     initializedPageIdRef.current = pageId
@@ -89,33 +100,27 @@ function EditorLayout({
         gridTemplateColumns: `${showSidebar ? String(SIDEBAR_WIDTH) : '0'}px 1fr ${showRightPanel ? String(RIGHT_PANEL_WIDTH) : '0'}px`,
       }}
     >
-      {/* Top bar — grid area: header */}
-      <div
-        className="overflow-hidden"
-        style={{ gridArea: 'header' }}
-      >
+      <div className="overflow-hidden" style={{ gridArea: 'header' }}>
         {showTopBar && (
           <EditorTopBar
             pageName={pageName}
             saveStatus={saveStatus}
+            onManualSave={triggerManualSave}
+            canManualSave={canManualSave}
             isPreviewMode={isPreviewMode}
+            publishState={publishState}
+            onPublish={triggerPublish}
+            isPublishDisabled={!publishGate.canPublish}
+            publishDisabledReason={publishGate.reason}
           />
         )}
       </div>
 
-      {/* Left sidebar — grid area: sidebar */}
-      <div
-        className="overflow-hidden"
-        style={{ gridArea: 'sidebar' }}
-      >
+      <div className="overflow-hidden" style={{ gridArea: 'sidebar' }}>
         {showSidebar && <SectionListPanel />}
       </div>
 
-      {/* Canvas — grid area: canvas */}
-      <main
-        className="scrollbar-editor overflow-y-auto p-8"
-        style={{ gridArea: 'canvas' }}
-      >
+      <main className="scrollbar-editor overflow-y-auto p-8" style={{ gridArea: 'canvas' }}>
         <div
           className="@container mx-auto transition-[max-width] duration-300 ease-in-out"
           style={{
@@ -126,27 +131,21 @@ function EditorLayout({
         </div>
       </main>
 
-      {/* Right panel — grid area: properties */}
-      <div
-        className="overflow-hidden"
-        style={{ gridArea: 'properties' }}
-      >
+      <div className="overflow-hidden" style={{ gridArea: 'properties' }}>
         {showRightPanel && <PropertyPanel />}
       </div>
     </div>
   )
 }
 
-// ── Shell (provides context) ────────────────────────────────────────────────
-
 export function EditorShell({
   pageId,
   pageName,
   pageUpdatedAt,
   document,
+  initialLiveUrl,
+  onPublish,
 }: EditorShellProps): React.JSX.Element {
-  // EditorActorProvider creates the XState actor and makes it available to
-  // all children via useEditorActor(). Actor stops on unmount (page navigation).
   return (
     <EditorActorProvider>
       <EditorLayout
@@ -154,6 +153,8 @@ export function EditorShell({
         pageName={pageName}
         pageUpdatedAt={pageUpdatedAt}
         document={document}
+        initialLiveUrl={initialLiveUrl ?? null}
+        onPublish={onPublish ?? null}
       />
     </EditorActorProvider>
   )

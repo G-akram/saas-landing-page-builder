@@ -8,38 +8,51 @@ import { useDocumentStore, useUIStore } from '@/modules/editor'
 import { useEditorActor } from '@/modules/editor'
 
 import { type SaveStatus } from '../hooks/use-auto-save'
+import { type EditorPublishState } from '../hooks/use-publish'
+import { resolvePublishFeedback } from '../lib/publish-feedback'
 import { SaveStatusIndicator } from './save-status-indicator'
-
-// ── Props ────────────────────────────────────────────────────────────────────
 
 interface EditorTopBarProps {
   pageName: string
   saveStatus: SaveStatus
+  canManualSave: boolean
+  onManualSave: () => Promise<void>
   isPreviewMode: boolean
+  publishState: EditorPublishState
+  onPublish: () => Promise<void>
+  isPublishDisabled: boolean
+  publishDisabledReason: string | null
 }
-
-// ── Component ────────────────────────────────────────────────────────────────
 
 export function EditorTopBar({
   pageName,
   saveStatus,
+  canManualSave,
+  onManualSave,
   isPreviewMode,
+  publishState,
+  onPublish,
+  isPublishDisabled,
+  publishDisabledReason,
 }: EditorTopBarProps): React.JSX.Element {
-  const undo = useDocumentStore((s) => s.undo)
-  const redo = useDocumentStore((s) => s.redo)
-  const hasUndo = useDocumentStore((s) => s.undoStack.length > 0)
-  const hasRedo = useDocumentStore((s) => s.redoStack.length > 0)
-  const previewViewport = useUIStore((s) => s.previewViewport)
-  const setPreviewViewport = useUIStore((s) => s.setPreviewViewport)
+  const undo = useDocumentStore((state) => state.undo)
+  const redo = useDocumentStore((state) => state.redo)
+  const hasUndo = useDocumentStore((state) => state.undoStack.length > 0)
+  const hasRedo = useDocumentStore((state) => state.redoStack.length > 0)
+  const previewViewport = useUIStore((state) => state.previewViewport)
+  const setPreviewViewport = useUIStore((state) => state.setPreviewViewport)
   const actor = useEditorActor()
+
+  const publishFeedback = resolvePublishFeedback(publishState, publishDisabledReason)
 
   function handleTogglePreview(): void {
     actor.send({ type: 'TOGGLE_PREVIEW' })
   }
 
+  const isManualSaveDisabled = !canManualSave || saveStatus === 'saving'
+
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
-      {/* Left — navigation + page name */}
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard"
@@ -52,7 +65,6 @@ export function EditorTopBar({
         <h1 className="text-sm font-medium text-white">{pageName}</h1>
       </div>
 
-      {/* Center — undo/redo + viewport toggle */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1">
           <button
@@ -107,9 +119,56 @@ export function EditorTopBar({
         </div>
       </div>
 
-      {/* Right — save status + preview toggle */}
       <div className="flex items-center gap-3">
         <SaveStatusIndicator status={saveStatus} />
+
+        <button
+          type="button"
+          onClick={() => { void onManualSave() }}
+          disabled={isManualSaveDisabled}
+          aria-label="Save page now"
+          className={cn(
+            'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors',
+            isManualSaveDisabled
+              ? 'cursor-not-allowed bg-white/5 text-gray-500'
+              : 'bg-white/10 text-white hover:bg-white/20',
+          )}
+        >
+          <span>{saveStatus === 'saving' ? 'Saving...' : 'Save'}</span>
+        </button>
+
+        {publishFeedback && (
+          <span className={cn('max-w-52 truncate text-xs', publishFeedback.className)}>
+            {publishFeedback.label}
+          </span>
+        )}
+
+        {publishState.liveUrl && (
+          <Link
+            href={publishState.liveUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-blue-300 transition-colors hover:text-blue-200"
+          >
+            Live URL
+          </Link>
+        )}
+
+        <button
+          type="button"
+          onClick={() => { void onPublish() }}
+          disabled={isPublishDisabled}
+          aria-label="Publish page"
+          className={cn(
+            'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors',
+            isPublishDisabled
+              ? 'cursor-not-allowed bg-white/5 text-gray-500'
+              : 'bg-green-600 text-white hover:bg-green-500',
+          )}
+        >
+          <span>{publishState.status === 'publishing' ? 'Publishing...' : 'Publish'}</span>
+        </button>
+
         <button
           type="button"
           onClick={handleTogglePreview}

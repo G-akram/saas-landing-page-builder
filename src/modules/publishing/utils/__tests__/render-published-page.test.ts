@@ -119,8 +119,8 @@ function createDocument(): PageDocument {
 }
 
 describe('renderPublishedPage', () => {
-  it('renders a full static document for the active variant', () => {
-    const result = renderPublishedPage({
+  it('renders a full static document for the active variant', async () => {
+    const result = await renderPublishedPage({
       pageId: 'page-1',
       pageName: 'Acme Landing',
       slug: 'acme',
@@ -152,8 +152,8 @@ describe('renderPublishedPage', () => {
     expect(result.contentHash).toMatch(/^[a-f0-9]{64}$/)
   })
 
-  it('uses document-derived SEO fallbacks when SEO input is missing', () => {
-    const result = renderPublishedPage({
+  it('uses document-derived SEO fallbacks when SEO input is missing', async () => {
+    const result = await renderPublishedPage({
       pageId: 'page-2',
       pageName: 'Fallback Page',
       slug: 'fallback-page',
@@ -169,11 +169,11 @@ describe('renderPublishedPage', () => {
     expect(result.metadata.canonicalUrl).toBeNull()
   })
 
-  it('returns a typed error when active variant is missing', () => {
+  it('returns a typed error when active variant is missing', async () => {
     const document = createDocument()
     document.activeVariantId = 'missing-variant'
 
-    const result = renderPublishedPage({
+    const result = await renderPublishedPage({
       pageId: 'page-3',
       pageName: 'Broken Page',
       slug: 'broken-page',
