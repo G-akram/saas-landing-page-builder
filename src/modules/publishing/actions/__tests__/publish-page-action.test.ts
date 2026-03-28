@@ -181,15 +181,15 @@ describe('publishPage', () => {
     })
   })
 
-  it('returns PAGE_ACCESS_DENIED for non-owner page access', async () => {
-    mockSelectRows([createPageRow({ userId: 'other-user' })])
+  it('returns PAGE_NOT_FOUND for pages outside the caller scope', async () => {
+    mockSelectRows([])
 
     const result = await publishPage({ pageId: 'page-1' })
 
     expect(result).toEqual({
       success: false,
-      errorCode: 'PAGE_ACCESS_DENIED',
-      message: 'Page access denied',
+      errorCode: 'PAGE_NOT_FOUND',
+      message: 'Page not found',
     })
   })
 
@@ -244,3 +244,6 @@ describe('publishPage', () => {
     expect(mocked.revalidatePath).toHaveBeenCalledWith('/editor/page-1')
   })
 })
+
+
+

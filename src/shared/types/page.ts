@@ -18,6 +18,18 @@ export const VariantSchema = z.object({
 export const PageDocumentSchema = z.object({
   activeVariantId: z.string(),
   variants: z.array(VariantSchema).min(1),
+}).superRefine((document, ctx) => {
+  const hasActiveVariant = document.variants.some(
+    (variant) => variant.id === document.activeVariantId,
+  )
+
+  if (!hasActiveVariant) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['activeVariantId'],
+      message: 'activeVariantId must reference an existing variant',
+    })
+  }
 })
 
 // ── Derived TypeScript types ───────────────────────────────────────────────

@@ -16,6 +16,13 @@ export function resolvePublishFeedback(
     }
   }
 
+  if (publishDisabledReason) {
+    return {
+      className: 'text-amber-300',
+      label: publishDisabledReason,
+    }
+  }
+
   if (publishState.status === 'error' && publishState.message) {
     return {
       className: 'text-red-400',
@@ -30,12 +37,6 @@ export function resolvePublishFeedback(
     }
   }
 
-  if (publishDisabledReason) {
-    return {
-      className: 'text-amber-300',
-      label: publishDisabledReason,
-    }
-  }
-
   return null
 }
+

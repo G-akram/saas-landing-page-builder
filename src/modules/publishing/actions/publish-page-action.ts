@@ -1,14 +1,11 @@
 'use server'
-
 import { revalidatePath } from 'next/cache'
-import { eq } from 'drizzle-orm'
-
+import { and, eq } from 'drizzle-orm'
 import { db, pages, publishedPages } from '@/shared/db'
 import { auth } from '@/shared/lib/auth'
 import { logger } from '@/shared/lib/logger'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { type PageDocument } from '@/shared/types'
-
 import { createPublishStorageAdapter } from '../storage'
 import {
   type PublishErrorCode,
@@ -18,11 +15,8 @@ import {
   type RenderPublishErrorCode,
 } from '../types'
 import { renderPublishedPage } from '../utils/render-published-page'
-
 const publishLimiter = createRateLimiter({ maxRequests: 6, windowMs: 60_000 })
-
 const DEFAULT_PUBLISH_BASE_URL = 'http://localhost:3000'
-
 const PUBLISH_BASE_URL_ENV_KEYS = [
   'PUBLISH_BASE_URL',
   'NEXT_PUBLIC_APP_URL',
@@ -32,7 +26,6 @@ const PUBLISH_BASE_URL_ENV_KEYS = [
 
 interface PageForPublish {
   id: string
-  userId: string
   name: string
   slug: string
   document: PageDocument
@@ -49,13 +42,9 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
     return createPublishError('RATE_LIMITED', 'Too many publish requests. Please wait a moment.')
   }
 
-  const page = await getPageForPublish(input.pageId)
+  const page = await getPageForPublish(input.pageId, session.user.id)
   if (!page) {
     return createPublishError('PAGE_NOT_FOUND', 'Page not found')
-  }
-
-  if (page.userId !== session.user.id) {
-    return createPublishError('PAGE_ACCESS_DENIED', 'Page access denied')
   }
 
   const liveUrl = buildLiveUrl(page.slug)
@@ -151,24 +140,22 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
   }
 }
 
-async function getPageForPublish(pageId: string): Promise<PageForPublish | null> {
+async function getPageForPublish(pageId: string, userId: string): Promise<PageForPublish | null> {
   const rows = await db
     .select({
       id: pages.id,
-      userId: pages.userId,
       name: pages.name,
       slug: pages.slug,
       document: pages.document,
     })
     .from(pages)
-    .where(eq(pages.id, pageId))
+    .where(and(eq(pages.id, pageId), eq(pages.userId, userId)))
     .limit(1)
 
   return rows[0] ?? null
 }
 
 function mapRenderError(_errorCode: RenderPublishErrorCode, message: string): PublishErrorResult {
-  // Current renderer failures reflect persisted document invalidity for publish.
   return createPublishError('INVALID_DOCUMENT', message)
 }
 

@@ -169,7 +169,7 @@ describe('renderPublishedPage', () => {
     expect(result.metadata.canonicalUrl).toBeNull()
   })
 
-  it('returns a typed error when active variant is missing', async () => {
+  it('returns INVALID_DOCUMENT when active variant id is inconsistent', async () => {
     const document = createDocument()
     document.activeVariantId = 'missing-variant'
 
@@ -183,7 +183,8 @@ describe('renderPublishedPage', () => {
     expect(result.success).toBe(false)
     if (result.success) return
 
-    expect(result.errorCode).toBe('ACTIVE_VARIANT_NOT_FOUND')
-    expect(result.message).toContain('missing-variant')
+    expect(result.errorCode).toBe('INVALID_DOCUMENT')
+    expect(result.message).toContain('invalid')
   })
 })
+

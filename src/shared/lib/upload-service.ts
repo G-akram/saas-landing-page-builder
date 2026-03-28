@@ -22,6 +22,7 @@ export interface UploadService {
 // ── Local adapter ────────────────────────────────────────────────────────────
 
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads')
+const UPLOAD_KEY_PATTERN = /^[a-f0-9-]{36}\.(jpg|png|webp|gif)$/
 
 class LocalUploadAdapter implements UploadService {
   async upload(file: Buffer, mimeType: AllowedImageType): Promise<UploadResult> {
@@ -29,7 +30,10 @@ class LocalUploadAdapter implements UploadService {
 
     const ext = getFileExtensionForImageType(mimeType)
     const key = `${randomUUID()}${ext}`
-    const dest = path.join(UPLOADS_DIR, key)
+    const dest = resolveUploadPath(key)
+    if (!dest) {
+      throw new Error('Failed to resolve upload path for generated key')
+    }
 
     await fs.writeFile(dest, file)
 
@@ -37,9 +41,28 @@ class LocalUploadAdapter implements UploadService {
   }
 
   async delete(key: string): Promise<void> {
-    const target = path.join(UPLOADS_DIR, key)
+    const target = resolveUploadPath(key)
+    if (!target) {
+      throw new Error('Invalid upload key')
+    }
+
     await fs.unlink(target)
   }
+}
+
+function resolveUploadPath(key: string): string | null {
+  const normalizedKey = key.trim().toLowerCase()
+  if (!UPLOAD_KEY_PATTERN.test(normalizedKey)) {
+    return null
+  }
+
+  const resolvedPath = path.resolve(UPLOADS_DIR, normalizedKey)
+  const relativePath = path.relative(UPLOADS_DIR, resolvedPath)
+  if (relativePath.length === 0 || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    return null
+  }
+
+  return resolvedPath
 }
 
 // ── Factory — swap point for cloud adapters in Phase 4 ───────────────────────
