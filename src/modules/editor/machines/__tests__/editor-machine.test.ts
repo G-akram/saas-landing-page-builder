@@ -145,6 +145,41 @@ describe('editorMachine', () => {
     })
   })
 
+  describe('selection recovery while dragging', () => {
+    it('dragging + SELECT_ELEMENT -> selected with element context', () => {
+      actor.send({ type: 'DRAG_START' })
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
+      expect(mode(actor)).toBe('selected')
+      expect(ctx(actor).selectedSectionId).toBe('sec-1')
+      expect(ctx(actor).selectedElementId).toBe('el-1')
+    })
+
+    it('dragging + SELECT_SECTION -> selected', () => {
+      actor.send({ type: 'DRAG_START' })
+      actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-2' })
+      expect(mode(actor)).toBe('selected')
+      expect(ctx(actor).selectedSectionId).toBe('sec-2')
+      expect(ctx(actor).selectedElementId).toBeNull()
+    })
+  })
+
+  describe('RESET', () => {
+    it('returns to idle and clears selection from selected state', () => {
+      actor.send({ type: 'SELECT_SECTION', sectionId: 'sec-1' })
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
+      actor.send({ type: 'RESET' })
+      expect(mode(actor)).toBe('idle')
+      expect(ctx(actor).selectedSectionId).toBeNull()
+      expect(ctx(actor).selectedElementId).toBeNull()
+    })
+
+    it('returns to idle from previewing', () => {
+      actor.send({ type: 'TOGGLE_PREVIEW' })
+      actor.send({ type: 'RESET' })
+      expect(mode(actor)).toBe('idle')
+    })
+  })
+
   describe('previewing state', () => {
     it('idle → previewing on TOGGLE_PREVIEW', () => {
       actor.send({ type: 'TOGGLE_PREVIEW' })

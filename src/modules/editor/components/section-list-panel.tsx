@@ -24,10 +24,10 @@ import { useSelector } from '@xstate/react'
 
 import { cn } from '@/shared/lib/utils'
 import { type Section } from '@/shared/types'
-import { useDocumentStore } from '@/modules/editor'
-import { useEditorActor } from '@/modules/editor'
 
+import { useEditorActor } from '../context'
 import { SECTION_TEMPLATES } from '../lib/section-templates'
+import { useDocumentStore } from '../store'
 
 // ── Sortable panel item ───────────────────────────────────────────────────────
 

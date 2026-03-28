@@ -4,12 +4,12 @@ import Link from 'next/link'
 import { ArrowLeft, Eye, Monitor, Redo2, Smartphone, Undo2 } from 'lucide-react'
 
 import { cn } from '@/shared/lib/utils'
-import { useDocumentStore, useUIStore } from '@/modules/editor'
-import { useEditorActor } from '@/modules/editor'
 
 import { type SaveStatus } from '../hooks/use-auto-save'
 import { type EditorPublishState } from '../hooks/use-publish'
 import { resolvePublishFeedback } from '../lib/publish-feedback'
+import { useDocumentStore, useUIStore } from '../store'
+import { useEditorActor } from '../context'
 import { SaveStatusIndicator } from './save-status-indicator'
 
 interface EditorTopBarProps {

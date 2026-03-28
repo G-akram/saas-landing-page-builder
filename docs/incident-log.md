@@ -96,3 +96,38 @@ If an incident changes long-term architecture, also add/update an ADR in `decisi
 - `decisions/030-publish-renderer-boundary.md`
 - `decisions/035-publish-ux-orchestration.md`
 
+---
+
+## 2026-03-29 - Editor selection did not update property panel until reload
+
+### Symptoms
+- In the editor, clicking sections/elements did not update the right property panel.
+- Reloading the page made selection work again temporarily.
+- In some sessions, interaction events were sent while actor state was stale/stopped.
+
+### Root causes
+- Custom actor lifecycle handling was brittle under dev Strict Mode/HMR behavior.
+- Machine could remain in `dragging` after interrupted drag flow, where selection recovery was not guaranteed.
+- Module-internal self-imports through `@/modules/editor` created avoidable barrel cycles and unstable runtime wiring in dev.
+
+### Fix
+- Switched actor provider to `useActorRef` from `@xstate/react` for Strict Mode-safe actor lifecycle/rehydration.
+- Added machine-level `RESET` event and triggered it during editor initialization to always start from clean `idle` + cleared selection.
+- Added `dragging` state recovery transitions:
+  - `SELECT_SECTION`/`SELECT_ELEMENT` -> `selected`
+  - `DESELECT` -> `idle`
+- Removed module self-imports inside `src/modules/editor/*` and replaced with relative internal imports.
+- Added machine tests for `RESET` and selection recovery from `dragging`.
+
+### Impact
+- Existing features:
+  - section/element selection and property panel updates are stable without manual reload.
+  - editor recovers from interrupted drag state via normal click selection.
+- Incoming features:
+  - keep machine transitions resilient for interrupted UI flows (drag/edit/preview),
+  - avoid module self-imports through local barrel files to reduce HMR/runtime desync risk.
+
+### Related decisions
+- `decisions/019-xstate-editor-machine.md`
+- `decisions/022-element-selection.md`
+

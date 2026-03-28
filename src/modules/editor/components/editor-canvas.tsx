@@ -19,8 +19,8 @@ import {
 } from '@dnd-kit/sortable'
 import { useSelector } from '@xstate/react'
 
-import { useDocumentStore, useUIStore } from '@/modules/editor'
-import { useEditorActor } from '@/modules/editor'
+import { useEditorActor } from '../context'
+import { useDocumentStore, useUIStore } from '../store'
 
 import { AddSectionButton } from './add-section-button'
 import { SectionRenderer } from './section-renderer'

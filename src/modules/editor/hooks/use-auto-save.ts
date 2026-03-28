@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
 
 import { type PageDocument } from '@/shared/types'
-import { useDocumentStore } from '@/modules/editor'
 
 import { savePage } from '../actions/save-page-action'
+import { useDocumentStore } from '../store'
 
 const DEBOUNCE_MS = 2000
 const SAVED_DISPLAY_MS = 3000

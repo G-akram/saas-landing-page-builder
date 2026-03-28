@@ -13,6 +13,7 @@ type EditorMachineEvent =
   | { type: 'SELECT_SECTION'; sectionId: string | null }
   | { type: 'SELECT_ELEMENT'; elementId: string | null; sectionId: string }
   | { type: 'DESELECT' }
+  | { type: 'RESET' }
   | { type: 'DRAG_START' }
   | { type: 'DRAG_END' }
   | { type: 'DRAG_CANCEL' }
@@ -32,6 +33,15 @@ export const editorMachine = createMachine({
   context: {
     selectedSectionId: null,
     selectedElementId: null,
+  },
+  on: {
+    RESET: {
+      target: '.idle',
+      actions: assign({
+        selectedSectionId: null,
+        selectedElementId: null,
+      }),
+    },
   },
   states: {
     idle: {
@@ -138,6 +148,37 @@ export const editorMachine = createMachine({
 
     dragging: {
       on: {
+        SELECT_SECTION: [
+          {
+            guard: ({ event }) => event.sectionId !== null,
+            target: 'selected',
+            actions: assign({
+              selectedSectionId: ({ event }) => event.sectionId,
+              selectedElementId: null,
+            }),
+          },
+          {
+            target: 'idle',
+            actions: assign({
+              selectedSectionId: null,
+              selectedElementId: null,
+            }),
+          },
+        ],
+        SELECT_ELEMENT: {
+          target: 'selected',
+          actions: assign({
+            selectedSectionId: ({ event }) => event.sectionId,
+            selectedElementId: ({ event }) => event.elementId,
+          }),
+        },
+        DESELECT: {
+          target: 'idle',
+          actions: assign({
+            selectedSectionId: null,
+            selectedElementId: null,
+          }),
+        },
         // Restore selection state that existed before the drag began
         DRAG_END: [
           {

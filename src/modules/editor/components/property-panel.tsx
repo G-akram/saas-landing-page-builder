@@ -3,8 +3,9 @@
 import { useSelector } from '@xstate/react'
 
 import { type Element as PageElement } from '@/shared/types'
-import { useDocumentStore, useEditorActor } from '@/modules/editor'
 
+import { useEditorActor } from '../context'
+import { useDocumentStore } from '../store'
 import {
   ContentControls,
   TypographyControls,

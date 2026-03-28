@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { createActor, type ActorRefFrom } from 'xstate'
+import { createContext, useContext } from 'react'
+import { useActorRef } from '@xstate/react'
+import { type ActorRefFrom } from 'xstate'
 
 import { editorMachine } from '../machines/editor-machine'
 
@@ -22,20 +23,8 @@ interface EditorActorProviderProps {
 export function EditorActorProvider({
   children,
 }: EditorActorProviderProps): React.JSX.Element {
-  // useState initializer runs once — actor reference is stable for the lifetime
-  // of EditorShell. Context value never changes, so no re-render cascade.
-  const [actor] = useState(() => {
-    const a = createActor(editorMachine)
-    a.start()
-    return a
-  })
-
-  // Stop the actor when EditorShell unmounts (page navigation)
-  useEffect(() => {
-    return () => {
-      actor.stop()
-    }
-  }, [actor])
+  // useActorRef handles start/stop and Strict Mode rehydration correctly.
+  const actor = useActorRef(editorMachine)
 
   return (
     <EditorActorContext.Provider value={actor}>

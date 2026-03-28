@@ -2,7 +2,7 @@
 
 import { useSelector } from '@xstate/react'
 
-import { useEditorActor } from '../context/editor-actor-context'
+import { useEditorActor } from '../context'
 import { type EditorMode } from '../machines/editor-machine'
 
 // ── Types ────────────────────────────────────────────────────────────────────

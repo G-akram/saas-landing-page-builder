@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { type PageDocument } from '@/shared/types'
-import { useDocumentStore, useUIStore } from '@/modules/editor'
-import { EditorActorProvider } from '@/modules/editor'
 
+import { EditorActorProvider, useEditorActor } from '../context'
 import { useAutoSave } from '../hooks/use-auto-save'
 import { useLayoutConfig } from '../hooks/use-layout-config'
 import { usePublish, type EditorPublishResult } from '../hooks/use-publish'
+import { useDocumentStore, useUIStore } from '../store'
 import { EditorCanvas } from './editor-canvas'
 import { EditorTopBar } from './editor-top-bar'
 import { PropertyPanel } from './property-panel'
@@ -44,6 +44,7 @@ function EditorLayout({
   initialLiveUrl,
   onPublish,
 }: EditorLayoutProps): React.JSX.Element {
+  const actor = useEditorActor()
   const [isHydrated, setIsHydrated] = useState(false)
   const initializeDocument = useDocumentStore((state) => state.initializeDocument)
   const resetUI = useUIStore((state) => state.resetUI)
@@ -69,12 +70,12 @@ function EditorLayout({
   }, [])
 
   useEffect(() => {
-    if (initializedPageIdRef.current === pageId) return
     initializedPageIdRef.current = pageId
 
     initializeDocument(document)
     resetUI()
-  }, [pageId, document, initializeDocument, resetUI])
+    actor.send({ type: 'RESET' })
+  }, [actor, pageId, document, initializeDocument, resetUI])
 
   const isPreviewMode = canvasMode === 'preview'
   const isMobileViewport = previewViewport === 'mobile'
