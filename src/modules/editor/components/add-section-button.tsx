@@ -12,12 +12,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { SectionTypePicker } from './section-type-picker'
+import { BlockPicker } from './block-picker'
 
 // ── Props ────────────────────────────────────────────────────────────────────
 
 interface AddSectionButtonProps {
-  onAdd: (type: SectionType) => void
+  onAdd: (type: SectionType, variantStyleId: string) => void
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -27,8 +27,8 @@ export function AddSectionButton({
 }: AddSectionButtonProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
 
-  function handleSelect(type: SectionType): void {
-    onAdd(type)
+  function handleSelect(type: SectionType, variantStyleId: string): void {
+    onAdd(type, variantStyleId)
     setOpen(false)
   }
 
@@ -42,11 +42,11 @@ export function AddSectionButton({
         Add section
       </DialogTrigger>
 
-      <DialogContent className="max-w-lg bg-gray-900 text-white ring-white/10">
+      <DialogContent className="max-h-[80vh] sm:max-w-6xl overflow-y-auto bg-gray-900 text-white ring-white/10">
         <DialogHeader>
           <DialogTitle className="text-white">Add section</DialogTitle>
         </DialogHeader>
-        <SectionTypePicker onSelect={handleSelect} />
+        <BlockPicker onSelect={handleSelect} />
       </DialogContent>
     </Dialog>
   )

@@ -205,8 +205,8 @@ export function EditorCanvas(): React.JSX.Element {
       */}
       <div className="relative mx-auto w-full max-w-4xl pl-8 pt-2">
         <AddSectionButton
-          onAdd={(type) => {
-            addSection(activeVariant.id, type)
+          onAdd={(type, variantStyleId) => {
+            addSection(activeVariant.id, type, undefined, variantStyleId)
           }}
         />
       </div>
