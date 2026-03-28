@@ -2,157 +2,84 @@
 
 ## Overview
 
-(to be filled in Phase 1 once the scaffold is in place)
+This is a Next.js monolith for a SaaS landing-page builder. It currently supports:
+
+- Auth (GitHub + Google)
+- Dashboard CRUD for pages
+- Editor with drag-and-drop sections
+- Block variants and inline editing
+- Debounced autosave to PostgreSQL
+- Local image upload for editor usage
+
+Phase 4 (publishing pipeline) and Phase 5 (A/B testing UX + analytics) are not started yet.
 
 ## Module structure
 
-```
+```text
 src/
-  shared/       # types, utils, logger — no dependencies on other modules
-  auth/         # NextAuth.js config, session helpers
-  editor/       # drag-and-drop editor, Zustand store, block components
-  publishing/   # static HTML generation, CDN serving
-  dashboard/    # page list, analytics panel
-  app/          # Next.js routes only — no business logic
+  app/                  # Route handlers and server components
+  modules/
+    auth/               # Auth-domain exports (minimal at current phase)
+    dashboard/          # Dashboard queries/actions/components
+    editor/             # Editor runtime (XState, Zustand, dnd-kit, UI)
+    publishing/         # Reserved for publishing pipeline
+  shared/
+    db/                 # Drizzle schema + DB client
+    lib/                # cross-module services/utilities
+    types/              # Zod schemas + inferred TS types
+  components/ui/        # shared UI primitives
 ```
 
-Dependency direction: `shared` → `auth` → `editor` → `publishing` → `dashboard` → `app/`
+Dependency direction (enforced by lint boundaries):
 
-See `decisions/009-folder-structure.md` for rationale.
+`shared -> modules/* -> app`
 
 ## Data model
 
-```
+```text
 User
 └── Page
-    └── Variant[]
-        └── Section[]
-            └── Element[]
+    ├── metadata columns (name, slug, status, timestamps)
+    └── document (JSONB)
+        └── Variant[]
+            └── Section[]
+                └── Element[]
 ```
 
-See `decisions/005-block-schema.md` for the full schema and field definitions.
+Core tables:
 
-## Editor rendering pipeline
+- `users`, `accounts`, `sessions`, `verificationTokens` (Auth.js adapter)
+- `pages` (draft editor source of truth)
+- `publishedPages` (reserved for publishing outputs)
 
-Server Component → Client boundary → Zustand stores → React tree.
+## Runtime flow
 
-```
-/editor/[pageId]/page.tsx  (Server Component)
-  ├── auth() + getPageById()  → fetches from DB, validates with Zod
-  └── <EditorShell>           (Client Component — 'use client' boundary)
-        ├── useEffect → initializeDocument(doc) + resetUI()
-        ├── <header>           Top bar (page name, save status)
-        └── <EditorCanvas>     Reads documentStore, renders active variant
-              └── <SectionRenderer>  One per section, shows elements preview
-```
+1. Server component route loads session + page data (`auth()` + DB query).
+2. `EditorShell` crosses into client boundary and initializes stores.
+3. XState machine manages interaction modes and selection state.
+4. Zustand document store applies structural/content mutations with undo/redo.
+5. Autosave hook debounces writes through `savePage` server action.
 
-**Why this split:** The Server Component owns data fetching (auth, DB, Zod validation). The client boundary (`EditorShell`) owns interactivity. Data crosses the boundary once as a serialized prop — no client-side refetch needed.
+## State boundaries
 
-**Store initialization:** `initializeDocument()` runs in `useEffect` (not render), because Zustand `set()` triggers re-renders. A `useRef` guard prevents StrictMode double-init in dev.
+- XState: editor interaction state (`idle`, `selected`, `editing`, `dragging`, `previewing`).
+- Zustand `documentStore`: mutable page document + undo/redo history.
+- Zustand `uiStore`: lightweight editor UI preferences (active panel, viewport).
+- React Query: mutation lifecycle for autosave.
 
-## State management
+## Security and validation boundaries
 
-Two Zustand stores with distinct lifecycles. Components orchestrate; stores stay decoupled.
-
-### Store responsibilities
-
-| | `documentStore` | `uiStore` |
-|---|---|---|
-| **Holds** | Page content (sections, elements, styles) | Editor UI (selection, mode, panels) |
-| **Persisted?** | Yes — auto-save serializes to DB | No — reset every page load |
-| **Undo/redo?** | Yes — users undo content changes | No — "undo selecting a panel" is meaningless |
-| **Shape** | Always a valid `PageDocument` (Zod schema) | Flat flags and IDs, no schema constraint |
-| **Lifecycle** | Survives reload (via DB round-trip) | Dies on unmount |
-
-### How they interact
-
-One-way only: **UI actions trigger document mutations, never the reverse.**
-
-`documentStore` never calls `uiStore`. It doesn't know the UI store exists. Components (and later XState) sit one layer above both stores and coordinate.
-
-### Example: user edits an element's color
-
-```
-1. User clicks a red button in the canvas
-   → component calls uiStore.selectElement('element-42')
-   → uiStore: selectedElementId = 'element-42', editorMode = 'selected'
-
-2. Properties panel reads BOTH stores
-   → uiStore.selectedElementId       → knows WHAT is selected
-   → documentStore.document.variants → finds element-42, reads styles.color = '#ff0000'
-   → renders a color picker showing red
-
-3. User picks blue
-   → component calls documentStore.updateElementStyles('element-42', { color: '#0000ff' })
-   → undo snapshot pushed, document mutates
-   → canvas re-renders (subscribes to same document) → button turns blue
-   → panel re-renders → color picker shows blue
-```
-
-### What coordinates the stores
-
-| Phase | Coordinator | How |
-|---|---|---|
-| Steps 1–5 | Components (event handlers) | `onClick` → call uiStore + documentStore |
-| Step 6+ | XState machine | Machine transitions trigger store updates via actions |
-
-See `decisions/004-state-management.md` for the full rationale and `decisions/015-store-implementation.md` for implementation decisions (snapshot undo, history cap, structuredClone).
-
-## Editor panel layout
-
-The editor UI has three distinct zones with non-overlapping responsibilities:
-
-```
-┌─────────────────────────────────────────────────────┐
-│  Top bar: page name · save status · back button      │
-├──────────────┬──────────────────────────┬────────────┤
-│  Left panel  │       Canvas             │Right panel │
-│              │                          │            │
-│ Section list │  Sections (drag to       │ Properties │
-│ (navigate +  │  reorder, click to       │ (selected  │
-│  jump to)    │  select)                 │  section   │
-│              │                          │  or elem.) │
-└──────────────┴──────────────────────────┴────────────┘
-```
-
-### Left panel — Section List
-
-- Compact list of all sections in order (mirrors canvas stack)
-- Click to jump to / select a section
-- Navigation aid — no editing happens here
-
-### Right panel — Properties
-
-- Only active when a section or element is selected
-- Shows editable properties of the selected item: colors, fonts, spacing, background, padding
-- Phase 3: inline text editing triggers reflected here
-
-### Canvas
-
-- The primary editing surface — what the page will look like
-- Sections render as a vertical stack, drag-to-reorder in place
-- Click a section to select it (drives right panel)
-- "Add section" button below the stack opens a Dialog type picker
-
-### Why this split
-
-Panels are for tools you interact with **while** the canvas is visible. Type picking (adding a section) is a one-shot decision — it opens a Dialog (modal), not a panel. See ADR-017 for rationale.
-
-The right panel is only rendered when something is selected — it has no persistent state to show otherwise. The left panel is always visible to aid navigation on longer pages.
+- Server actions are auth-gated and validate document payloads with Zod.
+- Upload route is auth-gated and validates file bytes before writing.
+- DB ownership checks are enforced in page queries/mutations (`userId` filters).
 
 ## Key decisions
 
-| Decision | ADR |
-|---|---|
-| Tech stack (Next.js monolith) | `decisions/003-tech-stack.md` |
-| State management (Zustand for UI, React Query for server) | `decisions/004-state-management.md` |
-| Block schema | `decisions/005-block-schema.md` |
-| Styling (Tailwind + shadcn/ui) | `decisions/006-styling.md` |
-| Database + auth (Neon + Drizzle + NextAuth.js) | `decisions/007-database-auth.md` |
-| Publishing pipeline (static HTML, same app) | `decisions/008-publishing-pipeline.md` |
-| Key libraries (dnd-kit, Zod, RHF, TanStack Query, Lucide) | `decisions/010-key-libraries.md` |
-| Phase 2 step order (stores → canvas → DnD → auto-save → XState → chrome) | `decisions/014-phase2-approach.md` |
-| Store implementation (snapshot undo, history cap, two stores, no Immer) | `decisions/015-store-implementation.md` |
-| dnd-kit implementation (transform-commit, DragOverlay portal, ghost placeholder, handle isolation) | `decisions/016-dnd-implementation.md` |
-| Add/delete section (end-only insert, template registry, Dialog picker, immediate delete) | `decisions/017-add-delete-section.md` |
-| Editor chrome (CSS Grid layout, mounted panels, useLayoutConfig, dark class scoping) | `decisions/020-editor-chrome.md` |
+See `decisions/` ADRs, especially:
+
+- `003-tech-stack.md`
+- `004-state-management.md`
+- `005-block-schema.md`
+- `007-database-auth.md`
+- `014-phase2-approach.md`
+- `021-phase3-approach.md`

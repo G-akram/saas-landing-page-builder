@@ -107,14 +107,15 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ### Server-side
 
-- [ ] **Rate limiting on server actions** — `savePage`, `createPage`, `deletePage` have no server-side throttling. Client debounce (2s) is not protection. Add per-userId rate limiting middleware.
-- [ ] **Optimistic locking on save** — Last write wins. If the same page is open in two tabs, one silently overwrites the other. Add `updatedAt` version check to `savePage` (compare client's `updatedAt` against DB before writing).
+- [x] **Baseline rate limiting on server actions** - `savePage`, `createPage`, `deletePage` now have per-user in-memory throttling.
+- [ ] **Distributed rate limiting for production scale** - replace in-memory limiter with Redis/Upstash (or equivalent) so limits apply across instances.
+- [x] **Optimistic locking on save** - `savePage` now checks client `updatedAt` against DB before writing and returns a conflict error on mismatch.
 - [ ] **Dashboard pagination** — `getPagesByUser` fetches all pages in one query. Fine for <50 pages, breaks at scale. Add cursor-based pagination.
 - [ ] **`deletePage` feedback** — Currently returns void on success. Client can't distinguish "page deleted" from "page didn't exist". Return affected row count.
 
 ### Client-side
 
-- [ ] **Hook test coverage** — `useAutoSave` and `useLayoutConfig` have zero tests. Add vitest tests for debounce behavior, timer cleanup, reference equality checks, and mode-to-layout mapping.
+- [ ] **Hook test coverage** - add direct hook tests for `useAutoSave` debounce/timer behavior and `useLayoutConfig` mode mapping.
 - [ ] **Integration tests** — No tests verify store + XState machine working together in a component context. Add React Testing Library tests for `EditorCanvas` and `EditorShell`.
 
 ### Dependencies

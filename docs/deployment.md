@@ -31,7 +31,7 @@ Keeps credentials isolated. If prod secrets leak, dev is unaffected and vice ver
 
 ## Environment Variables
 
-_To be filled in as each service is added._
+Current minimum set for production auth + database:
 
 | Variable | Where to get it |
 |---|---|
