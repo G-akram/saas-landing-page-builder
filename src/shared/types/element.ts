@@ -15,11 +15,13 @@ export const LinkConfigSchema = z.object({
   newTab: z.boolean(),
 })
 
+export const TextModeSchema = z.enum(['inline', 'multiline'])
+
 // ── Element content — discriminated union keyed on `type` ──────────────────
 
 export const ElementContentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('heading'), text: z.string(), level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]) }),
-  z.object({ type: z.literal('text'), text: z.string() }),
+  z.object({ type: z.literal('text'), text: z.string(), mode: TextModeSchema.optional() }),
   z.object({ type: z.literal('button'), text: z.string() }),
   z.object({ type: z.literal('image'), src: z.string(), alt: z.string() }),
   z.object({ type: z.literal('icon'), name: z.string() }),
@@ -67,6 +69,7 @@ export const ElementSchema = z.object({
 
 export type SpacingConfig = z.infer<typeof SpacingConfigSchema>
 export type LinkConfig = z.infer<typeof LinkConfigSchema>
+export type TextMode = z.infer<typeof TextModeSchema>
 export type ElementContent = z.infer<typeof ElementContentSchema>
 export type ElementStyles = z.infer<typeof ElementStylesSchema>
 export type ElementType = z.infer<typeof ElementTypeSchema>

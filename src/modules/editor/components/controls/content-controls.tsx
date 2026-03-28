@@ -3,7 +3,7 @@
 import { type Element as PageElement } from '@/shared/types'
 
 import { ImageUploadButton } from '../image-upload-button'
-import { FieldRow, BlurInput } from './field-row'
+import { FieldRow, BlurInput, BlurTextarea, SELECT_CLASS } from './field-row'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,17 +53,45 @@ export function ContentControls({
           </FieldRow>
         </>
       )
-    case 'text':
+    case 'text': {
+      const textMode = content.mode ?? 'multiline'
       return (
-        <FieldRow label="Text">
-          <BlurInput
-            value={content.text}
-            onCommit={(text) => {
-              onUpdateContent({ ...content, text })
-            }}
-          />
-        </FieldRow>
+        <>
+          <FieldRow label="Text">
+            {textMode === 'multiline' ? (
+              <BlurTextarea
+                value={content.text}
+                onCommit={(text) => {
+                  onUpdateContent({ ...content, text })
+                }}
+              />
+            ) : (
+              <BlurInput
+                value={content.text}
+                onCommit={(text) => {
+                  onUpdateContent({ ...content, text })
+                }}
+              />
+            )}
+          </FieldRow>
+          <FieldRow label="Mode">
+            <select
+              className={SELECT_CLASS}
+              value={textMode}
+              onChange={(e) => {
+                onUpdateContent({
+                  ...content,
+                  mode: e.target.value as 'inline' | 'multiline',
+                })
+              }}
+            >
+              <option value="multiline">Multiline</option>
+              <option value="inline">Inline</option>
+            </select>
+          </FieldRow>
+        </>
       )
+    }
     case 'button':
       return (
         <FieldRow label="Label">

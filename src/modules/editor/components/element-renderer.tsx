@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { icons, type LucideIcon } from 'lucide-react'
 import { ImageIcon } from 'lucide-react'
 
-import { type Element as PageElement } from '@/shared/types'
+import { type Element as PageElement, type TextMode } from '@/shared/types'
 
 import { useInlineEditing } from '../hooks/use-inline-editing'
 
@@ -53,6 +53,10 @@ function buildBaseStyles(styles: PageElement['styles']): React.CSSProperties {
     marginTop: pxOrUndefined(styles.marginTop),
     marginBottom: pxOrUndefined(styles.marginBottom),
   }
+}
+
+function resolveTextMode(content: Extract<PageElement['content'], { type: 'text' }>): TextMode {
+  return content.mode ?? 'multiline'
 }
 
 // ── Heading ─────────────────────────────────────────────────────────────────
@@ -109,12 +113,14 @@ function TextElement({
   onEditEnd,
 }: ElementRendererProps): React.JSX.Element {
   if (element.content.type !== 'text') throw new Error('Expected text')
+  const textMode = resolveTextMode(element.content)
+  const isSingleLine = textMode === 'inline'
 
   const ref = useRef<HTMLParagraphElement>(null)
   const { onBlur, onKeyDown, onPaste } = useInlineEditing(
     ref,
     element.content.text,
-    false, // paragraphs allow Enter for line breaks
+    isSingleLine,
     isEditing,
     onInlineSave,
     onEditEnd,
@@ -126,7 +132,10 @@ function TextElement({
       contentEditable={isEditing}
       suppressContentEditableWarning
       className={`${element.styles.color ? '' : textColorClass} ${isEditing ? 'outline-none' : ''}`}
-      style={buildBaseStyles(element.styles)}
+      style={{
+        ...buildBaseStyles(element.styles),
+        whiteSpace: textMode === 'multiline' ? 'pre-wrap' : 'normal',
+      }}
       {...(isEditing ? { onBlur, onKeyDown, onPaste } : {})}
     >
       {element.content.text}

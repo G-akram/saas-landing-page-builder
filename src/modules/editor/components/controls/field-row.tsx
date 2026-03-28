@@ -8,6 +8,8 @@ export const INPUT_CLASS =
   'w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-white outline-none focus:border-blue-500'
 export const SELECT_CLASS =
   'w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-white outline-none focus:border-blue-500'
+export const TEXTAREA_CLASS =
+  'w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-white outline-none focus:border-blue-500'
 
 // ── Field row ───────────────────────────────────────────────────────────────
 
@@ -55,6 +57,44 @@ export function BlurInput({
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur()
+      }}
+    />
+  )
+}
+
+export function BlurTextarea({
+  value,
+  onCommit,
+  placeholder,
+  rows = 4,
+}: {
+  value: string
+  onCommit: (value: string) => void
+  placeholder?: string
+  rows?: number
+}): React.JSX.Element {
+  const [local, setLocal] = useState(value)
+
+  useEffect(() => {
+    setLocal(value)
+  }, [value])
+
+  return (
+    <textarea
+      className={`${TEXTAREA_CLASS} min-h-20 resize-y leading-relaxed`}
+      value={local}
+      placeholder={placeholder}
+      rows={rows}
+      onChange={(e) => {
+        setLocal(e.target.value)
+      }}
+      onBlur={() => {
+        if (local !== value) onCommit(local)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+          e.currentTarget.blur()
+        }
       }}
     />
   )
