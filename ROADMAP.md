@@ -168,7 +168,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 4 — Publishing Pipeline
 
-**Status: in progress (Steps 1-5 complete)**
+**Status: in progress (Steps 1-6 complete)**
 
 **Why fifth:** You need real content to publish. Publishing before Phase 3 means publishing placeholder blocks — useless as an integration test and as a demo.
 
@@ -191,7 +191,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Add publish storage adapter (local FS in dev, object storage boundary for prod) - see `decisions/031-phase4-step3-storage-adapter.md`
 - [x] Implement `publishPage` server action (auth/ownership, render, persist, upsert metadata, status update) - see `decisions/032-phase4-step4-publish-action-orchestration.md`
 - [x] Add public serving route (`/p/[slug]`) with strict content/cache headers - see `decisions/033-phase4-step5-public-serving-route.md`
-- [ ] Add subdomain middleware rewrite (`[slug].app.com` → `/p/[slug]`)
+- [x] Add subdomain middleware rewrite (`[slug].app.com` → `/p/[slug]`) - see `decisions/034-phase4-step6-subdomain-middleware-rewrite.md`
 - [ ] Wire editor publish UX (publish state + live URL feedback)
 - [ ] Hardening: tests + docs updates (`docs/api.md`, `docs/deployment.md`)
 
