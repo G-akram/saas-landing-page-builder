@@ -1,0 +1,107 @@
+import { createElement } from 'react'
+
+import { type Section } from '@/shared/types'
+
+import {
+  buildGridLayoutStyle,
+  buildSectionStyle,
+  buildSlotStyle,
+  buildStackLayoutStyle,
+  groupElementsBySlot,
+  resolveDefaultTextColor,
+  sanitizeSectionId,
+} from '../utils/publish-renderer-utils'
+import { PublishedPageElement } from './published-page-element'
+
+interface PublishedPageSectionProps {
+  section: Section
+}
+
+function renderGridSection(
+  section: Section,
+  defaultTextColor: string,
+): React.JSX.Element {
+  const columns = section.layout.columns ?? 1
+  const slots = groupElementsBySlot(section.elements)
+  const slotIndices = Array.from({ length: columns }, (_, index) => index)
+
+  return createElement(
+    'div',
+    {
+      className: 'pb-grid',
+      style: buildGridLayoutStyle(columns, section.layout.gap),
+    },
+    ...slotIndices.map((slotIndex) => {
+      const elements = slots.get(slotIndex) ?? []
+
+      return createElement(
+        'div',
+        {
+          key: slotIndex,
+          className: 'pb-slot',
+          style: buildSlotStyle(section.layout),
+        },
+        ...elements.map((element) =>
+          createElement(PublishedPageElement, {
+            key: element.id,
+            element,
+            defaultTextColor,
+          }),
+        ),
+      )
+    }),
+  )
+}
+
+function renderStackSection(
+  section: Section,
+  defaultTextColor: string,
+): React.JSX.Element {
+  const allElements = [...groupElementsBySlot(section.elements).values()].flat()
+
+  return createElement(
+    'div',
+    {
+      className: 'pb-stack',
+      style: buildStackLayoutStyle(section.layout),
+    },
+    ...allElements.map((element) =>
+      createElement(PublishedPageElement, {
+        key: element.id,
+        element,
+        defaultTextColor,
+      }),
+    ),
+  )
+}
+
+export function PublishedPageSection({
+  section,
+}: PublishedPageSectionProps): React.JSX.Element {
+  const defaultTextColor = resolveDefaultTextColor(section)
+
+  return createElement(
+    'section',
+    {
+      id: sanitizeSectionId(section.id),
+      className: 'pb-section',
+      style: buildSectionStyle(section),
+      'data-section-type': section.type,
+      'data-variant-style-id': section.variantStyleId,
+    },
+    section.background.overlay
+      ? createElement('div', {
+          'aria-hidden': true,
+          className: 'pb-overlay',
+          style: { backgroundColor: section.background.overlay },
+        })
+      : null,
+    createElement(
+      'div',
+      { className: 'pb-content' },
+      section.layout.type === 'grid' && section.layout.columns
+        ? renderGridSection(section, defaultTextColor)
+        : renderStackSection(section, defaultTextColor),
+    ),
+  )
+}
