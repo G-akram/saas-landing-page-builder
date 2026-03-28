@@ -35,3 +35,7 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Published artifacts - local dev only, not committed
+.published-pages/
+
