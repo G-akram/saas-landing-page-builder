@@ -1,7 +1,8 @@
 Recap
 
 - Fixed color palette lag and the "Maximum update depth exceeded" path.
-  - Color controls now keep local draft values and commit on blur.
+  - Color controls now preview live while dragging.
+  - Undo history is pushed once at the start of color-drag, then preview updates skip history churn.
   - Hex colors are normalized before saving.
   - Store updates now skip no-op patches to avoid unnecessary re-renders/history churn.
 - Fixed editor reload hydration mismatch.
@@ -14,6 +15,7 @@ Recap
 Result
 
 - Color changes are smoother and no longer trigger the update-depth error flow.
+- Color updates are visible live while dragging, without the previous lag.
 - Editor reload no longer shows the previous hydration mismatch behavior.
 - Inline editing supports normal spaces and proper multi-line authoring with Shift+Enter.
 
