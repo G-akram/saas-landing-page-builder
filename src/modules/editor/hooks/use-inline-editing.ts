@@ -56,7 +56,14 @@ export function useInlineEditing(
       return
     }
     // Single-line elements (heading, button): Enter submits without a newline.
-    if (e.key === 'Enter' && !e.shiftKey && isSingleLine) {
+    if (e.key === 'Enter' && isSingleLine) {
+      e.preventDefault()
+      ref.current?.blur()
+      return
+    }
+
+    // Multi-line text: Enter commits edit, Shift+Enter inserts a newline.
+    if (e.key === 'Enter' && !isSingleLine && !e.shiftKey) {
       e.preventDefault()
       ref.current?.blur()
     }

@@ -80,6 +80,10 @@ export function SectionRenderer({
         onSelect(section.id)
       }}
       onKeyDown={(e) => {
+        // Ignore key events that originate from nested interactive children
+        // (e.g. contentEditable element text editing).
+        if (e.target !== e.currentTarget) return
+
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           onSelect(section.id)
@@ -285,4 +289,3 @@ function StackLayout({
     </div>
   )
 }
-

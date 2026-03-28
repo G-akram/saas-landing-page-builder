@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { type PageDocument } from '@/shared/types'
 import { useDocumentStore, useUIStore } from '@/modules/editor'
@@ -43,6 +43,7 @@ function EditorLayout({
   pageUpdatedAt,
   document,
 }: EditorLayoutProps): React.JSX.Element {
+  const [isHydrated, setIsHydrated] = useState(false)
   const initializeDocument = useDocumentStore((s) => s.initializeDocument)
   const resetUI = useUIStore((s) => s.resetUI)
   const initializedPageIdRef = useRef<string | null>(null)
@@ -50,6 +51,10 @@ function EditorLayout({
   const previewViewport = useUIStore((s) => s.previewViewport)
   const saveStatus = useAutoSave(pageId, pageUpdatedAt)
   const { showSidebar, showTopBar, showRightPanel, canvasMode } = useLayoutConfig()
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   // Initialize stores once on mount (or when page changes).
   useEffect(() => {
@@ -62,6 +67,14 @@ function EditorLayout({
 
   const isPreviewMode = canvasMode === 'preview'
   const isMobileViewport = previewViewport === 'mobile'
+
+  if (!isHydrated) {
+    return (
+      <div className="dark flex h-screen items-center justify-center bg-gray-950 text-white">
+        <p className="text-sm text-gray-400">Loading editor...</p>
+      </div>
+    )
+  }
 
   return (
     <div

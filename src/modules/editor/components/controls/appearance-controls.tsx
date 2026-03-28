@@ -1,19 +1,34 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+
 import { type Element as PageElement, type ElementStyles } from '@/shared/types'
 
 import { FieldRow, BlurInput, INPUT_CLASS } from './field-row'
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-type StyleUpdater = (styles: Partial<ElementStyles>) => void
+type StyleUpdater = (
+  styles: Partial<ElementStyles>,
+  options?: { pushHistory?: boolean },
+) => void
 
 interface AppearanceControlsProps {
   element: PageElement
   onUpdateStyles: StyleUpdater
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+function normalizeHexColor(value: string): string | null {
+  const trimmed = value.trim()
+  const match = /^#([0-9a-fA-F]{6})$/.exec(trimmed)
+  if (!match) return null
+  const hex = match[1]
+  if (!hex) return null
+  return `#${hex.toLowerCase()}`
+}
+
+function pickerColor(value: string | undefined, fallback: string): string {
+  if (!value) return fallback
+  return normalizeHexColor(value) ?? fallback
+}
 
 export function AppearanceControls({
   element,
@@ -22,6 +37,14 @@ export function AppearanceControls({
   const { styles } = element
   const showBg = element.type === 'button'
   const showRadius = element.type === 'button' || element.type === 'image'
+  const hasLivePreviewSessionRef = useRef(false)
+  const [bgDraft, setBgDraft] = useState(
+    pickerColor(styles.backgroundColor, '#3b82f6'),
+  )
+
+  useEffect(() => {
+    setBgDraft(pickerColor(styles.backgroundColor, '#3b82f6'))
+  }, [styles.backgroundColor])
 
   if (!showBg && !showRadius) return null
 
@@ -33,16 +56,34 @@ export function AppearanceControls({
             <input
               type="color"
               className="h-6 w-6 shrink-0 cursor-pointer rounded border border-white/10"
-              value={styles.backgroundColor ?? '#3b82f6'}
+              value={bgDraft}
               onChange={(e) => {
-                onUpdateStyles({ backgroundColor: e.target.value })
+                const normalized = normalizeHexColor(e.target.value)
+                setBgDraft(e.target.value)
+                if (!normalized) return
+                onUpdateStyles(
+                  { backgroundColor: normalized },
+                  { pushHistory: !hasLivePreviewSessionRef.current },
+                )
+                hasLivePreviewSessionRef.current = true
+              }}
+              onBlur={() => {
+                const normalized = normalizeHexColor(bgDraft)
+                if (normalized && normalized !== styles.backgroundColor) {
+                  onUpdateStyles(
+                    { backgroundColor: normalized },
+                    { pushHistory: !hasLivePreviewSessionRef.current },
+                  )
+                }
+                hasLivePreviewSessionRef.current = false
               }}
             />
             <BlurInput
               value={styles.backgroundColor ?? ''}
               placeholder="#3b82f6"
               onCommit={(bg) => {
-                onUpdateStyles({ backgroundColor: bg || undefined })
+                const normalized = normalizeHexColor(bg)
+                onUpdateStyles({ backgroundColor: normalized ?? undefined })
               }}
             />
           </div>

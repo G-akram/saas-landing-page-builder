@@ -53,12 +53,14 @@ interface DocumentActions {
     sectionId: string,
     elementId: string,
     updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>>,
+    options?: { pushHistory?: boolean },
   ) => void
   deleteElement: (variantId: string, sectionId: string, elementId: string) => void
   updateSectionStyles: (
     variantId: string,
     sectionId: string,
     updates: Partial<Pick<Section, 'layout' | 'background' | 'padding'>>,
+    options?: { pushHistory?: boolean },
   ) => void
   undo: () => void
   redo: () => void
@@ -103,6 +105,36 @@ function mapSectionElements(
       s.id === sectionId ? { ...s, elements: transform(s.elements) } : s,
     ),
   )
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true
+
+  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+    return false
+  }
+
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b)) return false
+    if (a.length !== b.length) return false
+    return a.every((item, index) => deepEqual(item, b[index]))
+  }
+
+  const aObj = a as Record<string, unknown>
+  const bObj = b as Record<string, unknown>
+  const aKeys = Object.keys(aObj)
+  const bKeys = Object.keys(bObj)
+
+  if (aKeys.length !== bKeys.length) return false
+  return aKeys.every((key) => deepEqual(aObj[key], bObj[key]))
+}
+
+function hasPatchChanges<T extends object>(current: T, patch: Partial<T>): boolean {
+  return (Object.keys(patch) as (keyof T)[]).some((key) => {
+    const nextValue = patch[key]
+    if (nextValue === undefined) return false
+    return !deepEqual(current[key], nextValue)
+  })
 }
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -206,28 +238,45 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     })
   },
 
-  updateElement: (variantId, sectionId, elementId, updates) => {
+  updateElement: (variantId, sectionId, elementId, updates, options) => {
     set((state) => {
       if (!state.document) return state
+      const pushHistoryForUpdate = options?.pushHistory ?? true
 
       const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) =>
         elements.map((el) => {
           if (el.id !== elementId) return el
+
+          const slotChanged = updates.slot !== undefined && !deepEqual(el.slot, updates.slot)
+          const linkChanged = updates.link !== undefined && !deepEqual(el.link, updates.link)
+          const contentChanged =
+            updates.content !== undefined && hasPatchChanges(el.content, updates.content)
+          const stylesChanged =
+            updates.styles !== undefined && hasPatchChanges(el.styles, updates.styles)
+
+          if (!slotChanged && !linkChanged && !contentChanged && !stylesChanged) {
+            return el
+          }
+
           return {
             ...el,
-            ...(updates.slot !== undefined && { slot: updates.slot }),
-            ...(updates.link !== undefined && { link: updates.link }),
-            ...(updates.content && { content: { ...el.content, ...updates.content } }),
-            ...(updates.styles && { styles: { ...el.styles, ...updates.styles } }),
+            ...(slotChanged && { slot: updates.slot }),
+            ...(linkChanged && { link: updates.link }),
+            ...(contentChanged && { content: { ...el.content, ...updates.content } }),
+            ...(stylesChanged && { styles: { ...el.styles, ...updates.styles } }),
           }
         }),
       )
 
+      if (deepEqual(newDoc, state.document)) return state
+
       return {
         document: newDoc,
         isDirty: true,
-        undoStack: pushHistory(state.undoStack, state.document),
-        redoStack: [],
+        undoStack: pushHistoryForUpdate
+          ? pushHistory(state.undoStack, state.document)
+          : state.undoStack,
+        redoStack: pushHistoryForUpdate ? [] : state.redoStack,
       }
     })
   },
@@ -249,27 +298,44 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     })
   },
 
-  updateSectionStyles: (variantId, sectionId, updates) => {
+  updateSectionStyles: (variantId, sectionId, updates, options) => {
     set((state) => {
       if (!state.document) return state
+      const pushHistoryForUpdate = options?.pushHistory ?? true
 
       const newDoc = mapVariantSections(state.document, variantId, (sections) =>
         sections.map((s) => {
           if (s.id !== sectionId) return s
+
+          const layoutChanged =
+            updates.layout !== undefined && hasPatchChanges(s.layout, updates.layout)
+          const backgroundChanged =
+            updates.background !== undefined && hasPatchChanges(s.background, updates.background)
+          const paddingChanged =
+            updates.padding !== undefined && hasPatchChanges(s.padding, updates.padding)
+
+          if (!layoutChanged && !backgroundChanged && !paddingChanged) {
+            return s
+          }
+
           return {
             ...s,
-            ...(updates.layout && { layout: { ...s.layout, ...updates.layout } }),
-            ...(updates.background && { background: { ...s.background, ...updates.background } }),
-            ...(updates.padding && { padding: { ...s.padding, ...updates.padding } }),
+            ...(layoutChanged && { layout: { ...s.layout, ...updates.layout } }),
+            ...(backgroundChanged && { background: { ...s.background, ...updates.background } }),
+            ...(paddingChanged && { padding: { ...s.padding, ...updates.padding } }),
           }
         }),
       )
 
+      if (deepEqual(newDoc, state.document)) return state
+
       return {
         document: newDoc,
         isDirty: true,
-        undoStack: pushHistory(state.undoStack, state.document),
-        redoStack: [],
+        undoStack: pushHistoryForUpdate
+          ? pushHistory(state.undoStack, state.document)
+          : state.undoStack,
+        redoStack: pushHistoryForUpdate ? [] : state.redoStack,
       }
     })
   },

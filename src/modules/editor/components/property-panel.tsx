@@ -22,6 +22,10 @@ const ELEMENT_TYPE_LABEL: Record<PageElement['type'], string> = {
   icon: 'Icon',
 }
 
+interface StyleUpdateOptions {
+  pushHistory?: boolean
+}
+
 // ── Collapsible section ─────────────────────────────────────────────────────
 
 interface PanelSectionProps {
@@ -140,8 +144,11 @@ export function PropertyPanel(): React.JSX.Element {
   const sectionId = section.id
   const elementId = element.id
 
-  function handleUpdateStyles(styles: Partial<PageElement['styles']>): void {
-    updateElement(variantId, sectionId, elementId, { styles })
+  function handleUpdateStyles(
+    styles: Partial<PageElement['styles']>,
+    options?: StyleUpdateOptions,
+  ): void {
+    updateElement(variantId, sectionId, elementId, { styles }, options)
   }
 
   function handleUpdateContent(content: PageElement['content']): void {

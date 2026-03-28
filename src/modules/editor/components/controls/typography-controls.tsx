@@ -1,19 +1,34 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+
 import { type Element as PageElement, type ElementStyles } from '@/shared/types'
 
 import { FieldRow, BlurInput, INPUT_CLASS, SELECT_CLASS } from './field-row'
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-type StyleUpdater = (styles: Partial<ElementStyles>) => void
+type StyleUpdater = (
+  styles: Partial<ElementStyles>,
+  options?: { pushHistory?: boolean },
+) => void
 
 interface TypographyControlsProps {
   element: PageElement
   onUpdateStyles: StyleUpdater
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+function normalizeHexColor(value: string): string | null {
+  const trimmed = value.trim()
+  const match = /^#([0-9a-fA-F]{6})$/.exec(trimmed)
+  if (!match) return null
+  const hex = match[1]
+  if (!hex) return null
+  return `#${hex.toLowerCase()}`
+}
+
+function pickerColor(value: string | undefined, fallback: string): string {
+  if (!value) return fallback
+  return normalizeHexColor(value) ?? fallback
+}
 
 export function TypographyControls({
   element,
@@ -22,6 +37,12 @@ export function TypographyControls({
   const { styles } = element
   const showTextControls =
     element.type === 'heading' || element.type === 'text' || element.type === 'button'
+  const hasLivePreviewSessionRef = useRef(false)
+  const [colorDraft, setColorDraft] = useState(pickerColor(styles.color, '#ffffff'))
+
+  useEffect(() => {
+    setColorDraft(pickerColor(styles.color, '#ffffff'))
+  }, [styles.color])
 
   return (
     <>
@@ -79,16 +100,34 @@ export function TypographyControls({
           <input
             type="color"
             className="h-6 w-6 shrink-0 cursor-pointer rounded border border-white/10"
-            value={styles.color ?? '#ffffff'}
+            value={colorDraft}
             onChange={(e) => {
-              onUpdateStyles({ color: e.target.value })
+              const normalized = normalizeHexColor(e.target.value)
+              setColorDraft(e.target.value)
+              if (!normalized) return
+              onUpdateStyles(
+                { color: normalized },
+                { pushHistory: !hasLivePreviewSessionRef.current },
+              )
+              hasLivePreviewSessionRef.current = true
+            }}
+            onBlur={() => {
+              const normalized = normalizeHexColor(colorDraft)
+              if (normalized && normalized !== styles.color) {
+                onUpdateStyles(
+                  { color: normalized },
+                  { pushHistory: !hasLivePreviewSessionRef.current },
+                )
+              }
+              hasLivePreviewSessionRef.current = false
             }}
           />
           <BlurInput
             value={styles.color ?? ''}
             placeholder="#ffffff"
             onCommit={(color) => {
-              onUpdateStyles({ color: color || undefined })
+              const normalized = normalizeHexColor(color)
+              onUpdateStyles({ color: normalized ?? undefined })
             }}
           />
         </div>

@@ -126,7 +126,7 @@ describe('useInlineEditing', () => {
     expect(blurCalled).toBe(true)
   })
 
-  it('does NOT blur on Enter for multi-line elements', () => {
+  it('blurs on Enter for multi-line elements', () => {
     let blurCalled = false
     ref.current.blur = () => { blurCalled = true }
 
@@ -139,8 +139,8 @@ describe('useInlineEditing', () => {
       result.current.onKeyDown(event)
     })
 
-    expect(preventDefaultFn).not.toHaveBeenCalled()
-    expect(blurCalled).toBe(false)
+    expect(preventDefaultFn).toHaveBeenCalled()
+    expect(blurCalled).toBe(true)
   })
 
   it('strips formatting on paste and inserts plain text', () => {
@@ -156,7 +156,7 @@ describe('useInlineEditing', () => {
     expect(preventDefaultFn).toHaveBeenCalled()
   })
 
-  it('allows Shift+Enter on single-line elements without blurring', () => {
+  it('blurs on Shift+Enter for single-line elements', () => {
     let blurCalled = false
     ref.current.blur = () => { blurCalled = true }
 
@@ -168,6 +168,23 @@ describe('useInlineEditing', () => {
       result.current.onKeyDown(createKeyboardEvent('Enter', true).event)
     })
 
+    expect(blurCalled).toBe(true)
+  })
+
+  it('allows Shift+Enter on multi-line elements without blurring', () => {
+    let blurCalled = false
+    ref.current.blur = () => { blurCalled = true }
+
+    const { result } = renderHook(() =>
+      useInlineEditing(ref, 'Hello', false, false, vi.fn(), vi.fn()),
+    )
+
+    const { event, preventDefaultFn } = createKeyboardEvent('Enter', true)
+    act(() => {
+      result.current.onKeyDown(event)
+    })
+
+    expect(preventDefaultFn).not.toHaveBeenCalled()
     expect(blurCalled).toBe(false)
   })
 
