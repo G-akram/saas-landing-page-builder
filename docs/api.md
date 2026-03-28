@@ -30,6 +30,54 @@ Error shape:
 }
 ```
 
+### `POST /api/publish`
+
+- Auth required (handled inside publishing action).
+- Request body:
+
+```json
+{
+  "pageId": "<page-id>"
+}
+```
+
+- Success response:
+
+```json
+{
+  "success": true,
+  "liveUrl": "https://<app-domain>/p/<slug>",
+  "artifact": {
+    "pageId": "<page-id>",
+    "slug": "<slug>",
+    "variantId": "<variant-id>",
+    "storageProvider": "local",
+    "storageKey": "pages/<page-id>/<content-hash>.html",
+    "contentHash": "<sha256>",
+    "publishedAt": "<ISO date>"
+  }
+}
+```
+
+- Error response:
+
+```json
+{
+  "success": false,
+  "errorCode": "<code>",
+  "message": "<message>"
+}
+```
+
+- Status mapping:
+  - `401` -> `NOT_AUTHENTICATED`
+  - `403` -> `PAGE_ACCESS_DENIED`
+  - `404` -> `PAGE_NOT_FOUND`
+  - `409` -> `PUBLISH_CONFLICT`
+  - `422` -> `INVALID_DOCUMENT`
+  - `429` -> `RATE_LIMITED`
+  - `500` -> unknown/internal publish failures
+
 ## Server actions (internal mutation API)
 
 ### Dashboard

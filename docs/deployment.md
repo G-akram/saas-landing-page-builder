@@ -41,3 +41,13 @@ Current minimum set for production auth + database:
 | `AUTH_GOOGLE_ID` | Google Cloud Console → OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | Google Cloud Console → OAuth client secret |
 | `DATABASE_URL` | Neon dashboard → Connection string |
+| `PUBLISH_ROOT_DOMAIN` | App root domain for subdomain rewrites (e.g. `app.com`) |
+| `PUBLISH_BASE_URL` | Canonical base URL used in publish responses |
+
+---
+
+## Publishing notes
+
+- Current storage adapter defaults to local artifact storage in this project state.
+- Current Neon serverless/http path does not provide transaction support; publish persistence is implemented as sequential idempotent operations.
+- Keep `PUBLISH_ROOT_DOMAIN` aligned with your DNS/certificate setup or subdomain rewrite behavior will not apply as expected.
