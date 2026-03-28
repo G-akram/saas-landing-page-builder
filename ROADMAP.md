@@ -168,7 +168,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 4 — Publishing Pipeline
 
-**Status: not started**
+**Status: planned (Step 1 ready)**
 
 **Why fifth:** You need real content to publish. Publishing before Phase 3 means publishing placeholder blocks — useless as an integration test and as a demo.
 
@@ -178,6 +178,22 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - Published HTML + assets written to storage (local FS in dev, object storage in prod)
 - Subdomain routing: `[slug].app.com` serves the static file
 - CDN headers set (cache-control, immutable assets)
+
+**Implementation approach:** See `decisions/028-phase4-approach.md` for rationale.
+
+**Readiness:**
+- [x] Phase 4 architecture decisions locked (artifact storage strategy, variant scope, routing rollout, step order)
+- [x] Step 1 scope locked (contracts + schema changes)
+
+**Steps:**
+- [ ] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape)
+- [ ] Build pure HTML renderer (page + active variant → full HTML document)
+- [ ] Add publish storage adapter (local FS in dev, object storage boundary for prod)
+- [ ] Implement `publishPage` server action (auth/ownership, render, persist, upsert metadata, status update)
+- [ ] Add public serving route (`/p/[slug]`) with strict content/cache headers
+- [ ] Add subdomain middleware rewrite (`[slug].app.com` → `/p/[slug]`)
+- [ ] Wire editor publish UX (publish state + live URL feedback)
+- [ ] Hardening: tests + docs updates (`docs/api.md`, `docs/deployment.md`)
 
 **Deliverables:**
 - Click Publish → get a real URL → open in a new tab → see the live page
