@@ -2,6 +2,11 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 
+import {
+  getFileExtensionForImageType,
+  type AllowedImageType,
+} from '@/shared/lib/upload-validation'
+
 // ── Interface ────────────────────────────────────────────────────────────────
 
 export interface UploadResult {
@@ -10,7 +15,7 @@ export interface UploadResult {
 }
 
 export interface UploadService {
-  upload(file: Buffer, filename: string, mimeType: string): Promise<UploadResult>
+  upload(file: Buffer, mimeType: AllowedImageType): Promise<UploadResult>
   delete(key: string): Promise<void>
 }
 
@@ -19,10 +24,10 @@ export interface UploadService {
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads')
 
 class LocalUploadAdapter implements UploadService {
-  async upload(file: Buffer, filename: string, _mimeType: string): Promise<UploadResult> {
+  async upload(file: Buffer, mimeType: AllowedImageType): Promise<UploadResult> {
     await fs.mkdir(UPLOADS_DIR, { recursive: true })
 
-    const ext = path.extname(filename)
+    const ext = getFileExtensionForImageType(mimeType)
     const key = `${randomUUID()}${ext}`
     const dest = path.join(UPLOADS_DIR, key)
 
