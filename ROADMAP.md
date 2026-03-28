@@ -168,7 +168,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 4 — Publishing Pipeline
 
-**Status: planned (Step 1 ready)**
+**Status: in progress (Step 1 complete)**
 
 **Why fifth:** You need real content to publish. Publishing before Phase 3 means publishing placeholder blocks — useless as an integration test and as a demo.
 
@@ -186,7 +186,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Step 1 scope locked (contracts + schema changes)
 
 **Steps:**
-- [ ] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape)
+- [x] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape) - see `decisions/029-phase4-step1-contracts-schema.md`
 - [ ] Build pure HTML renderer (page + active variant → full HTML document)
 - [ ] Add publish storage adapter (local FS in dev, object storage boundary for prod)
 - [ ] Implement `publishPage` server action (auth/ownership, render, persist, upsert metadata, status update)
@@ -232,3 +232,5 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 Custom domains, per-breakpoint style overrides, version history, starter templates, Smart Traffic (AI-driven routing), editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
+
+
