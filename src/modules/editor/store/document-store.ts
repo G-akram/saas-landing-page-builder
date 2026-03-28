@@ -243,32 +243,57 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
       if (!state.document) return state
       const pushHistoryForUpdate = options?.pushHistory ?? true
 
-      const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) =>
-        elements.map((el) => {
-          if (el.id !== elementId) return el
+      const variantIndex = state.document.variants.findIndex((v) => v.id === variantId)
+      if (variantIndex === -1) return state
+      const variant = state.document.variants[variantIndex]
+      if (!variant) return state
 
-          const slotChanged = updates.slot !== undefined && !deepEqual(el.slot, updates.slot)
-          const linkChanged = updates.link !== undefined && !deepEqual(el.link, updates.link)
-          const contentChanged =
-            updates.content !== undefined && hasPatchChanges(el.content, updates.content)
-          const stylesChanged =
-            updates.styles !== undefined && hasPatchChanges(el.styles, updates.styles)
+      const sectionIndex = variant.sections.findIndex((s) => s.id === sectionId)
+      if (sectionIndex === -1) return state
+      const section = variant.sections[sectionIndex]
+      if (!section) return state
 
-          if (!slotChanged && !linkChanged && !contentChanged && !stylesChanged) {
-            return el
-          }
+      const elementIndex = section.elements.findIndex((el) => el.id === elementId)
+      if (elementIndex === -1) return state
+      const currentElement = section.elements[elementIndex]
+      if (!currentElement) return state
 
-          return {
-            ...el,
-            ...(slotChanged && { slot: updates.slot }),
-            ...(linkChanged && { link: updates.link }),
-            ...(contentChanged && { content: { ...el.content, ...updates.content } }),
-            ...(stylesChanged && { styles: { ...el.styles, ...updates.styles } }),
-          }
+      const slotChanged =
+        updates.slot !== undefined && !deepEqual(currentElement.slot, updates.slot)
+      const linkChanged =
+        updates.link !== undefined && !deepEqual(currentElement.link, updates.link)
+      const contentChanged =
+        updates.content !== undefined &&
+        hasPatchChanges(currentElement.content, updates.content)
+      const stylesChanged =
+        updates.styles !== undefined && hasPatchChanges(currentElement.styles, updates.styles)
+
+      if (!slotChanged && !linkChanged && !contentChanged && !stylesChanged) {
+        return state
+      }
+
+      const updatedElement = {
+        ...currentElement,
+        ...(slotChanged && { slot: updates.slot }),
+        ...(linkChanged && { link: updates.link }),
+        ...(contentChanged && {
+          content: { ...currentElement.content, ...updates.content },
         }),
-      )
+        ...(stylesChanged && {
+          styles: { ...currentElement.styles, ...updates.styles },
+        }),
+      }
 
-      if (deepEqual(newDoc, state.document)) return state
+      const nextElements = [...section.elements]
+      nextElements[elementIndex] = updatedElement
+
+      const nextSections = [...variant.sections]
+      nextSections[sectionIndex] = { ...section, elements: nextElements }
+
+      const nextVariants = [...state.document.variants]
+      nextVariants[variantIndex] = { ...variant, sections: nextSections }
+
+      const newDoc = { ...state.document, variants: nextVariants }
 
       return {
         document: newDoc,
@@ -303,31 +328,50 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
       if (!state.document) return state
       const pushHistoryForUpdate = options?.pushHistory ?? true
 
-      const newDoc = mapVariantSections(state.document, variantId, (sections) =>
-        sections.map((s) => {
-          if (s.id !== sectionId) return s
+      const variantIndex = state.document.variants.findIndex((v) => v.id === variantId)
+      if (variantIndex === -1) return state
+      const variant = state.document.variants[variantIndex]
+      if (!variant) return state
 
-          const layoutChanged =
-            updates.layout !== undefined && hasPatchChanges(s.layout, updates.layout)
-          const backgroundChanged =
-            updates.background !== undefined && hasPatchChanges(s.background, updates.background)
-          const paddingChanged =
-            updates.padding !== undefined && hasPatchChanges(s.padding, updates.padding)
+      const sectionIndex = variant.sections.findIndex((s) => s.id === sectionId)
+      if (sectionIndex === -1) return state
+      const currentSection = variant.sections[sectionIndex]
+      if (!currentSection) return state
 
-          if (!layoutChanged && !backgroundChanged && !paddingChanged) {
-            return s
-          }
+      const layoutChanged =
+        updates.layout !== undefined &&
+        hasPatchChanges(currentSection.layout, updates.layout)
+      const backgroundChanged =
+        updates.background !== undefined &&
+        hasPatchChanges(currentSection.background, updates.background)
+      const paddingChanged =
+        updates.padding !== undefined &&
+        hasPatchChanges(currentSection.padding, updates.padding)
 
-          return {
-            ...s,
-            ...(layoutChanged && { layout: { ...s.layout, ...updates.layout } }),
-            ...(backgroundChanged && { background: { ...s.background, ...updates.background } }),
-            ...(paddingChanged && { padding: { ...s.padding, ...updates.padding } }),
-          }
+      if (!layoutChanged && !backgroundChanged && !paddingChanged) {
+        return state
+      }
+
+      const updatedSection = {
+        ...currentSection,
+        ...(layoutChanged && {
+          layout: { ...currentSection.layout, ...updates.layout },
         }),
-      )
+        ...(backgroundChanged && {
+          background: { ...currentSection.background, ...updates.background },
+        }),
+        ...(paddingChanged && {
+          padding: { ...currentSection.padding, ...updates.padding },
+        }),
+      }
 
-      if (deepEqual(newDoc, state.document)) return state
+      const nextSections = [...variant.sections]
+      nextSections[sectionIndex] = updatedSection
+
+      const nextVariants = [...state.document.variants]
+      nextVariants[variantIndex] = { ...variant, sections: nextSections }
+
+      const newDoc = { ...state.document, variants: nextVariants }
 
       return {
         document: newDoc,

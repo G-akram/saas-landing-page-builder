@@ -38,11 +38,44 @@ export function TypographyControls({
   const showTextControls =
     element.type === 'heading' || element.type === 'text' || element.type === 'button'
   const hasLivePreviewSessionRef = useRef(false)
+  const pendingColorRef = useRef<string | null>(null)
+  const rafIdRef = useRef<number | null>(null)
+  const lastAppliedColorRef = useRef(normalizeHexColor(styles.color ?? ''))
   const [colorDraft, setColorDraft] = useState(pickerColor(styles.color, '#ffffff'))
 
   useEffect(() => {
-    setColorDraft(pickerColor(styles.color, '#ffffff'))
+    const normalized = normalizeHexColor(styles.color ?? '')
+    lastAppliedColorRef.current = normalized
+
+    if (!hasLivePreviewSessionRef.current) {
+      const nextDraft = pickerColor(styles.color, '#ffffff')
+      setColorDraft((prev) => (prev === nextDraft ? prev : nextDraft))
+    }
   }, [styles.color])
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
+    }
+  }, [])
+
+  function scheduleLivePreview(color: string): void {
+    pendingColorRef.current = color
+    if (rafIdRef.current !== null) return
+
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = null
+      const pending = pendingColorRef.current
+      pendingColorRef.current = null
+
+      if (!pending || pending === lastAppliedColorRef.current) return
+
+      onUpdateStyles({ color: pending }, { pushHistory: false })
+      lastAppliedColorRef.current = pending
+    })
+  }
 
   return (
     <>
@@ -103,22 +136,32 @@ export function TypographyControls({
             value={colorDraft}
             onChange={(e) => {
               const normalized = normalizeHexColor(e.target.value)
-              setColorDraft(e.target.value)
+              setColorDraft(e.target.value.toLowerCase())
               if (!normalized) return
-              onUpdateStyles(
-                { color: normalized },
-                { pushHistory: !hasLivePreviewSessionRef.current },
-              )
-              hasLivePreviewSessionRef.current = true
+
+              if (!hasLivePreviewSessionRef.current) {
+                onUpdateStyles({ color: normalized }, { pushHistory: true })
+                hasLivePreviewSessionRef.current = true
+                lastAppliedColorRef.current = normalized
+                pendingColorRef.current = null
+                return
+              }
+
+              scheduleLivePreview(normalized)
             }}
             onBlur={() => {
-              const normalized = normalizeHexColor(colorDraft)
-              if (normalized && normalized !== styles.color) {
-                onUpdateStyles(
-                  { color: normalized },
-                  { pushHistory: !hasLivePreviewSessionRef.current },
-                )
+              if (rafIdRef.current !== null) {
+                cancelAnimationFrame(rafIdRef.current)
+                rafIdRef.current = null
               }
+
+              const normalized = normalizeHexColor(colorDraft)
+              if (normalized && normalized !== lastAppliedColorRef.current) {
+                onUpdateStyles({ color: normalized }, { pushHistory: false })
+                lastAppliedColorRef.current = normalized
+              }
+
+              pendingColorRef.current = null
               hasLivePreviewSessionRef.current = false
             }}
           />

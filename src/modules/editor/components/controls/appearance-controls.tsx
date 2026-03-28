@@ -38,13 +38,48 @@ export function AppearanceControls({
   const showBg = element.type === 'button'
   const showRadius = element.type === 'button' || element.type === 'image'
   const hasLivePreviewSessionRef = useRef(false)
+  const pendingColorRef = useRef<string | null>(null)
+  const rafIdRef = useRef<number | null>(null)
+  const lastAppliedColorRef = useRef(
+    normalizeHexColor(styles.backgroundColor ?? ''),
+  )
   const [bgDraft, setBgDraft] = useState(
     pickerColor(styles.backgroundColor, '#3b82f6'),
   )
 
   useEffect(() => {
-    setBgDraft(pickerColor(styles.backgroundColor, '#3b82f6'))
+    const normalized = normalizeHexColor(styles.backgroundColor ?? '')
+    lastAppliedColorRef.current = normalized
+
+    if (!hasLivePreviewSessionRef.current) {
+      const nextDraft = pickerColor(styles.backgroundColor, '#3b82f6')
+      setBgDraft((prev) => (prev === nextDraft ? prev : nextDraft))
+    }
   }, [styles.backgroundColor])
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
+    }
+  }, [])
+
+  function scheduleLivePreview(color: string): void {
+    pendingColorRef.current = color
+    if (rafIdRef.current !== null) return
+
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = null
+      const pending = pendingColorRef.current
+      pendingColorRef.current = null
+
+      if (!pending || pending === lastAppliedColorRef.current) return
+
+      onUpdateStyles({ backgroundColor: pending }, { pushHistory: false })
+      lastAppliedColorRef.current = pending
+    })
+  }
 
   if (!showBg && !showRadius) return null
 
@@ -59,22 +94,32 @@ export function AppearanceControls({
               value={bgDraft}
               onChange={(e) => {
                 const normalized = normalizeHexColor(e.target.value)
-                setBgDraft(e.target.value)
+                setBgDraft(e.target.value.toLowerCase())
                 if (!normalized) return
-                onUpdateStyles(
-                  { backgroundColor: normalized },
-                  { pushHistory: !hasLivePreviewSessionRef.current },
-                )
-                hasLivePreviewSessionRef.current = true
+
+                if (!hasLivePreviewSessionRef.current) {
+                  onUpdateStyles({ backgroundColor: normalized }, { pushHistory: true })
+                  hasLivePreviewSessionRef.current = true
+                  lastAppliedColorRef.current = normalized
+                  pendingColorRef.current = null
+                  return
+                }
+
+                scheduleLivePreview(normalized)
               }}
               onBlur={() => {
-                const normalized = normalizeHexColor(bgDraft)
-                if (normalized && normalized !== styles.backgroundColor) {
-                  onUpdateStyles(
-                    { backgroundColor: normalized },
-                    { pushHistory: !hasLivePreviewSessionRef.current },
-                  )
+                if (rafIdRef.current !== null) {
+                  cancelAnimationFrame(rafIdRef.current)
+                  rafIdRef.current = null
                 }
+
+                const normalized = normalizeHexColor(bgDraft)
+                if (normalized && normalized !== lastAppliedColorRef.current) {
+                  onUpdateStyles({ backgroundColor: normalized }, { pushHistory: false })
+                  lastAppliedColorRef.current = normalized
+                }
+
+                pendingColorRef.current = null
                 hasLivePreviewSessionRef.current = false
               }}
             />
