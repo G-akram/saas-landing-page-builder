@@ -1,8 +1,8 @@
-# ADR-029: Phase 4 Step 1 - Publishing Contracts and Metadata Schema
+# ADR-029: Publishing Contracts and Metadata Schema
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 1 locks publishing contracts and database schema/index strategy before renderer/action/route work begins. Builds on ADR-028.
+**Context:** This decision locks publishing contracts and database schema/index strategy before renderer/action/route work begins. Builds on ADR-028.
 
 ## The Problem
 
@@ -95,3 +95,4 @@ Publishing result contracts include typed error codes plus message.
 - Publishing contracts are now a first-class API in `modules/publishing`.
 - Database model is aligned with storage-backed artifact architecture from ADR-028.
 - Later Phase 4 steps can proceed without reopening schema-level design debates.
+

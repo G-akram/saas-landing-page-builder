@@ -1,8 +1,8 @@
-# ADR-031: Phase 4 Step 3 - Publish Storage Adapter Boundary and Key Strategy
+# ADR-031: Publish Storage Adapter Boundary and Key Strategy
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 3 introduces artifact storage after Step 2 renderer output is stable. It must support local filesystem in development, preserve a clean boundary for future object storage, and stay compatible with Step 4 publish action and Step 5 public serving route.
+**Context:** This decision introduces artifact storage after renderer output is stable. It must support local filesystem in development, preserve a clean boundary for future object storage, and remain compatible with publish orchestration and public serving.
 
 ## The Problem
 
@@ -96,3 +96,4 @@ Adapter returns typed failures (`WRITE_FAILED`, `READ_FAILED`, `NOT_FOUND`, `INV
 - Step 4 can consume storage through a stable interface.
 - Step 5 serving route can remain provider-agnostic (`storageKey -> html`).
 - Phase 4 keeps roadmap velocity while preserving production evolution path.
+

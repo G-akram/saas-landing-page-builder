@@ -1,8 +1,8 @@
-# ADR-034: Phase 4 Step 6 - Subdomain Middleware Rewrite
+# ADR-034: Subdomain Middleware Rewrite
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 6 introduces host-based routing so published pages are reachable through subdomains (`[slug].app.com`) while Step 5 path serving (`/p/[slug]`) remains the serving boundary.
+**Context:** This decision introduces host-based routing so published pages are reachable through subdomains (`[slug].app.com`) while `/p/[slug]` remains the serving boundary.
 
 ## The Problem
 
@@ -100,3 +100,4 @@ Public subdomain root rewrite executes before that protected-route check.
 - Step 7 publish UX can safely display both path URL and subdomain URL intent.
 - Step 8 hardening can focus on deploy/docs/testing without touching serving logic.
 - Future custom-domain support can reuse the same rewrite-to-serving-boundary strategy.
+

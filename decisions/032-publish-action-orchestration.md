@@ -1,8 +1,8 @@
-# ADR-032: Phase 4 Step 4 - publishPage Orchestration Boundary
+# ADR-032: publishPage Orchestration Boundary
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 4 introduces the publish orchestration server action after contracts/schema (ADR-029), renderer boundary (ADR-030), and storage adapter boundary (ADR-031) are complete.
+**Context:** This decision introduces the publish orchestration server action after contracts/schema (ADR-029), renderer boundary (ADR-030), and storage adapter boundary (ADR-031) are complete.
 
 ## The Problem
 
@@ -35,22 +35,22 @@ The action accepts `pageId` only, then reads `name`, `slug`, and `document` from
 
 **Why:** prevents client-side stale or tampered payloads from becoming the publish artifact.
 
-### 3) Operation order is render -> storage write -> DB transaction
+### 3) Operation order is render -> storage write -> DB persistence sequence
 
 Chosen order:
 1. render HTML + hash,
 2. write artifact to storage,
-3. DB transaction: upsert metadata + update page status.
+3. DB persistence sequence: upsert metadata + update page status.
 
 **Why:** avoids DB metadata pointing to non-existent artifacts when storage fails.
 
-### 4) DB mutation is atomic for metadata + status
+### 4) DB mutation is sequential and idempotent (not fully atomic)
 
-Within one transaction:
+Current implementation uses two sequential statements:
 - upsert by unique `publishedPages.pageId`,
 - update `pages.status` to `published`.
 
-**Why:** keeps publish index and page status consistent for downstream routes and UI.
+**Why:** Neon HTTP driver path used in this project does not support transactions. We keep the flow idempotent and retry-safe instead.
 
 ### 5) Errors are normalized to publish-domain codes
 
@@ -79,7 +79,7 @@ Renderer/storage/DB failures are mapped to `PublishErrorCode` instead of leaking
 **Pros:** simpler code path.  
 **Cons:** partial writes create inconsistent status/index state.
 
-**Rejected:** consistency cost is too high for a core pipeline step.
+**Accepted for current driver constraints:** mitigated by deterministic artifact keys, idempotent upsert, and safe retry behavior.
 
 ## Edge Cases
 
@@ -88,7 +88,7 @@ Renderer/storage/DB failures are mapped to `PublishErrorCode` instead of leaking
 - Invalid or broken document/active variant -> `INVALID_DOCUMENT`.
 - Storage provider errors or write failure -> `STORAGE_WRITE_FAILED`.
 - Unique constraint conflict during upsert/update -> `PUBLISH_CONFLICT`.
-- Storage write succeeds but DB transaction fails -> artifact may exist without metadata; key is deterministic and safe to overwrite on retry.
+- Storage write succeeds but DB persistence fails -> artifact may exist without metadata; key is deterministic and safe to overwrite on retry.
 
 ## Tradeoffs
 
@@ -96,7 +96,7 @@ Renderer/storage/DB failures are mapped to `PublishErrorCode` instead of leaking
 |---|---|---|
 | DB snapshot source of truth | Strong trust boundary, deterministic publish input | Requires DB read before publish |
 | render -> store -> DB commit | Prevents broken metadata pointers | Possible orphan artifact on DB failure |
-| Transaction for metadata + status | Strong consistency for later steps | Slightly more orchestration complexity |
+| Sequential idempotent metadata + status writes | Works with current Neon HTTP driver | Not fully atomic across both writes |
 | Normalized publish errors | Stable UX/API surface | Loses low-level details at action boundary |
 
 ## Consequences
@@ -104,3 +104,4 @@ Renderer/storage/DB failures are mapped to `PublishErrorCode` instead of leaking
 - Step 5 (`/p/[slug]`) can trust metadata rows to point to real artifacts.
 - Step 7 publish UX can rely on typed error states and deterministic success payloads.
 - Future provider swaps stay contained in storage adapters, not action flow.
+

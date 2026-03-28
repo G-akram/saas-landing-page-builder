@@ -1,4 +1,4 @@
-# ADR-011: Phase 1 Implementation Approach
+# ADR-011: Foundation Implementation Approach
 
 **Status:** Accepted
 **Date:** 2026-03-26
@@ -98,3 +98,4 @@
 - Full Zod schemas may need minor adjustments when the editor reveals edge cases (Phase 2). This is expected — the schema is a living contract, not a frozen spec.
 - OAuth-only auth means local development requires internet access and valid OAuth credentials. No offline dev mode.
 - `eslint-plugin-boundaries` is intentionally deferred. Must be added in Phase 2 — tracking this in the roadmap.
+

@@ -1,4 +1,4 @@
-# ADR-021: Phase 3 Implementation Approach — Block Library
+# ADR-021: Block Library Implementation Approach
 
 **Status:** Accepted
 **Date:** 2026-03-27
@@ -86,3 +86,4 @@ Toggle canvas to mobile viewport width (~375px). Blocks reflow responsively.
 - Hybrid styling (Tailwind + inline) adds minor complexity but is necessary for dynamic user values
 - `contentEditable` limits us to plain text — acceptable given schema has no rich text
 - Local image upload needs swapping to cloud in Phase 4
+

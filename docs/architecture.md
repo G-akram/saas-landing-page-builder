@@ -51,7 +51,7 @@ Core tables:
 
 - `users`, `accounts`, `sessions`, `verificationTokens` (Auth.js adapter)
 - `pages` (draft editor source of truth)
-- `publishedPages` (reserved for publishing outputs)
+- `publishedPages` (published artifact metadata index)
 
 ## Runtime flow
 
@@ -82,10 +82,10 @@ See `decisions/` ADRs, especially:
 - `004-state-management.md`
 - `005-block-schema.md`
 - `007-database-auth.md`
-- `014-phase2-approach.md`
-- `021-phase3-approach.md`
-- `028-phase4-approach.md`
-- `035-phase4-step7-publish-ux-orchestration.md`
+- `014-editor-core-approach.md`
+- `021-block-library-approach.md`
+- `028-publishing-pipeline-approach.md`
+- `035-publish-ux-orchestration.md`
 
 Operational issue history and mitigations:
 - `docs/incident-log.md`

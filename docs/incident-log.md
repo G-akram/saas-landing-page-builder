@@ -33,7 +33,7 @@ If an incident changes long-term architecture, also add/update an ADR in `decisi
   - flow is not fully atomic; if strict atomicity is needed later, move to a transaction-capable DB driver/session strategy.
 
 ### Related decision
-- `decisions/032-phase4-step4-publish-action-orchestration.md`
+- `decisions/032-publish-action-orchestration.md`
 
 ---
 
@@ -68,7 +68,7 @@ If an incident changes long-term architecture, also add/update an ADR in `decisi
 
 ### Related decisions
 - `decisions/018-auto-save.md`
-- `decisions/035-phase4-step7-publish-ux-orchestration.md`
+- `decisions/035-publish-ux-orchestration.md`
 
 ---
 
@@ -93,5 +93,6 @@ If an incident changes long-term architecture, also add/update an ADR in `decisi
   - if production requires exact icon visuals in published output, add a server-safe SVG mapping layer (not client component imports).
 
 ### Related decisions
-- `decisions/030-phase4-step2-renderer-boundary.md`
-- `decisions/035-phase4-step7-publish-ux-orchestration.md`
+- `decisions/030-publish-renderer-boundary.md`
+- `decisions/035-publish-ux-orchestration.md`
+

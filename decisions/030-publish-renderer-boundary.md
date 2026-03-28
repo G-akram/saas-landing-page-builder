@@ -1,8 +1,8 @@
-# ADR-030: Phase 4 Step 2 - Pure HTML Renderer Boundary and Fidelity
+# ADR-030: Pure HTML Renderer Boundary and Fidelity
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 2 requires a deterministic renderer that converts `page + active variant` into a full publishable HTML document. This renderer is the core dependency for Step 3 (storage adapter), Step 4 (publish action), and Step 5 (public serving route). Builds on ADR-008 (publish pipeline), ADR-028 (Phase 4 order), and ADR-029 (contracts/schema).
+**Context:** This decision requires a deterministic renderer that converts `page + active variant` into a full publishable HTML document. This renderer is the core dependency for storage, publish orchestration, and public serving. Builds on ADR-008, ADR-028, and ADR-029.
 
 ## The Problem
 
@@ -102,3 +102,4 @@ Reject unsupported/unsafe link targets rather than emitting ambiguous hrefs.
 - Step 3/4 can consume renderer output as a stable primitive.
 - Public serving route can remain thin (`slug -> artifact -> response`).
 - Future Phase 5 variant-serving changes can extend around this renderer without redesigning Step 2.
+

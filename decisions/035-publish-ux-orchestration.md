@@ -1,8 +1,8 @@
-# ADR-035: Phase 4 Step 7 - Publish UX Orchestration and Autosave Gating
+# ADR-035: Publish UX Orchestration and Autosave Gating
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 7 wires editor publish UX on top of completed contracts/action/serving/routing (ADR-029 through ADR-034).
+**Context:** This decision wires editor publish UX on top of completed contracts/action/serving/routing (ADR-029 through ADR-034).
 
 ## The Problem
 
@@ -97,3 +97,4 @@ UI maps backend error codes to deterministic messages before rendering.
 - Step 7 ships publish UX without changing core publish orchestration contracts.
 - Editor module stays domain-agnostic regarding publishing internals.
 - Step 8 can harden tests/docs around this bridge without reopening core publish flow.
+

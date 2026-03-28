@@ -1,8 +1,8 @@
-# ADR-033: Phase 4 Step 5 - Public Serving Route Boundary
+# ADR-033: Public Serving Route Boundary
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
-**Context:** Phase 4 Step 5 adds public serving at `/p/[slug]` after publish orchestration was completed in ADR-032.
+**Context:** This decision adds public serving at `/p/[slug]` after publish orchestration was completed in ADR-032.
 
 ## The Problem
 
@@ -92,3 +92,4 @@ The route honors `If-None-Match` and returns `304` when tags match.
 - Step 6 middleware can be a pure hostname rewrite to `/p/[slug]`.
 - Step 7 publish UX can trust a stable serving URL behavior.
 - Storage provider internals stay inside publishing module, not app route files.
+

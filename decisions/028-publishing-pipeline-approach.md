@@ -1,4 +1,4 @@
-# ADR-028: Phase 4 Implementation Approach - Publishing Pipeline
+# ADR-028: Publishing Pipeline Implementation Approach
 
 **Status:** Accepted  
 **Date:** 2026-03-28  
@@ -110,3 +110,4 @@ Before coding Step 1, the following are now locked:
 - Dependency order for implementation: contracts-first chain above.
 
 This removes architectural ambiguity and allows Step 1 implementation to begin immediately.
+

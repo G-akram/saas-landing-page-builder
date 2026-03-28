@@ -45,7 +45,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - Dashboard: create page, list pages, delete page
 - Pages save to and load from DB (no editor yet — just raw JSON round-trip)
 
-**Implementation approach:** See `decisions/011-phase1-approach.md` for rationale.
+**Implementation approach:** See `decisions/011-foundation-approach.md` for rationale.
 
 **Steps:**
 - [x] Scaffold: Next.js + TypeScript + Tailwind + shadcn/ui + ESLint strict + Prettier + path aliases
@@ -81,7 +81,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - XState editor mode machine (idle, selected, dragging)
 - Editor chrome: dark theme, top bar, section list panel
 
-**Implementation approach:** See `decisions/014-phase2-approach.md` for rationale.
+**Implementation approach:** See `decisions/014-editor-core-approach.md` for rationale.
 
 **Steps:**
 - [x] Zustand stores (`useDocumentStore` + `useUIStore`) with undo/redo
@@ -145,7 +145,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - Mobile preview toggle
 - Block picker UI (add section → choose block type + variant)
 
-**Implementation approach:** See `decisions/021-phase3-approach.md` for rationale.
+**Implementation approach:** See `decisions/021-block-library-approach.md` for rationale.
 
 **Steps:**
 - [x] Document store element actions (`updateElement`, `addElement`, `deleteElement`, `updateSectionStyles`) + block template definitions (6 types × 2-3 variants)
@@ -179,20 +179,20 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - Subdomain routing: `[slug].app.com` serves the static file
 - CDN headers set (cache-control, immutable assets)
 
-**Implementation approach:** See `decisions/028-phase4-approach.md` for rationale.
+**Implementation approach:** See `decisions/028-publishing-pipeline-approach.md` for rationale.
 
 **Readiness:**
 - [x] Phase 4 architecture decisions locked (artifact storage strategy, variant scope, routing rollout, step order)
 - [x] Step 1 scope locked (contracts + schema changes)
 
 **Steps:**
-- [x] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape) - see `decisions/029-phase4-step1-contracts-schema.md`
-- [x] Build pure HTML renderer (page + active variant -> full HTML document) - see `decisions/030-phase4-step2-renderer-boundary.md`
-- [x] Add publish storage adapter (local FS in dev, object storage boundary for prod) - see `decisions/031-phase4-step3-storage-adapter.md`
-- [x] Implement `publishPage` server action (auth/ownership, render, persist, upsert metadata, status update) - see `decisions/032-phase4-step4-publish-action-orchestration.md`
-- [x] Add public serving route (`/p/[slug]`) with strict content/cache headers - see `decisions/033-phase4-step5-public-serving-route.md`
-- [x] Add subdomain middleware rewrite (`[slug].app.com` → `/p/[slug]`) - see `decisions/034-phase4-step6-subdomain-middleware-rewrite.md`
-- [x] Wire editor publish UX (publish state + live URL feedback) - see `decisions/035-phase4-step7-publish-ux-orchestration.md`
+- [x] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape) - see `decisions/029-publishing-contracts-schema.md`
+- [x] Build pure HTML renderer (page + active variant -> full HTML document) - see `decisions/030-publish-renderer-boundary.md`
+- [x] Add publish storage adapter (local FS in dev, object storage boundary for prod) - see `decisions/031-publish-storage-adapter.md`
+- [x] Implement `publishPage` server action (auth/ownership, render, persist, upsert metadata, status update) - see `decisions/032-publish-action-orchestration.md`
+- [x] Add public serving route (`/p/[slug]`) with strict content/cache headers - see `decisions/033-public-serving-route.md`
+- [x] Add subdomain middleware rewrite (`[slug].app.com` → `/p/[slug]`) - see `decisions/034-subdomain-middleware-rewrite.md`
+- [x] Wire editor publish UX (publish state + live URL feedback) - see `decisions/035-publish-ux-orchestration.md`
 - [x] Hardening: tests + docs updates (`docs/api.md`, `docs/deployment.md`)
 
 **Deliverables:**
@@ -232,6 +232,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 Custom domains, per-breakpoint style overrides, version history, starter templates, Smart Traffic (AI-driven routing), editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
+
 
 
 

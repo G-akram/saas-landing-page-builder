@@ -1,4 +1,4 @@
-# ADR-014: Phase 2 Implementation Approach — Editor Core
+# ADR-014: Editor Core Implementation Approach
 
 **Status:** Accepted
 **Date:** 2026-03-26
@@ -95,3 +95,4 @@ Editor layout: dark background, top bar (page name, save status, back button), l
 - Phase 3 (Block Library) can add block types without touching DnD or store architecture.
 - XState machine starts minimal (3 states) and grows as interactions are added.
 - Auto-save uses TanStack Query mutations, establishing the pattern for all future editor → server communication.
+
