@@ -10,7 +10,7 @@ import {
   TypographyControls,
   AppearanceControls,
   SectionBackgroundControls,
-} from './property-panel-controls'
+} from './controls'
 
 // ── Element type labels ─────────────────────────────────────────────────────
 

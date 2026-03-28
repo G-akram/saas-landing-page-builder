@@ -5,7 +5,11 @@ import { and, eq } from 'drizzle-orm'
 
 import { auth } from '@/shared/lib/auth'
 import { createDefaultDocument } from '@/shared/lib/default-document'
+import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { db, pages } from '@/shared/db'
+
+const createLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
+const deleteLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
 
 const SLUG_MAX_LENGTH = 80
 
@@ -49,6 +53,11 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
     return { error: 'Not authenticated' }
   }
 
+  const { isAllowed } = createLimiter.check(session.user.id)
+  if (!isAllowed) {
+    return { error: 'Too many requests. Please wait a moment.' }
+  }
+
   const name = formData.get('name')
   if (typeof name !== 'string' || name.trim().length === 0) {
     return { error: 'Page name is required' }
@@ -79,15 +88,24 @@ export async function deletePage(formData: FormData): Promise<ActionResult> {
     return { error: 'Not authenticated' }
   }
 
+  const { isAllowed } = deleteLimiter.check(session.user.id)
+  if (!isAllowed) {
+    return { error: 'Too many requests. Please wait a moment.' }
+  }
+
   const pageId = formData.get('pageId')
   if (typeof pageId !== 'string') {
     return { error: 'Page ID is required' }
   }
 
   // Ownership check: only delete if page belongs to the user
-  await db
+  const result = await db
     .delete(pages)
     .where(and(eq(pages.id, pageId), eq(pages.userId, session.user.id)))
+
+  if (result.rowCount === 0) {
+    return { error: 'Page not found or already deleted' }
+  }
 
   revalidatePath('/dashboard')
   return {}

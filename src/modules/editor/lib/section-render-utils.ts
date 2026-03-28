@@ -31,13 +31,25 @@ export function buildBackgroundStyle(bg: Section['background']): React.CSSProper
   }
 }
 
-function isDark(hex: string): boolean {
+function expandHex(hex: string): string | null {
   const clean = hex.replace('#', '')
-  if (clean.length !== 6) return false
+  if (clean.length === 3) {
+    return clean
+      .split('')
+      .map((c) => c + c)
+      .join('')
+  }
+  if (clean.length === 6) return clean
+  return null
+}
 
-  const r = parseInt(clean.slice(0, 2), 16)
-  const g = parseInt(clean.slice(2, 4), 16)
-  const b = parseInt(clean.slice(4, 6), 16)
+function isDark(hex: string): boolean {
+  const expanded = expandHex(hex)
+  if (!expanded) return false
+
+  const r = parseInt(expanded.slice(0, 2), 16)
+  const g = parseInt(expanded.slice(2, 4), 16)
+  const b = parseInt(expanded.slice(4, 6), 16)
 
   // Relative luminance approximation
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255

@@ -2,11 +2,16 @@
 
 import { useRef, useState } from 'react'
 
+import { z } from 'zod'
+
 import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   isAllowedImageType,
 } from '@/shared/lib/upload-validation'
+
+const UploadErrorSchema = z.object({ error: z.string().optional() })
+const UploadSuccessSchema = z.object({ url: z.string() })
 
 const ACCEPT = ALLOWED_IMAGE_TYPES.join(',')
 const MAX_MB = MAX_IMAGE_SIZE_BYTES / (1024 * 1024)
@@ -46,11 +51,16 @@ export function ImageUploadButton({
       body.append('file', file)
       const res = await fetch('/api/uploads', { method: 'POST', body })
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string }
-        setError(data.error ?? 'Upload failed')
+        const parsed = UploadErrorSchema.safeParse(await res.json())
+        setError(parsed.success ? (parsed.data.error ?? 'Upload failed') : 'Upload failed')
         return
       }
-      const { url } = (await res.json()) as { url: string }
+      const parsed = UploadSuccessSchema.safeParse(await res.json())
+      if (!parsed.success) {
+        setError('Unexpected response from server')
+        return
+      }
+      const { url } = parsed.data
       onUpload(url)
     } catch {
       setError('Upload failed — check your connection')

@@ -4,7 +4,10 @@ import { and, eq } from 'drizzle-orm'
 
 import { auth } from '@/shared/lib/auth'
 import { db, pages } from '@/shared/db'
+import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { PageDocumentSchema, type PageDocument } from '@/shared/types'
+
+const saveLimiter = createRateLimiter({ maxRequests: 20, windowMs: 60_000 })
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +25,11 @@ export async function savePage(
   const session = await auth()
   if (!session?.user?.id) {
     return { success: false, error: 'Not authenticated' }
+  }
+
+  const { isAllowed } = saveLimiter.check(session.user.id)
+  if (!isAllowed) {
+    return { success: false, error: 'Too many save requests. Please wait a moment.' }
   }
 
   // Validate at the server boundary — client types are not a trust boundary
