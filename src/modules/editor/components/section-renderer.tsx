@@ -200,6 +200,7 @@ function GridLayout({
                 isEditing={editingElementId === element.id}
                 onSelect={onSelectElement}
                 onEditStart={onEditStart}
+                className={element.type === 'image' ? 'w-full' : ''}
               >
                 <ElementRenderer
                   element={element}

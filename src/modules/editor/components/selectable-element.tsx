@@ -9,6 +9,7 @@ interface SelectableElementProps {
   onSelect: ((elementId: string) => void) | undefined
   onEditStart: ((elementId: string) => void) | undefined
   children: React.ReactNode
+  className?: string
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -25,12 +26,13 @@ export function SelectableElement({
   onSelect,
   onEditStart,
   children,
+  className = '',
 }: SelectableElementProps): React.JSX.Element {
   // While editing, render a plain div — no role/tabIndex/onClick so the
   // contentEditable child owns all pointer and keyboard events.
   if (isEditing) {
     return (
-      <div className="relative rounded ring-2 ring-blue-400 ring-offset-1 ring-offset-transparent">
+      <div className={`relative rounded ring-2 ring-blue-400 ring-offset-1 ring-offset-transparent ${className}`}>
         {children}
       </div>
     )
@@ -40,7 +42,7 @@ export function SelectableElement({
     <div
       role="button"
       tabIndex={0}
-      className={`relative cursor-pointer rounded transition-shadow ${
+      className={`relative cursor-pointer rounded transition-shadow ${className} ${
         isSelected
           ? 'ring-2 ring-blue-400 ring-offset-1 ring-offset-transparent'
           : 'hover:ring-1 hover:ring-blue-400/40'

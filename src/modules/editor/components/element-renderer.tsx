@@ -289,7 +289,7 @@ function ImageElement({
       style={{
         maxWidth: styles.maxWidth ?? '100%',
         width: styles.width ?? '100%',
-        height: '160px',
+        aspectRatio: '16/9',
         borderRadius: pxOrUndefined(styles.borderRadius),
         marginTop: pxOrUndefined(styles.marginTop),
         marginBottom: pxOrUndefined(styles.marginBottom),

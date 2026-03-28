@@ -24,6 +24,10 @@ build/
 # Personal notes — not for contributors
 notes/
 
+# Uploaded images — local dev only, not committed
+public/uploads/*
+!public/uploads/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db
