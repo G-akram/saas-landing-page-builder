@@ -5,7 +5,7 @@ const mocked = vi.hoisted(() => ({
   loggerError: vi.fn(),
 }))
 
-vi.mock('@/modules/publishing', () => ({
+vi.mock('@/modules/publishing/queries', () => ({
   readPublishedPageBySlug: mocked.readPublishedPageBySlug,
 }))
 
