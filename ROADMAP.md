@@ -168,7 +168,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 4 — Publishing Pipeline
 
-**Status: in progress (Steps 1-2 complete)**
+**Status: in progress (Steps 1-3 complete)**
 
 **Why fifth:** You need real content to publish. Publishing before Phase 3 means publishing placeholder blocks — useless as an integration test and as a demo.
 
@@ -188,7 +188,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Steps:**
 - [x] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape) - see `decisions/029-phase4-step1-contracts-schema.md`
 - [x] Build pure HTML renderer (page + active variant -> full HTML document) - see `decisions/030-phase4-step2-renderer-boundary.md`
-- [ ] Add publish storage adapter (local FS in dev, object storage boundary for prod)
+- [x] Add publish storage adapter (local FS in dev, object storage boundary for prod) - see `decisions/031-phase4-step3-storage-adapter.md`
 - [ ] Implement `publishPage` server action (auth/ownership, render, persist, upsert metadata, status update)
 - [ ] Add public serving route (`/p/[slug]`) with strict content/cache headers
 - [ ] Add subdomain middleware rewrite (`[slug].app.com` → `/p/[slug]`)
@@ -232,5 +232,6 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 Custom domains, per-breakpoint style overrides, version history, starter templates, Smart Traffic (AI-driven routing), editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
+
 
 
