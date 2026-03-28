@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { publishPage } from '@/modules/publishing/actions'
+import { logger } from '@/shared/lib/logger'
 
 const PublishRequestSchema = z.object({
   pageId: z.string().min(1),
@@ -20,7 +21,21 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid publish payload' }, { status: 400 })
   }
 
-  const result = await publishPage({ pageId: parsed.data.pageId })
+  let result: Awaited<ReturnType<typeof publishPage>>
+  try {
+    result = await publishPage({ pageId: parsed.data.pageId })
+  } catch (error) {
+    logger.error('Publish API route failed', { error: getReadableErrorMessage(error) })
+    return NextResponse.json(
+      {
+        success: false,
+        errorCode: 'UNKNOWN_ERROR',
+        message: 'Publish failed. Try again.',
+      },
+      { status: 500 },
+    )
+  }
+
   if (result.success) {
     return NextResponse.json(result)
   }
@@ -36,4 +51,12 @@ function mapPublishErrorToStatus(errorCode: string): number {
   if (errorCode === 'PUBLISH_CONFLICT') return 409
   if (errorCode === 'INVALID_DOCUMENT') return 422
   return 500
+}
+
+function getReadableErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return 'unknown error'
 }
