@@ -12,7 +12,7 @@ This is a Next.js monolith for a SaaS landing-page builder. It currently support
 - Local image upload for editor usage
 - Publish pipeline (server render + storage + public route + subdomain rewrite + editor publish UX)
 
-Phase 4 is in progress (core Steps 1-7 complete). Phase 5 (A/B testing UX + analytics) is not started yet.
+Phase 4 is complete. Phase 5 (A/B testing UX + analytics) is not started yet.
 
 ## Module structure
 
@@ -23,7 +23,7 @@ src/
     auth/               # Auth-domain exports (minimal at current phase)
     dashboard/          # Dashboard queries/actions/components
     editor/             # Editor runtime (XState, Zustand, dnd-kit, UI)
-    publishing/         # Reserved for publishing pipeline
+    publishing/         # Publish domain (render, storage, routes, actions)
   shared/
     db/                 # Drizzle schema + DB client
     lib/                # cross-module services/utilities

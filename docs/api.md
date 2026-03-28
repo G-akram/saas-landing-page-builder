@@ -33,6 +33,7 @@ Error shape:
 ### `POST /api/publish`
 
 - Auth required (handled inside publishing action).
+- Returns `400` when request JSON is invalid or `pageId` is missing/invalid.
 - Request body:
 
 ```json
@@ -70,6 +71,7 @@ Error shape:
 ```
 
 - Status mapping:
+  - `400` -> invalid JSON or invalid publish payload
   - `401` -> `NOT_AUTHENTICATED`
   - `403` -> `PAGE_ACCESS_DENIED`
   - `404` -> `PAGE_NOT_FOUND`
@@ -77,6 +79,16 @@ Error shape:
   - `422` -> `INVALID_DOCUMENT`
   - `429` -> `RATE_LIMITED`
   - `500` -> unknown/internal publish failures
+
+- `500` fallback payload (for unexpected thrown errors in route handler):
+
+```json
+{
+  "success": false,
+  "errorCode": "UNKNOWN_ERROR",
+  "message": "Publish failed. Try again."
+}
+```
 
 ## Server actions (internal mutation API)
 
