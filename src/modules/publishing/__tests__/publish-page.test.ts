@@ -163,26 +163,29 @@ describe('publishPage', () => {
     mocked.auth.mockResolvedValue({ user: { id: 'user-1' } })
     mockSelectRows([createPageRow()])
 
-    mocked.renderPublishedPage.mockResolvedValue({
-      success: true,
-      html: '<!DOCTYPE html><html><body>Hello</body></html>',
-      contentHash: 'a'.repeat(64),
-      variantId: 'variant-a',
-      metadata: {
-        title: 'Acme Page',
-        description: 'Acme description',
-        canonicalUrl: 'https://builder.example.com/p/acme-page',
-        ogImage: null,
-      },
-    })
+    mocked.renderPublishedPage.mockImplementation(({ variantId }: { variantId: string }) =>
+      Promise.resolve({
+        success: true,
+        html: `<!DOCTYPE html><html><body>${variantId}</body></html>`,
+        contentHash: variantId === 'variant-a' ? 'a'.repeat(64) : 'b'.repeat(64),
+        variantId,
+        metadata: {
+          title: 'Acme Page',
+          description: 'Acme description',
+          canonicalUrl: 'https://builder.example.com/p/acme-page',
+          ogImage: null,
+        },
+      }),
+    )
 
-    mocked.writeArtifact.mockResolvedValue({
-      success: true,
-      storageProvider: 'local',
-      storageKey:
-        'pages/page-1/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html',
-      bytes: 44,
-    })
+    mocked.writeArtifact.mockImplementation(({ contentHash }: { contentHash: string }) =>
+      Promise.resolve({
+        success: true,
+        storageProvider: 'local',
+        storageKey: `pages/page-1/${contentHash}.html`,
+        bytes: 44,
+      }),
+    )
 
     mockPersistenceSuccess()
   })
@@ -214,8 +217,8 @@ describe('publishPage', () => {
   it('maps renderer failures to INVALID_DOCUMENT', async () => {
     mocked.renderPublishedPage.mockResolvedValue({
       success: false,
-      errorCode: 'ACTIVE_VARIANT_NOT_FOUND',
-      message: 'Active variant not found',
+      errorCode: 'VARIANT_NOT_FOUND',
+      message: 'Variant not found',
     })
 
     const result = await publishPage({ pageId: 'page-1' })
@@ -223,21 +226,34 @@ describe('publishPage', () => {
     expect(result).toEqual({
       success: false,
       errorCode: 'INVALID_DOCUMENT',
-      message: 'Active variant not found',
+      message: 'Variant not found',
     })
   })
 
-  it('blocks publish for multi-variant drafts until fan-out shipping lands', async () => {
+  it('publishes every variant for multi-variant drafts', async () => {
     mockSelectRows([createPageRow({ document: createDocument(true) })])
 
     const result = await publishPage({ pageId: 'page-1' })
 
-    expect(result).toEqual({
-      success: false,
-      errorCode: 'INVALID_DOCUMENT',
-      message: 'Multi-variant publish is not available yet',
-    })
-    expect(mocked.renderPublishedPage).not.toHaveBeenCalled()
+    expect(result.success).toBe(true)
+    if (!result.success) {
+      return
+    }
+
+    expect(result.artifacts.map((artifact) => artifact.variantId)).toEqual([
+      'variant-b',
+      'variant-a',
+    ])
+    expect(mocked.renderPublishedPage).toHaveBeenCalledTimes(2)
+    expect(mocked.renderPublishedPage).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ variantId: 'variant-b' }),
+    )
+    expect(mocked.renderPublishedPage).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ variantId: 'variant-a' }),
+    )
+    expect(mocked.writeArtifact).toHaveBeenCalledTimes(2)
   })
 
   it('maps storage write failures to STORAGE_WRITE_FAILED', async () => {
@@ -265,12 +281,13 @@ describe('publishPage', () => {
     }
 
     expect(result.liveUrl).toBe('https://builder.example.com/p/acme-page')
-    expect(result.artifact.pageId).toBe('page-1')
-    expect(result.artifact.slug).toBe('acme-page')
-    expect(result.artifact.variantId).toBe('variant-a')
-    expect(result.artifact.storageProvider).toBe('local')
-    expect(result.artifact.storageKey).toContain('pages/page-1/')
-    expect(result.artifact.contentHash).toBe('a'.repeat(64))
+    expect(result.artifacts).toHaveLength(1)
+    expect(result.artifacts[0]?.pageId).toBe('page-1')
+    expect(result.artifacts[0]?.slug).toBe('acme-page')
+    expect(result.artifacts[0]?.variantId).toBe('variant-a')
+    expect(result.artifacts[0]?.storageProvider).toBe('local')
+    expect(result.artifacts[0]?.storageKey).toContain('pages/page-1/')
+    expect(result.artifacts[0]?.contentHash).toBe('a'.repeat(64))
 
     expect(mocked.delete).toHaveBeenCalled()
     expect(mocked.revalidatePath).toHaveBeenCalledWith('/dashboard')

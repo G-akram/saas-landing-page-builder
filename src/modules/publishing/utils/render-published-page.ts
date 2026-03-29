@@ -41,22 +41,20 @@ export function renderPublishedPage(
     })
   }
 
-  const activeVariant = parsed.data.variants.find(
-    (variant) => variant.id === parsed.data.activeVariantId,
-  )
+  const variant = parsed.data.variants.find((candidate) => candidate.id === input.variantId)
 
-  if (!activeVariant) {
+  if (!variant) {
     return Promise.resolve({
       success: false,
-      errorCode: 'ACTIVE_VARIANT_NOT_FOUND',
-      message: `Active variant ${parsed.data.activeVariantId} was not found for page ${input.pageId}`,
+      errorCode: 'VARIANT_NOT_FOUND',
+      message: `Variant ${input.variantId} was not found for page ${input.pageId}`,
     })
   }
 
   const seoInput: BuildSeoMetadataInput = {
     pageName: input.pageName,
     slug: input.slug,
-    sections: activeVariant.sections,
+    sections: variant.sections,
   }
 
   if (input.liveUrl) {
@@ -71,9 +69,9 @@ export function renderPublishedPage(
 
   return Promise.resolve(
     renderStaticDocument({
-      sections: activeVariant.sections,
+      sections: variant.sections,
       metadata,
-      variantId: activeVariant.id,
+      variantId: variant.id,
     }),
   )
 }

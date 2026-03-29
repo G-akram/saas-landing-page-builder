@@ -61,15 +61,17 @@ describe('POST /api/publish', () => {
     mocked.publishPage.mockResolvedValue({
       success: true,
       liveUrl: 'https://builder.example.com/p/acme',
-      artifact: {
-        pageId: 'page-1',
-        slug: 'acme',
-        variantId: 'variant-1',
-        storageProvider: 'local',
-        storageKey: 'pages/page-1/hash.html',
-        contentHash: 'a'.repeat(64),
-        publishedAt: new Date('2026-03-28T23:00:00.000Z'),
-      },
+      artifacts: [
+        {
+          pageId: 'page-1',
+          slug: 'acme',
+          variantId: 'variant-1',
+          storageProvider: 'local',
+          storageKey: 'pages/page-1/hash.html',
+          contentHash: 'a'.repeat(64),
+          publishedAt: new Date('2026-03-28T23:00:00.000Z'),
+        },
+      ],
     })
 
     const response = await POST(

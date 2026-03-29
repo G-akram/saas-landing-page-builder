@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 
 import { db, publishedPages } from '@/shared/db'
 import { logger } from '@/shared/lib/logger'
@@ -51,6 +51,7 @@ export async function getPublishedPageMetadataBySlug(
     })
     .from(publishedPages)
     .where(eq(publishedPages.slug, slug))
+    .orderBy(desc(publishedPages.publishedAt))
     .limit(1)
 
   return rows[0] ?? null

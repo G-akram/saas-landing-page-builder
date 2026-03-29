@@ -124,6 +124,7 @@ describe('renderPublishedPage', () => {
       pageId: 'page-1',
       pageName: 'Acme Landing',
       slug: 'acme',
+      variantId: 'variant-a',
       document: createDocument(),
       liveUrl: 'https://acme.example.com',
       seo: {
@@ -157,6 +158,7 @@ describe('renderPublishedPage', () => {
       pageId: 'page-2',
       pageName: 'Fallback Page',
       slug: 'fallback-page',
+      variantId: 'variant-a',
       document: createDocument(),
     })
 
@@ -177,6 +179,7 @@ describe('renderPublishedPage', () => {
       pageId: 'page-3',
       pageName: 'Broken Page',
       slug: 'broken-page',
+      variantId: 'variant-a',
       document,
     })
 
@@ -185,6 +188,22 @@ describe('renderPublishedPage', () => {
 
     expect(result.errorCode).toBe('INVALID_DOCUMENT')
     expect(result.message).toContain('invalid')
+  })
+
+  it('returns VARIANT_NOT_FOUND when the requested variant does not exist', async () => {
+    const result = await renderPublishedPage({
+      pageId: 'page-4',
+      pageName: 'Missing Variant',
+      slug: 'missing-variant',
+      variantId: 'variant-missing',
+      document: createDocument(),
+    })
+
+    expect(result.success).toBe(false)
+    if (result.success) return
+
+    expect(result.errorCode).toBe('VARIANT_NOT_FOUND')
+    expect(result.message).toContain('variant-missing')
   })
 })
 

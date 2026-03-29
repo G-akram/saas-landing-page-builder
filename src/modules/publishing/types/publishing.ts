@@ -21,7 +21,7 @@ export interface PublishInput {
 export interface PublishedArtifact {
   pageId: string
   slug: string
-  variantId: string | null
+  variantId: string
   storageProvider: PublishStorageProvider
   storageKey: string
   contentHash: string
@@ -31,7 +31,7 @@ export interface PublishedArtifact {
 export interface PublishSuccessResult {
   success: true
   liveUrl: string
-  artifact: PublishedArtifact
+  artifacts: PublishedArtifact[]
 }
 
 export interface PublishErrorResult {

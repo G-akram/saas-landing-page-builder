@@ -44,6 +44,7 @@ describe('GET /p/[slug]', () => {
       page: {
         pageId: 'page-1',
         slug: 'acme',
+        variantId: 'variant-a',
         storageProvider: 'local',
         storageKey: `pages/page-1/${contentHash}.html`,
         contentHash,
@@ -74,6 +75,7 @@ describe('GET /p/[slug]', () => {
       page: {
         pageId: 'page-2',
         slug: 'beta',
+        variantId: 'variant-b',
         storageProvider: 'local',
         storageKey: `pages/page-2/${contentHash}.html`,
         contentHash,

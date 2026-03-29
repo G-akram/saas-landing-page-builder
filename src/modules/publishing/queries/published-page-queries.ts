@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 
 import { db, publishedPages } from '@/shared/db'
 import { logger } from '@/shared/lib/logger'
@@ -9,6 +9,7 @@ import { type PublishStorageProvider } from '../types'
 export interface PublishedPageMetadata {
   pageId: string
   slug: string
+  variantId: string
   storageProvider: PublishStorageProvider
   storageKey: string
   contentHash: string
@@ -42,6 +43,7 @@ export async function getPublishedPageMetadataBySlug(
     .select({
       pageId: publishedPages.pageId,
       slug: publishedPages.slug,
+      variantId: publishedPages.variantId,
       storageProvider: publishedPages.storageProvider,
       storageKey: publishedPages.storageKey,
       contentHash: publishedPages.contentHash,
@@ -49,6 +51,7 @@ export async function getPublishedPageMetadataBySlug(
     })
     .from(publishedPages)
     .where(eq(publishedPages.slug, slug))
+    .orderBy(desc(publishedPages.publishedAt))
     .limit(1)
 
   return rows[0] ?? null
@@ -75,6 +78,7 @@ export async function readPublishedPageBySlug(
       logger.error('Published artifact read failed for slug', {
         slug,
         pageId: metadata.pageId,
+        variantId: metadata.variantId,
         storageProvider: metadata.storageProvider,
         storageKey: metadata.storageKey,
         errorCode: artifactResult.errorCode,
@@ -94,6 +98,7 @@ export async function readPublishedPageBySlug(
     logger.error('Published artifact adapter failed for slug', {
       slug,
       pageId: metadata.pageId,
+      variantId: metadata.variantId,
       storageProvider: metadata.storageProvider,
       storageKey: metadata.storageKey,
       error: getReadableErrorMessage(error),

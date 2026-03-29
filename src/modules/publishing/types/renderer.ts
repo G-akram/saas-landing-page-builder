@@ -2,7 +2,7 @@ import { type Section, type PageDocument } from '@/shared/types'
 
 export const RENDER_PUBLISH_ERROR_CODES = [
   'INVALID_DOCUMENT',
-  'ACTIVE_VARIANT_NOT_FOUND',
+  'VARIANT_NOT_FOUND',
 ] as const
 
 export type RenderPublishErrorCode = (typeof RENDER_PUBLISH_ERROR_CODES)[number]
@@ -17,6 +17,7 @@ export interface RenderPublishedPageInput {
   pageId: string
   pageName: string
   slug: string
+  variantId: string
   document: PageDocument
   seo?: PageSEOInput
   liveUrl?: string

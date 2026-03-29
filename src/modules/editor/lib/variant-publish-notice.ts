@@ -7,8 +7,8 @@ export function resolveVariantPublishNotice(
   }
 
   if (liveUrl) {
-    return 'Multi-variant drafts are editor-only for now. The live URL still serves the last single-variant publish.'
+    return 'Publishing now updates every variant. The live URL still serves the published fallback variant until sticky serving ships.'
   }
 
-  return 'Multi-variant drafts are editor-only for now. Publishing stays blocked until Step 4 ships.'
+  return 'Publishing now updates every variant. Live traffic will keep using one published fallback variant until sticky serving ships.'
 }

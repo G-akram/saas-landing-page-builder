@@ -1,6 +1,6 @@
 'use server'
 import { revalidatePath } from 'next/cache'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, notInArray } from 'drizzle-orm'
 import { db, pages, publishedPages } from '@/shared/db'
 import { auth } from '@/shared/lib/auth'
 import { logger } from '@/shared/lib/logger'
@@ -10,13 +10,16 @@ import { createPublishStorageAdapter } from '../storage'
 import {
   type PublishErrorCode,
   type PublishErrorResult,
+  type PublishedArtifact,
   type PublishInput,
   type PublishResult,
   type RenderPublishErrorCode,
+  type RenderPublishedPageSuccess,
 } from '../types'
 import { renderPublishedPage } from '../utils/render-published-page'
 const publishLimiter = createRateLimiter({ maxRequests: 6, windowMs: 60_000 })
 const DEFAULT_PUBLISH_BASE_URL = 'http://localhost:3000'
+const PUBLISHED_VARIANT_TIMESTAMP_INCREMENT_MS = 1
 const PUBLISH_BASE_URL_ENV_KEYS = [
   'PUBLISH_BASE_URL',
   'NEXT_PUBLIC_APP_URL',
@@ -47,65 +50,29 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
     return createPublishError('PAGE_NOT_FOUND', 'Page not found')
   }
 
-  if (page.document.variants.length > 1) {
-    return createPublishError('INVALID_DOCUMENT', 'Multi-variant publish is not available yet')
-  }
-
   const liveUrl = buildLiveUrl(page.slug)
-  const renderResult = await renderPublishedPage({
-    pageId: page.id,
-    pageName: page.name,
-    slug: page.slug,
-    document: page.document,
-    liveUrl,
-  })
-
-  if (!renderResult.success) {
-    return mapRenderError(renderResult.errorCode, renderResult.message)
+  const renderResults = await renderPublishedVariants(page, liveUrl)
+  if (!renderResults.success) {
+    return renderResults.result
   }
 
   const storageAdapter = createPublishStorageAdapter()
-  const writeResult = await storageAdapter.writeArtifact({
-    pageId: page.id,
-    contentHash: renderResult.contentHash,
-    html: renderResult.html,
+  const artifacts = await writePublishedArtifacts({
+    page,
+    renderResults: renderResults.result,
+    storageAdapter,
+    userId: session.user.id,
   })
-
-  if (!writeResult.success) {
-    logger.warn('Publish storage write failed', {
-      pageId: page.id,
-      userId: session.user.id,
-      errorCode: writeResult.errorCode,
-    })
-
-    return createPublishError('STORAGE_WRITE_FAILED', 'Failed to persist published artifact')
+  if (!artifacts.success) {
+    return artifacts.result
   }
 
-  const publishedAt = new Date()
-
   try {
-    await db
-      .insert(publishedPages)
-      .values({
-        pageId: page.id,
-        slug: page.slug,
-        variantId: renderResult.variantId,
-        storageProvider: writeResult.storageProvider,
-        storageKey: writeResult.storageKey,
-        contentHash: renderResult.contentHash,
-        publishedAt,
-      })
-      .onConflictDoUpdate({
-        target: publishedPages.pageId,
-        set: {
-          slug: page.slug,
-          variantId: renderResult.variantId,
-          storageProvider: writeResult.storageProvider,
-          storageKey: writeResult.storageKey,
-          contentHash: renderResult.contentHash,
-          publishedAt,
-        },
-      })
+    await upsertPublishedArtifacts(page, artifacts.result)
+    await deleteRemovedPublishedArtifacts(
+      page.id,
+      artifacts.result.map((artifact) => artifact.variantId),
+    )
 
     await db.update(pages).set({ status: 'published' }).where(eq(pages.id, page.id))
   } catch (error) {
@@ -132,15 +99,7 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
   return {
     success: true,
     liveUrl,
-    artifact: {
-      pageId: page.id,
-      slug: page.slug,
-      variantId: renderResult.variantId,
-      storageProvider: writeResult.storageProvider,
-      storageKey: writeResult.storageKey,
-      contentHash: renderResult.contentHash,
-      publishedAt,
-    },
+    artifacts: artifacts.result,
   }
 }
 
@@ -161,6 +120,178 @@ async function getPageForPublish(pageId: string, userId: string): Promise<PageFo
 
 function mapRenderError(_errorCode: RenderPublishErrorCode, message: string): PublishErrorResult {
   return createPublishError('INVALID_DOCUMENT', message)
+}
+
+interface RenderPublishedVariantsSuccess {
+  success: true
+  result: RenderPublishedPageSuccess[]
+}
+
+interface RenderPublishedVariantsError {
+  success: false
+  result: PublishErrorResult
+}
+
+type RenderPublishedVariantsResult =
+  | RenderPublishedVariantsSuccess
+  | RenderPublishedVariantsError
+
+async function renderPublishedVariants(
+  page: PageForPublish,
+  liveUrl: string,
+): Promise<RenderPublishedVariantsResult> {
+  const renderResults: RenderPublishedPageSuccess[] = []
+
+  for (const variant of getPublishVariantOrder(page.document)) {
+    const renderResult = await renderPublishedPage({
+      pageId: page.id,
+      pageName: page.name,
+      slug: page.slug,
+      variantId: variant.id,
+      document: page.document,
+      liveUrl,
+    })
+
+    if (!renderResult.success) {
+      return {
+        success: false,
+        result: mapRenderError(renderResult.errorCode, renderResult.message),
+      }
+    }
+
+    renderResults.push(renderResult)
+  }
+
+  return {
+    success: true,
+    result: renderResults,
+  }
+}
+
+interface WritePublishedArtifactsInput {
+  page: PageForPublish
+  renderResults: RenderPublishedPageSuccess[]
+  storageAdapter: ReturnType<typeof createPublishStorageAdapter>
+  userId: string
+}
+
+interface WritePublishedArtifactsSuccess {
+  success: true
+  result: PublishedArtifact[]
+}
+
+interface WritePublishedArtifactsError {
+  success: false
+  result: PublishErrorResult
+}
+
+type WritePublishedArtifactsResult =
+  | WritePublishedArtifactsSuccess
+  | WritePublishedArtifactsError
+
+async function writePublishedArtifacts({
+  page,
+  renderResults,
+  storageAdapter,
+  userId,
+}: WritePublishedArtifactsInput): Promise<WritePublishedArtifactsResult> {
+  const publishedAtBase = Date.now()
+  const artifacts: PublishedArtifact[] = []
+
+  for (const [index, renderResult] of renderResults.entries()) {
+    const writeResult = await storageAdapter.writeArtifact({
+      pageId: page.id,
+      contentHash: renderResult.contentHash,
+      html: renderResult.html,
+    })
+
+    if (!writeResult.success) {
+      logger.warn('Publish storage write failed', {
+        pageId: page.id,
+        userId,
+        variantId: renderResult.variantId,
+        errorCode: writeResult.errorCode,
+      })
+
+      return {
+        success: false,
+        result: createPublishError('STORAGE_WRITE_FAILED', 'Failed to persist published artifact'),
+      }
+    }
+
+    artifacts.push({
+      pageId: page.id,
+      slug: page.slug,
+      variantId: renderResult.variantId,
+      storageProvider: writeResult.storageProvider,
+      storageKey: writeResult.storageKey,
+      contentHash: renderResult.contentHash,
+      publishedAt: new Date(
+        publishedAtBase + index * PUBLISHED_VARIANT_TIMESTAMP_INCREMENT_MS,
+      ),
+    })
+  }
+
+  return {
+    success: true,
+    result: artifacts,
+  }
+}
+
+async function upsertPublishedArtifacts(
+  page: PageForPublish,
+  artifacts: PublishedArtifact[],
+): Promise<void> {
+  for (const artifact of artifacts) {
+    await db
+      .insert(publishedPages)
+      .values({
+        pageId: page.id,
+        slug: page.slug,
+        variantId: artifact.variantId,
+        storageProvider: artifact.storageProvider,
+        storageKey: artifact.storageKey,
+        contentHash: artifact.contentHash,
+        publishedAt: artifact.publishedAt,
+      })
+      .onConflictDoUpdate({
+        target: [publishedPages.pageId, publishedPages.variantId],
+        set: {
+          slug: page.slug,
+          storageProvider: artifact.storageProvider,
+          storageKey: artifact.storageKey,
+          contentHash: artifact.contentHash,
+          publishedAt: artifact.publishedAt,
+        },
+      })
+  }
+}
+
+async function deleteRemovedPublishedArtifacts(
+  pageId: string,
+  variantIds: string[],
+): Promise<void> {
+  await db
+    .delete(publishedPages)
+    .where(
+      and(
+        eq(publishedPages.pageId, pageId),
+        notInArray(publishedPages.variantId, variantIds),
+      ),
+    )
+}
+
+function getPublishVariantOrder(document: PageDocument): PageDocument['variants'] {
+  const activeVariant = document.variants.find((variant) => variant.id === document.activeVariantId)
+
+  if (!activeVariant) {
+    return document.variants
+  }
+
+  return [
+    ...document.variants.filter((variant) => variant.id !== document.activeVariantId),
+    activeVariant,
+  ]
 }
 
 function createPublishError(errorCode: PublishErrorCode, message: string): PublishErrorResult {

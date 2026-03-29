@@ -8,6 +8,7 @@ const mocked = vi.hoisted(() => ({
   publishedPagesTable: {
     pageId: Symbol('publishedPages.pageId'),
     slug: Symbol('publishedPages.slug'),
+    variantId: Symbol('publishedPages.variantId'),
     storageProvider: Symbol('publishedPages.storageProvider'),
     storageKey: Symbol('publishedPages.storageKey'),
     contentHash: Symbol('publishedPages.contentHash'),
@@ -43,6 +44,7 @@ import {
 interface MockPublishedPageRow {
   pageId: string
   slug: string
+  variantId: string
   storageProvider: 'local'
   storageKey: string
   contentHash: string
@@ -53,6 +55,7 @@ function createPublishedRow(overrides: Partial<MockPublishedPageRow> = {}): Mock
   return {
     pageId: 'page-1',
     slug: 'acme',
+    variantId: 'variant-a',
     storageProvider: 'local',
     storageKey: `pages/page-1/${'a'.repeat(64)}.html`,
     contentHash: 'a'.repeat(64),
@@ -63,7 +66,8 @@ function createPublishedRow(overrides: Partial<MockPublishedPageRow> = {}): Mock
 
 function mockSelectRows(rows: MockPublishedPageRow[]): void {
   const limitMock = vi.fn().mockResolvedValue(rows)
-  const whereMock = vi.fn().mockReturnValue({ limit: limitMock })
+  const orderByMock = vi.fn().mockReturnValue({ limit: limitMock })
+  const whereMock = vi.fn().mockReturnValue({ orderBy: orderByMock })
   const fromMock = vi.fn().mockReturnValue({ where: whereMock })
 
   mocked.select.mockReturnValue({ from: fromMock })
@@ -88,6 +92,7 @@ describe('published-page queries', () => {
     expect(result).not.toBeNull()
     expect(result?.pageId).toBe('page-1')
     expect(result?.slug).toBe('acme')
+    expect(result?.variantId).toBe('variant-a')
   })
 
   it('returns NOT_FOUND when metadata does not exist', async () => {
@@ -134,6 +139,7 @@ describe('published-page queries', () => {
 
     expect(result.page.pageId).toBe(row.pageId)
     expect(result.page.slug).toBe(row.slug)
+    expect(result.page.variantId).toBe(row.variantId)
     expect(result.page.contentHash).toBe(row.contentHash)
     expect(result.page.html).toContain('<h1>Acme</h1>')
   })

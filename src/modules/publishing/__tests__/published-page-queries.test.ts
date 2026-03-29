@@ -66,7 +66,8 @@ function createPublishedRow(overrides: Partial<MockPublishedPageRow> = {}): Mock
 
 function mockSelectRows(rows: MockPublishedPageRow[]): void {
   const limitMock = vi.fn().mockResolvedValue(rows)
-  const whereMock = vi.fn().mockReturnValue({ limit: limitMock })
+  const orderByMock = vi.fn().mockReturnValue({ limit: limitMock })
+  const whereMock = vi.fn().mockReturnValue({ orderBy: orderByMock })
   const fromMock = vi.fn().mockReturnValue({ where: whereMock })
 
   mocked.select.mockReturnValue({ from: fromMock })

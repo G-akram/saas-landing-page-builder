@@ -7,15 +7,15 @@ describe('resolveVariantPublishNotice', () => {
     expect(resolveVariantPublishNotice(1, null)).toBeNull()
   })
 
-  it('explains that an existing live URL still serves the last single-variant publish', () => {
+  it('explains that an existing live URL still serves the published fallback variant', () => {
     expect(resolveVariantPublishNotice(2, '/p/demo-page')).toContain(
-      'still serves the last single-variant publish',
+      'still serves the published fallback variant',
     )
   })
 
-  it('explains that publish stays blocked when no live URL exists yet', () => {
+  it('explains that publish now updates every variant when no live URL exists yet', () => {
     expect(resolveVariantPublishNotice(2, null)).toContain(
-      'Publishing stays blocked until Step 4 ships.',
+      'Publishing now updates every variant.',
     )
   })
 })
