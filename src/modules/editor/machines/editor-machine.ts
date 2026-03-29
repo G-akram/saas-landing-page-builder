@@ -13,6 +13,7 @@ type EditorMachineEvent =
   | { type: 'SELECT_SECTION'; sectionId: string | null }
   | { type: 'SELECT_ELEMENT'; elementId: string | null; sectionId: string }
   | { type: 'DESELECT' }
+  | { type: 'CLEAR_SELECTION' }
   | { type: 'RESET' }
   | { type: 'DRAG_START' }
   | { type: 'DRAG_END' }
@@ -46,6 +47,12 @@ export const editorMachine = createMachine({
   states: {
     idle: {
       on: {
+        CLEAR_SELECTION: {
+          actions: assign({
+            selectedSectionId: null,
+            selectedElementId: null,
+          }),
+        },
         // Guard: sectionId must be non-null to enter 'selected'
         SELECT_SECTION: {
           guard: ({ event }) => event.sectionId !== null,
@@ -70,6 +77,13 @@ export const editorMachine = createMachine({
 
     selected: {
       on: {
+        CLEAR_SELECTION: {
+          target: 'idle',
+          actions: assign({
+            selectedSectionId: null,
+            selectedElementId: null,
+          }),
+        },
         // Two conditional transitions — tried in order, first match wins
         SELECT_SECTION: [
           {
@@ -121,6 +135,13 @@ export const editorMachine = createMachine({
     // intentionally absent — impossible while typing (see ADR-024).
     editing: {
       on: {
+        CLEAR_SELECTION: {
+          target: 'idle',
+          actions: assign({
+            selectedSectionId: null,
+            selectedElementId: null,
+          }),
+        },
         // Blur fires synchronously before click, so save is committed before
         // any subsequent SELECT_ELEMENT or TOGGLE_PREVIEW events arrive.
         EDIT_END: { target: 'selected' },
@@ -148,6 +169,13 @@ export const editorMachine = createMachine({
 
     dragging: {
       on: {
+        CLEAR_SELECTION: {
+          target: 'idle',
+          actions: assign({
+            selectedSectionId: null,
+            selectedElementId: null,
+          }),
+        },
         SELECT_SECTION: [
           {
             guard: ({ event }) => event.sectionId !== null,
@@ -202,6 +230,12 @@ export const editorMachine = createMachine({
     // No guards or explicit rejections needed.
     previewing: {
       on: {
+        CLEAR_SELECTION: {
+          actions: assign({
+            selectedSectionId: null,
+            selectedElementId: null,
+          }),
+        },
         TOGGLE_PREVIEW: { target: 'idle' },
       },
     },

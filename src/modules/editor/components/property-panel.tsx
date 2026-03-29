@@ -3,6 +3,7 @@
 import { useSelector } from '@xstate/react'
 
 import { type Element as PageElement } from '@/shared/types'
+import { cn } from '@/shared/lib/utils'
 
 import { useEditorActor } from '../context'
 import { useDocumentStore } from '../store'
@@ -11,6 +12,7 @@ import {
   TypographyControls,
   AppearanceControls,
   SectionBackgroundControls,
+  LinkControls,
 } from './controls'
 
 // ── Element type labels ─────────────────────────────────────────────────────
@@ -24,6 +26,10 @@ const ELEMENT_TYPE_LABEL: Record<PageElement['type'], string> = {
 }
 
 interface StyleUpdateOptions {
+  pushHistory?: boolean
+}
+
+interface LinkUpdateOptions {
   pushHistory?: boolean
 }
 
@@ -66,6 +72,7 @@ export function PropertyPanel(): React.JSX.Element {
   const document = useDocumentStore((s) => s.document)
   const updateElement = useDocumentStore((s) => s.updateElement)
   const updateSectionStyles = useDocumentStore((s) => s.updateSectionStyles)
+  const setVariantPrimaryGoal = useDocumentStore((s) => s.setVariantPrimaryGoal)
 
   const activeVariant = document?.variants.find(
     (v) => v.id === document.activeVariantId,
@@ -156,7 +163,16 @@ export function PropertyPanel(): React.JSX.Element {
     updateElement(variantId, sectionId, elementId, { content })
   }
 
+  function handleUpdateLink(
+    link: PageElement['link'],
+    options?: LinkUpdateOptions,
+  ): void {
+    updateElement(variantId, sectionId, elementId, { link }, options)
+  }
+
   const showAppearance = element.type === 'button' || element.type === 'image'
+  const isPrimaryGoal = activeVariant.primaryGoal?.elementId === element.id
+  const hasLinkedElement = element.link !== undefined
 
   return (
     <aside className="flex h-full flex-col border-l border-white/10 bg-gray-900">
@@ -177,6 +193,14 @@ export function PropertyPanel(): React.JSX.Element {
           />
         </PanelSection>
 
+        <PanelSection title="Link">
+          <LinkControls
+            element={element}
+            sections={activeVariant.sections}
+            onUpdateLink={handleUpdateLink}
+          />
+        </PanelSection>
+
         <PanelSection title="Typography">
           <TypographyControls
             element={element}
@@ -192,6 +216,38 @@ export function PropertyPanel(): React.JSX.Element {
             />
           </PanelSection>
         )}
+
+        <PanelSection title="Conversion Goal" defaultOpen={false}>
+          <div className="flex flex-col gap-2">
+            <p className="text-xs leading-relaxed text-gray-400">
+              {hasLinkedElement
+                ? isPrimaryGoal
+                  ? 'This linked element is the primary conversion goal for the active variant.'
+                  : activeVariant.primaryGoal
+                    ? 'Setting this linked element as the goal will replace the current primary goal for this variant.'
+                    : 'Mark one linked element as the primary conversion goal for this variant.'
+                : 'Add a link to this element before using it as a conversion goal.'}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setVariantPrimaryGoal(activeVariant.id, isPrimaryGoal ? null : element.id)
+              }}
+              disabled={!hasLinkedElement}
+              className={cn(
+                'rounded px-3 py-2 text-left text-xs transition-colors',
+                hasLinkedElement
+                  ? isPrimaryGoal
+                    ? 'bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
+                    : 'bg-white/10 text-white hover:bg-white/15'
+                  : 'cursor-not-allowed bg-white/5 text-gray-500',
+              )}
+            >
+              {isPrimaryGoal ? 'Clear Primary Goal' : 'Set As Primary Goal'}
+            </button>
+          </div>
+        </PanelSection>
       </div>
     </aside>
   )

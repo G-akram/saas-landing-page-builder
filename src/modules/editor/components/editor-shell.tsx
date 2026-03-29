@@ -13,6 +13,7 @@ import { EditorCanvas } from './editor-canvas'
 import { EditorTopBar } from './editor-top-bar'
 import { PropertyPanel } from './property-panel'
 import { SectionListPanel } from './section-list-panel'
+import { VariantBar } from './variant-bar'
 
 const SIDEBAR_WIDTH = 240
 const RIGHT_PANEL_WIDTH = 280
@@ -97,23 +98,26 @@ function EditorLayout({
           "header header header"
           "sidebar canvas properties"
         `,
-        gridTemplateRows: showTopBar ? '48px 1fr' : '0px 1fr',
+        gridTemplateRows: showTopBar ? 'auto 1fr' : '0px 1fr',
         gridTemplateColumns: `${showSidebar ? String(SIDEBAR_WIDTH) : '0'}px 1fr ${showRightPanel ? String(RIGHT_PANEL_WIDTH) : '0'}px`,
       }}
     >
       <div className="overflow-hidden" style={{ gridArea: 'header' }}>
         {showTopBar && (
-          <EditorTopBar
-            pageName={pageName}
-            saveStatus={saveStatus}
-            onManualSave={triggerManualSave}
-            canManualSave={canManualSave}
-            isPreviewMode={isPreviewMode}
-            publishState={publishState}
-            onPublish={triggerPublish}
-            isPublishDisabled={!publishGate.canPublish}
-            publishDisabledReason={publishGate.reason}
-          />
+          <div className="flex flex-col">
+            <EditorTopBar
+              pageName={pageName}
+              saveStatus={saveStatus}
+              onManualSave={triggerManualSave}
+              canManualSave={canManualSave}
+              isPreviewMode={isPreviewMode}
+              publishState={publishState}
+              onPublish={triggerPublish}
+              isPublishDisabled={!publishGate.canPublish}
+              publishDisabledReason={publishGate.reason}
+            />
+            <VariantBar liveUrl={publishState.liveUrl} />
+          </div>
         )}
       </div>
 

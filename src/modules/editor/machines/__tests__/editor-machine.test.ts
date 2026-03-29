@@ -101,6 +101,27 @@ describe('editorMachine', () => {
     })
   })
 
+  describe('CLEAR_SELECTION', () => {
+    it('selected -> idle and clears selection', () => {
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
+      actor.send({ type: 'CLEAR_SELECTION' })
+
+      expect(mode(actor)).toBe('idle')
+      expect(ctx(actor).selectedSectionId).toBeNull()
+      expect(ctx(actor).selectedElementId).toBeNull()
+    })
+
+    it('previewing keeps preview mode while clearing stale selection context', () => {
+      actor.send({ type: 'SELECT_ELEMENT', elementId: 'el-1', sectionId: 'sec-1' })
+      actor.send({ type: 'TOGGLE_PREVIEW' })
+      actor.send({ type: 'CLEAR_SELECTION' })
+
+      expect(mode(actor)).toBe('previewing')
+      expect(ctx(actor).selectedSectionId).toBeNull()
+      expect(ctx(actor).selectedElementId).toBeNull()
+    })
+  })
+
   describe('DRAG_START', () => {
     it('idle → dragging', () => {
       actor.send({ type: 'DRAG_START' })
