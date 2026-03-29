@@ -215,8 +215,24 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - Each variant is a full independent section stack
 - Traffic split config: 50/50 default, adjustable per variant
 - Visitor assignment: cookie-based, sticky per session
-- Tracking: view + conversion events per variant
+- Conversion goal: explicit primary goal on a linked element per variant
+- Tracking: raw view + conversion events per variant
 - Analytics panel in dashboard: views, conversions, conversion rate per variant
+
+**Implementation approach:** See `decisions/036-ab-testing-approach.md` for rationale.
+
+**Readiness:**
+- [x] Phase 5 architecture decisions locked (published variant storage, sticky serving, analytics model, conversion model, step order)
+
+**Steps:**
+- [ ] Lock contracts and schema (published variant metadata/index shape, analytics event storage, conversion-goal contracts)
+- [ ] Add variant store actions and invariants (create, duplicate, delete, switch, traffic-weight normalization, goal invariants)
+- [ ] Ship editor variant UX (variant tabs, management flows, traffic split controls, link + primary goal UI)
+- [ ] Extend publishing to publish all variants (render/persist every variant artifact, one `publishedPages` row per variant)
+- [ ] Add weighted serving with sticky assignment (`/p/[slug]` loads all variants, reuses or creates assignment cookie, serves assigned artifact, private/no-store cache policy)
+- [ ] Add analytics capture (`view` on first assignment, `conversion` via small POST beacon on primary goal click)
+- [ ] Add dashboard analytics (server-rendered aggregates by `pageId` + `variantId`)
+- [ ] Hardening: tests + docs updates
 
 **Deliverables:**
 - Create two variants → publish → open in incognito → land on variant A or B per traffic split
