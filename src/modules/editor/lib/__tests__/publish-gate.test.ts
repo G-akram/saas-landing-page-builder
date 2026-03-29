@@ -9,6 +9,7 @@ describe('resolvePublishGate', () => {
       isDirty: false,
       isPublishing: false,
       saveStatus: 'idle',
+      variantCount: 1,
     })
 
     expect(result).toEqual({
@@ -23,6 +24,7 @@ describe('resolvePublishGate', () => {
       isDirty: false,
       isPublishing: false,
       saveStatus: 'saving',
+      variantCount: 1,
     })
 
     expect(result).toEqual({
@@ -37,6 +39,7 @@ describe('resolvePublishGate', () => {
       isDirty: true,
       isPublishing: false,
       saveStatus: 'idle',
+      variantCount: 1,
     })
 
     expect(result).toEqual({
@@ -51,11 +54,27 @@ describe('resolvePublishGate', () => {
       isDirty: false,
       isPublishing: false,
       saveStatus: 'saved',
+      variantCount: 1,
     })
 
     expect(result).toEqual({
       canPublish: true,
       reason: null,
+    })
+  })
+
+  it('blocks publish when the draft has multiple variants', () => {
+    const result = resolvePublishGate({
+      hasPublishAction: true,
+      isDirty: false,
+      isPublishing: false,
+      saveStatus: 'saved',
+      variantCount: 2,
+    })
+
+    expect(result).toEqual({
+      canPublish: false,
+      reason: 'Multi-variant publish is not available yet',
     })
   })
 })

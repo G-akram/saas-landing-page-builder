@@ -5,6 +5,7 @@ interface ResolvePublishGateInput {
   isDirty: boolean
   isPublishing: boolean
   saveStatus: SaveStatus
+  variantCount: number
 }
 
 export interface PublishGate {
@@ -17,6 +18,7 @@ export function resolvePublishGate({
   isDirty,
   isPublishing,
   saveStatus,
+  variantCount,
 }: ResolvePublishGateInput): PublishGate {
   if (!hasPublishAction) {
     return {
@@ -29,6 +31,13 @@ export function resolvePublishGate({
     return {
       canPublish: false,
       reason: 'Publishing in progress',
+    }
+  }
+
+  if (variantCount > 1) {
+    return {
+      canPublish: false,
+      reason: 'Multi-variant publish is not available yet',
     }
   }
 

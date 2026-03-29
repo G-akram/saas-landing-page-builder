@@ -78,7 +78,7 @@ interface MockPageRow {
   document: PageDocument
 }
 
-function createDocument(): PageDocument {
+function createDocument(includeSecondVariant = false): PageDocument {
   return {
     activeVariantId: 'variant-a',
     variants: [
@@ -103,6 +103,16 @@ function createDocument(): PageDocument {
           },
         ],
       },
+      ...(includeSecondVariant
+        ? [
+            {
+              id: 'variant-b',
+              name: 'Secondary',
+              trafficWeight: 0,
+              sections: [],
+            },
+          ]
+        : []),
     ],
   }
 }
@@ -169,7 +179,8 @@ describe('publishPage', () => {
     mocked.writeArtifact.mockResolvedValue({
       success: true,
       storageProvider: 'local',
-      storageKey: 'pages/page-1/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html',
+      storageKey:
+        'pages/page-1/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html',
       bytes: 44,
     })
 
@@ -214,6 +225,19 @@ describe('publishPage', () => {
       errorCode: 'INVALID_DOCUMENT',
       message: 'Active variant not found',
     })
+  })
+
+  it('blocks publish for multi-variant drafts until fan-out shipping lands', async () => {
+    mockSelectRows([createPageRow({ document: createDocument(true) })])
+
+    const result = await publishPage({ pageId: 'page-1' })
+
+    expect(result).toEqual({
+      success: false,
+      errorCode: 'INVALID_DOCUMENT',
+      message: 'Multi-variant publish is not available yet',
+    })
+    expect(mocked.renderPublishedPage).not.toHaveBeenCalled()
   })
 
   it('maps storage write failures to STORAGE_WRITE_FAILED', async () => {

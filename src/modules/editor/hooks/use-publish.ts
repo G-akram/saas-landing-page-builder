@@ -62,6 +62,7 @@ export function usePublish({
   saveStatus,
 }: UsePublishInput): UsePublishResult {
   const isDirty = useDocumentStore((s) => s.isDirty)
+  const variantCount = useDocumentStore((s) => s.document?.variants.length ?? 1)
   const [publishState, setPublishState] = useState<EditorPublishState>(() =>
     createInitialPublishState(initialLiveUrl),
   )
@@ -79,8 +80,9 @@ export function usePublish({
         isDirty,
         isPublishing,
         saveStatus,
+        variantCount,
       }),
-    [isDirty, isPublishing, onPublish, saveStatus],
+    [isDirty, isPublishing, onPublish, saveStatus, variantCount],
   )
 
   const triggerPublish = useCallback(async (): Promise<void> => {

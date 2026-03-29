@@ -51,6 +51,10 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
     return createPublishError('PAGE_NOT_FOUND', 'Page not found')
   }
 
+  if (page.document.variants.length > 1) {
+    return createPublishError('INVALID_DOCUMENT', 'Multi-variant publish is not available yet')
+  }
+
   const liveUrl = buildLiveUrl(page.slug)
   const renderResult = await renderPublishedPage({
     pageId: page.id,
@@ -118,14 +122,14 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
         },
       })
 
-    await db
-      .update(pages)
-      .set({ status: 'published' })
-      .where(eq(pages.id, page.id))
+    await db.update(pages).set({ status: 'published' }).where(eq(pages.id, page.id))
   } catch (error) {
     const databaseCode = getDatabaseErrorCode(error)
     if (databaseCode === '23505') {
-      return createPublishError('PUBLISH_CONFLICT', 'Publish conflict detected. Try publishing again.')
+      return createPublishError(
+        'PUBLISH_CONFLICT',
+        'Publish conflict detected. Try publishing again.',
+      )
     }
 
     logger.error('Publish persistence failed', {
