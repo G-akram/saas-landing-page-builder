@@ -8,6 +8,13 @@
       "when": 1774716509687,
       "tag": "0000_parched_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774821486418,
+      "tag": "0001_odd_firelord",
+      "breakpoints": true
     }
   ]
 }

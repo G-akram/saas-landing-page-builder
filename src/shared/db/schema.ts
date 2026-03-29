@@ -1,4 +1,13 @@
-import { integer, jsonb, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core'
+import {
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core'
 
 import { type PageDocument } from '@/shared/types'
 
@@ -72,18 +81,56 @@ export const pages = pgTable('pages', {
 
 // Published artifact metadata index.
 // HTML/CSS artifacts are stored in external storage; this table keeps lookup and integrity fields.
-export const publishedPages = pgTable('publishedPages', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  pageId: text('pageId')
-    .notNull()
-    .references(() => pages.id, { onDelete: 'cascade' })
-    .unique(),
-  slug: text('slug').notNull().unique(),
-  variantId: text('variantId'),
-  storageProvider: text('storageProvider', { enum: ['local', 'object-storage'] }).notNull(),
-  storageKey: text('storageKey').notNull(),
-  contentHash: text('contentHash').notNull(),
-  publishedAt: timestamp('publishedAt', { mode: 'date' }).notNull().defaultNow(),
-})
+export const publishedPages = pgTable(
+  'publishedPages',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    pageId: text('pageId')
+      .notNull()
+      .references(() => pages.id, { onDelete: 'cascade' }),
+    slug: text('slug').notNull(),
+    variantId: text('variantId').notNull(),
+    storageProvider: text('storageProvider', { enum: ['local', 'object-storage'] }).notNull(),
+    storageKey: text('storageKey').notNull(),
+    contentHash: text('contentHash').notNull(),
+    publishedAt: timestamp('publishedAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (publishedPage) => [
+    uniqueIndex('published_pages_page_variant_unique').on(
+      publishedPage.pageId,
+      publishedPage.variantId,
+    ),
+    index('published_pages_slug_idx').on(publishedPage.slug),
+  ],
+)
+
+export const publishedPageEvents = pgTable(
+  'publishedPageEvents',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    pageId: text('pageId')
+      .notNull()
+      .references(() => pages.id, { onDelete: 'cascade' }),
+    variantId: text('variantId').notNull(),
+    assignmentId: text('assignmentId').notNull(),
+    contentHash: text('contentHash').notNull(),
+    eventType: text('eventType', { enum: ['view', 'conversion'] }).notNull(),
+    goalElementId: text('goalElementId'),
+    occurredAt: timestamp('occurredAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (publishedPageEvent) => [
+    uniqueIndex('published_page_events_assignment_event_unique').on(
+      publishedPageEvent.assignmentId,
+      publishedPageEvent.eventType,
+    ),
+    index('published_page_events_page_variant_idx').on(
+      publishedPageEvent.pageId,
+      publishedPageEvent.variantId,
+    ),
+    index('published_page_events_occurred_at_idx').on(publishedPageEvent.occurredAt),
+  ],
+)

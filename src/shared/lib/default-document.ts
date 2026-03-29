@@ -15,6 +15,7 @@ export function createDefaultDocument(): PageDocument {
         id: variantId,
         name: 'Default',
         trafficWeight: 100,
+        primaryGoal: null,
         sections: [
           {
             id: crypto.randomUUID(),
