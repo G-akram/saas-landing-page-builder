@@ -225,7 +225,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Phase 5 architecture decisions locked (published variant storage, sticky serving, analytics model, conversion model, step order)
 
 **Steps:**
-- [ ] Lock contracts and schema (published variant metadata/index shape, analytics event storage, conversion-goal contracts)
+- [x] Lock contracts and schema (published variant metadata/index shape, analytics event storage, conversion-goal contracts) - see `decisions/037-ab-testing-contracts-schema.md`
 - [ ] Add variant store actions and invariants (create, duplicate, delete, switch, traffic-weight normalization, goal invariants)
 - [ ] Ship editor variant UX (variant tabs, management flows, traffic split controls, link + primary goal UI)
 - [ ] Extend publishing to publish all variants (render/persist every variant artifact, one `publishedPages` row per variant)

@@ -52,6 +52,7 @@ Core tables:
 - `users`, `accounts`, `sessions`, `verificationTokens` (Auth.js adapter)
 - `pages` (draft editor source of truth)
 - `publishedPages` (published artifact metadata index)
+- `publishedPageEvents` (append-only published traffic analytics for Phase 5)
 
 ## Runtime flow
 
