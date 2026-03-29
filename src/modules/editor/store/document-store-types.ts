@@ -1,4 +1,9 @@
-import { type PageDocument, type Section, type SectionType, type Element as PageElement } from '@/shared/types'
+import {
+  type PageDocument,
+  type Section,
+  type SectionType,
+  type Element as PageElement,
+} from '@/shared/types'
 
 export interface DocumentState {
   document: PageDocument | null
@@ -10,8 +15,19 @@ export interface DocumentState {
 
 export interface DocumentActions {
   initializeDocument: (doc: PageDocument) => void
+  createVariant: (options?: { name?: string; sourceVariantId?: string }) => void
+  duplicateVariant: (sourceVariantId: string) => void
+  deleteVariant: (variantId: string) => void
+  switchVariant: (variantId: string) => void
+  setVariantTrafficWeight: (variantId: string, trafficWeight: number) => void
+  setVariantPrimaryGoal: (variantId: string, elementId: string | null) => void
   reorderSections: (variantId: string, fromIndex: number, toIndex: number) => void
-  addSection: (variantId: string, type: SectionType, atIndex?: number, variantStyleId?: string) => void
+  addSection: (
+    variantId: string,
+    type: SectionType,
+    atIndex?: number,
+    variantStyleId?: string,
+  ) => void
   deleteSection: (variantId: string, sectionId: string) => void
   addElement: (variantId: string, sectionId: string, element: PageElement, atIndex?: number) => void
   updateElement: (

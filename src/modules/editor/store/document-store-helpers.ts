@@ -1,4 +1,9 @@
-import { type PageDocument, type Section, type SectionType, type Element as PageElement } from '@/shared/types'
+import {
+  type PageDocument,
+  type Section,
+  type SectionType,
+  type Element as PageElement,
+} from '@/shared/types'
 
 import { BLOCK_TEMPLATE_BY_STYLE_ID, getDefaultTemplate } from '../lib/block-templates'
 
@@ -6,7 +11,7 @@ const HISTORY_LIMIT = 50
 
 export function createSection(type: SectionType, variantStyleId?: string): Section {
   const template = variantStyleId
-    ? BLOCK_TEMPLATE_BY_STYLE_ID[variantStyleId] ?? getDefaultTemplate(type)
+    ? (BLOCK_TEMPLATE_BY_STYLE_ID[variantStyleId] ?? getDefaultTemplate(type))
     : getDefaultTemplate(type)
 
   return {
@@ -20,10 +25,7 @@ export function createSection(type: SectionType, variantStyleId?: string): Secti
   }
 }
 
-export function pushHistory(
-  undoStack: PageDocument[],
-  current: PageDocument,
-): PageDocument[] {
+export function pushHistory(undoStack: PageDocument[], current: PageDocument): PageDocument[] {
   const next = [...undoStack, structuredClone(current)]
   if (next.length > HISTORY_LIMIT) {
     next.shift()
@@ -36,12 +38,25 @@ export function mapVariantSections(
   variantId: string,
   transform: (sections: Section[]) => Section[],
 ): PageDocument {
-  return {
-    ...doc,
-    variants: doc.variants.map((variant) =>
-      variant.id === variantId ? { ...variant, sections: transform(variant.sections) } : variant,
-    ),
+  const variantIndex = doc.variants.findIndex((variant) => variant.id === variantId)
+  if (variantIndex === -1) {
+    return doc
   }
+
+  const variant = doc.variants[variantIndex]
+  if (!variant) {
+    return doc
+  }
+
+  const nextSections = transform(variant.sections)
+  if (nextSections === variant.sections) {
+    return doc
+  }
+
+  const nextVariants = [...doc.variants]
+  nextVariants[variantIndex] = { ...variant, sections: nextSections }
+
+  return { ...doc, variants: nextVariants }
 }
 
 export function mapSectionElements(
@@ -50,14 +65,41 @@ export function mapSectionElements(
   sectionId: string,
   transform: (elements: PageElement[]) => PageElement[],
 ): PageDocument {
-  return mapVariantSections(doc, variantId, (sections) =>
-    sections.map((section) =>
-      section.id === sectionId ? { ...section, elements: transform(section.elements) } : section,
-    ),
-  )
+  const variantIndex = doc.variants.findIndex((variant) => variant.id === variantId)
+  if (variantIndex === -1) {
+    return doc
+  }
+
+  const variant = doc.variants[variantIndex]
+  if (!variant) {
+    return doc
+  }
+
+  const sectionIndex = variant.sections.findIndex((section) => section.id === sectionId)
+  if (sectionIndex === -1) {
+    return doc
+  }
+
+  const section = variant.sections[sectionIndex]
+  if (!section) {
+    return doc
+  }
+
+  const nextElements = transform(section.elements)
+  if (nextElements === section.elements) {
+    return doc
+  }
+
+  const nextSections = [...variant.sections]
+  nextSections[sectionIndex] = { ...section, elements: nextElements }
+
+  const nextVariants = [...doc.variants]
+  nextVariants[variantIndex] = { ...variant, sections: nextSections }
+
+  return { ...doc, variants: nextVariants }
 }
 
-function deepEqual(a: unknown, b: unknown): boolean {
+export function deepEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true
 
   if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {

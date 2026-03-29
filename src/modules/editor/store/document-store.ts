@@ -8,10 +8,16 @@ import {
   mapVariantSections,
   pushHistory,
 } from './document-store-helpers'
+import { cleanupVariantPrimaryGoalInDocument } from './document-store-variant-helpers'
 import {
-  updateElementInDocument,
-  updateSectionStylesInDocument,
-} from './document-store-mutators'
+  createVariantInDocument,
+  deleteVariantInDocument,
+  duplicateVariantInDocument,
+  setVariantPrimaryGoalInDocument,
+  setVariantTrafficWeightInDocument,
+  switchVariantInDocument,
+} from './document-store-variant-mutators'
+import { updateElementInDocument, updateSectionStylesInDocument } from './document-store-mutators'
 import { type DocumentStore } from './document-store-types'
 
 function createDirtyState(
@@ -26,6 +32,23 @@ function createDirtyState(
     undoStack: pushToHistory ? pushHistory(state.undoStack, currentDocument) : state.undoStack,
     redoStack: pushToHistory ? [] : state.redoStack,
   }
+}
+
+function applyDocumentMutation(
+  state: DocumentStore,
+  mutate: (document: PageDocument) => PageDocument | null,
+  options?: { pushHistory?: boolean },
+): DocumentStore | Pick<DocumentStore, 'document' | 'isDirty' | 'undoStack' | 'redoStack'> {
+  if (!state.document) {
+    return state
+  }
+
+  const nextDocument = mutate(state.document)
+  if (!nextDocument || nextDocument === state.document) {
+    return state
+  }
+
+  return createDirtyState(state, state.document, nextDocument, options?.pushHistory ?? true)
 }
 
 export const useDocumentStore = create<DocumentStore>()((set) => ({
@@ -46,108 +69,158 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     })
   },
 
+  createVariant: (options) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) => createVariantInDocument(document, options)),
+    )
+  },
+
+  duplicateVariant: (sourceVariantId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) =>
+        duplicateVariantInDocument(document, sourceVariantId),
+      ),
+    )
+  },
+
+  deleteVariant: (variantId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) => deleteVariantInDocument(document, variantId)),
+    )
+  },
+
+  switchVariant: (variantId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) => switchVariantInDocument(document, variantId)),
+    )
+  },
+
+  setVariantTrafficWeight: (variantId, trafficWeight) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) =>
+        setVariantTrafficWeightInDocument(document, variantId, trafficWeight),
+      ),
+    )
+  },
+
+  setVariantPrimaryGoal: (variantId, elementId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) =>
+        setVariantPrimaryGoalInDocument(document, variantId, elementId),
+      ),
+    )
+  },
+
   reorderSections: (variantId, fromIndex, toIndex) => {
-    set((state) => {
-      if (!state.document) return state
-
-      const newDoc = mapVariantSections(state.document, variantId, (sections) => {
-        const result = [...sections]
-        const moved = result.splice(fromIndex, 1)[0]
-        if (!moved) return sections
-        result.splice(toIndex, 0, moved)
-        return result
-      })
-
-      return createDirtyState(state, state.document, newDoc)
-    })
+    set((state) =>
+      applyDocumentMutation(state, (document) =>
+        mapVariantSections(document, variantId, (sections) => {
+          const result = [...sections]
+          const moved = result.splice(fromIndex, 1)[0]
+          if (!moved) return sections
+          result.splice(toIndex, 0, moved)
+          return result
+        }),
+      ),
+    )
   },
 
   addSection: (variantId, type, atIndex, variantStyleId) => {
-    set((state) => {
-      if (!state.document) return state
-
-      const section = createSection(type, variantStyleId)
-      const newDoc = mapVariantSections(state.document, variantId, (sections) => {
-        const result = [...sections]
-        const insertAt = atIndex ?? result.length
-        result.splice(insertAt, 0, section)
-        return result
-      })
-
-      return createDirtyState(state, state.document, newDoc)
-    })
+    set((state) =>
+      applyDocumentMutation(state, (document) => {
+        const section = createSection(type, variantStyleId)
+        return mapVariantSections(document, variantId, (sections) => {
+          const result = [...sections]
+          const insertAt = atIndex ?? result.length
+          result.splice(insertAt, 0, section)
+          return result
+        })
+      }),
+    )
   },
 
   deleteSection: (variantId, sectionId) => {
-    set((state) => {
-      if (!state.document) return state
+    set((state) =>
+      applyDocumentMutation(state, (document) => {
+        const nextDocument = mapVariantSections(document, variantId, (sections) => {
+          const nextSections = sections.filter((section) => section.id !== sectionId)
+          return nextSections.length === sections.length ? sections : nextSections
+        })
 
-      const newDoc = mapVariantSections(state.document, variantId, (sections) =>
-        sections.filter((section) => section.id !== sectionId),
-      )
+        if (nextDocument === document) {
+          return null
+        }
 
-      return createDirtyState(state, state.document, newDoc)
-    })
+        return cleanupVariantPrimaryGoalInDocument(nextDocument, variantId)
+      }),
+    )
   },
 
   addElement: (variantId, sectionId, element, atIndex) => {
-    set((state) => {
-      if (!state.document) return state
-
-      const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) => {
-        const result = [...elements]
-        const insertAt = atIndex ?? result.length
-        result.splice(insertAt, 0, element)
-        return result
-      })
-
-      return createDirtyState(state, state.document, newDoc)
-    })
+    set((state) =>
+      applyDocumentMutation(state, (document) =>
+        mapSectionElements(document, variantId, sectionId, (elements) => {
+          const result = [...elements]
+          const insertAt = atIndex ?? result.length
+          result.splice(insertAt, 0, element)
+          return result
+        }),
+      ),
+    )
   },
 
   updateElement: (variantId, sectionId, elementId, updates, options) => {
-    set((state) => {
-      if (!state.document) return state
+    set((state) =>
+      applyDocumentMutation(
+        state,
+        (document) => {
+          const nextDocument = updateElementInDocument(document, {
+            variantId,
+            sectionId,
+            elementId,
+            updates,
+          })
+          if (!nextDocument) {
+            return null
+          }
 
-      const newDoc = updateElementInDocument(state.document, {
-        variantId,
-        sectionId,
-        elementId,
-        updates,
-      })
-      if (!newDoc) return state
-
-      const pushHistoryForUpdate = options?.pushHistory ?? true
-      return createDirtyState(state, state.document, newDoc, pushHistoryForUpdate)
-    })
+          return cleanupVariantPrimaryGoalInDocument(nextDocument, variantId)
+        },
+        options,
+      ),
+    )
   },
 
   deleteElement: (variantId, sectionId, elementId) => {
-    set((state) => {
-      if (!state.document) return state
+    set((state) =>
+      applyDocumentMutation(state, (document) => {
+        const nextDocument = mapSectionElements(document, variantId, sectionId, (elements) => {
+          const nextElements = elements.filter((element) => element.id !== elementId)
+          return nextElements.length === elements.length ? elements : nextElements
+        })
 
-      const newDoc = mapSectionElements(state.document, variantId, sectionId, (elements) =>
-        elements.filter((element) => element.id !== elementId),
-      )
+        if (nextDocument === document) {
+          return null
+        }
 
-      return createDirtyState(state, state.document, newDoc)
-    })
+        return cleanupVariantPrimaryGoalInDocument(nextDocument, variantId)
+      }),
+    )
   },
 
   updateSectionStyles: (variantId, sectionId, updates, options) => {
-    set((state) => {
-      if (!state.document) return state
-
-      const newDoc = updateSectionStylesInDocument(state.document, {
-        variantId,
-        sectionId,
-        updates,
-      })
-      if (!newDoc) return state
-
-      const pushHistoryForUpdate = options?.pushHistory ?? true
-      return createDirtyState(state, state.document, newDoc, pushHistoryForUpdate)
-    })
+    set((state) =>
+      applyDocumentMutation(
+        state,
+        (document) =>
+          updateSectionStylesInDocument(document, {
+            variantId,
+            sectionId,
+            updates,
+          }),
+        options,
+      ),
+    )
   },
 
   undo: () => {

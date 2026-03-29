@@ -1,6 +1,6 @@
 import { type PageDocument, type Element as PageElement, type Section } from '@/shared/types'
 
-import { hasPatchChanges } from './document-store-helpers'
+import { deepEqual, hasPatchChanges } from './document-store-helpers'
 
 interface ElementUpdateInput {
   variantId: string
@@ -37,11 +37,8 @@ export function updateElementInDocument(
   const currentElement = section.elements[elementIndex]
   if (!currentElement) return null
 
-  const slotChanged =
-    input.updates.slot !== undefined && input.updates.slot !== currentElement.slot
-  const linkChanged =
-    input.updates.link !== undefined &&
-    hasPatchChanges({ link: currentElement.link }, { link: input.updates.link })
+  const slotChanged = input.updates.slot !== undefined && input.updates.slot !== currentElement.slot
+  const linkChanged = 'link' in input.updates && !deepEqual(currentElement.link, input.updates.link)
   const contentChanged =
     input.updates.content !== undefined &&
     hasPatchChanges(currentElement.content, input.updates.content)
