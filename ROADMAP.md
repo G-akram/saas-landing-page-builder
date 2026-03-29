@@ -206,7 +206,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 5 — A/B Testing
 
-**Status: not started**
+**Status: in progress**
 
 **Why last in MVP:** The schema supports variants from day 1 (Phase 1), but the UI is built last because it requires the editor (to create/edit variants) and the publishing pipeline (to serve split traffic) to already exist.
 
@@ -226,8 +226,8 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 **Steps:**
 - [x] Lock contracts and schema (published variant metadata/index shape, analytics event storage, conversion-goal contracts) - see `decisions/037-ab-testing-contracts-schema.md`
-- [ ] Add variant store actions and invariants (create, duplicate, delete, switch, traffic-weight normalization, goal invariants)
-- [ ] Ship editor variant UX (variant tabs, management flows, traffic split controls, link + primary goal UI)
+- [x] Add variant store actions and invariants (create, duplicate, delete, switch, traffic-weight normalization, goal invariants)
+- [x] Ship editor variant UX (variant tabs, management flows, traffic split controls, link + primary goal UI)
 - [ ] Extend publishing to publish all variants (render/persist every variant artifact, one `publishedPages` row per variant)
 - [ ] Add weighted serving with sticky assignment (`/p/[slug]` loads all variants, reuses or creates assignment cookie, serves assigned artifact, private/no-store cache policy)
 - [ ] Add analytics capture (`view` on first assignment, `conversion` via small POST beacon on primary goal click)
