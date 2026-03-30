@@ -74,7 +74,9 @@ export const pages = pgTable('pages', {
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   document: jsonb('document').$type<PageDocument>().notNull(),
-  status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
+  status: text('status', { enum: ['draft', 'published'] })
+    .notNull()
+    .default('draft'),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
 })
@@ -134,5 +136,25 @@ export const publishedPageEvents = pgTable(
       publishedPageEvent.variantId,
     ),
     index('published_page_events_occurred_at_idx').on(publishedPageEvent.occurredAt),
+  ],
+)
+
+export const rateLimitEvents = pgTable(
+  'rateLimitEvents',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    scope: text('scope').notNull(),
+    key: text('key').notNull(),
+    occurredAt: timestamp('occurredAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (rateLimitEvent) => [
+    index('rate_limit_events_scope_key_occurred_at_idx').on(
+      rateLimitEvent.scope,
+      rateLimitEvent.key,
+      rateLimitEvent.occurredAt,
+    ),
+    index('rate_limit_events_occurred_at_idx').on(rateLimitEvent.occurredAt),
   ],
 )

@@ -8,7 +8,11 @@ import { logger } from '@/shared/lib/logger'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { PageDocumentSchema, type PageDocument } from '@/shared/types'
 
-const saveLimiter = createRateLimiter({ maxRequests: 20, windowMs: 60_000 })
+const saveLimiter = createRateLimiter({
+  name: 'editor-save-page',
+  maxRequests: 20,
+  windowMs: 60_000,
+})
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,7 +34,7 @@ export async function savePage(
     return { success: false, error: 'Not authenticated' }
   }
 
-  const { isAllowed } = saveLimiter.check(session.user.id)
+  const { isAllowed } = await saveLimiter.check(session.user.id)
   if (!isAllowed) {
     return { success: false, error: 'Too many save requests. Please wait a moment.' }
   }
@@ -53,16 +57,17 @@ export async function savePage(
     ? new Date(expectedUpdatedAtDate.getTime() + 1)
     : null
 
-  const whereClause = expectedUpdatedAtDate && optimisticLockUpperBound
-    ? and(
-      eq(pages.id, pageId),
-      eq(pages.userId, session.user.id),
-      // Match the same millisecond window to tolerate DB timestamp precision
-      // differences while preserving optimistic locking behavior.
-      gte(pages.updatedAt, expectedUpdatedAtDate),
-      lt(pages.updatedAt, optimisticLockUpperBound),
-    )
-    : and(eq(pages.id, pageId), eq(pages.userId, session.user.id))
+  const whereClause =
+    expectedUpdatedAtDate && optimisticLockUpperBound
+      ? and(
+          eq(pages.id, pageId),
+          eq(pages.userId, session.user.id),
+          // Match the same millisecond window to tolerate DB timestamp precision
+          // differences while preserving optimistic locking behavior.
+          gte(pages.updatedAt, expectedUpdatedAtDate),
+          lt(pages.updatedAt, optimisticLockUpperBound),
+        )
+      : and(eq(pages.id, pageId), eq(pages.userId, session.user.id))
 
   let updatedRows: { updatedAt: Date }[]
   try {
@@ -83,7 +88,10 @@ export async function savePage(
   const updatedRow = updatedRows[0]
   if (!updatedRow) {
     return expectedUpdatedAtDate
-      ? { success: false, error: 'Save conflict: page changed in another session. Refresh and try again.' }
+      ? {
+          success: false,
+          error: 'Save conflict: page changed in another session. Refresh and try again.',
+        }
       : { success: false, error: 'Page not found or access denied' }
   }
 

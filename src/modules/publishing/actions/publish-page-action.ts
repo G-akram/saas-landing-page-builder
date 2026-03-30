@@ -17,7 +17,11 @@ import {
   type RenderPublishedPageSuccess,
 } from '../types'
 import { renderPublishedPage } from '../utils/render-published-page'
-const publishLimiter = createRateLimiter({ maxRequests: 6, windowMs: 60_000 })
+const publishLimiter = createRateLimiter({
+  name: 'publishing-publish-page',
+  maxRequests: 6,
+  windowMs: 60_000,
+})
 const DEFAULT_PUBLISH_BASE_URL = 'http://localhost:3000'
 const PUBLISHED_VARIANT_TIMESTAMP_INCREMENT_MS = 1
 const PUBLISH_BASE_URL_ENV_KEYS = [
@@ -45,7 +49,7 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
     return createPublishError('NOT_AUTHENTICATED', 'Not authenticated')
   }
 
-  const { isAllowed } = publishLimiter.check(session.user.id)
+  const { isAllowed } = await publishLimiter.check(session.user.id)
   if (!isAllowed) {
     return createPublishError('RATE_LIMITED', 'Too many publish requests. Please wait a moment.')
   }
@@ -137,9 +141,7 @@ interface RenderPublishedVariantsError {
   result: PublishErrorResult
 }
 
-type RenderPublishedVariantsResult =
-  | RenderPublishedVariantsSuccess
-  | RenderPublishedVariantsError
+type RenderPublishedVariantsResult = RenderPublishedVariantsSuccess | RenderPublishedVariantsError
 
 async function renderPublishedVariants(
   page: PageForPublish,
@@ -190,9 +192,7 @@ interface WritePublishedArtifactsError {
   result: PublishErrorResult
 }
 
-type WritePublishedArtifactsResult =
-  | WritePublishedArtifactsSuccess
-  | WritePublishedArtifactsError
+type WritePublishedArtifactsResult = WritePublishedArtifactsSuccess | WritePublishedArtifactsError
 
 async function writePublishedArtifacts({
   page,
@@ -253,9 +253,7 @@ async function writePublishedArtifacts({
       contentHash: renderResult.contentHash,
       trafficWeight: runtimeMetadata.trafficWeight,
       primaryGoalElementId: runtimeMetadata.primaryGoalElementId,
-      publishedAt: new Date(
-        publishedAtBase + index * PUBLISHED_VARIANT_TIMESTAMP_INCREMENT_MS,
-      ),
+      publishedAt: new Date(publishedAtBase + index * PUBLISHED_VARIANT_TIMESTAMP_INCREMENT_MS),
     })
   }
 
@@ -304,12 +302,7 @@ async function deleteRemovedPublishedArtifacts(
 ): Promise<void> {
   await db
     .delete(publishedPages)
-    .where(
-      and(
-        eq(publishedPages.pageId, pageId),
-        notInArray(publishedPages.variantId, variantIds),
-      ),
-    )
+    .where(and(eq(publishedPages.pageId, pageId), notInArray(publishedPages.variantId, variantIds)))
 }
 
 function getPublishVariantOrder(document: PageDocument): PageDocument['variants'] {
