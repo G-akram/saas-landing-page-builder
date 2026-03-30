@@ -15,11 +15,13 @@ import { PublishedPageElement } from './published-page-element'
 
 interface PublishedPageSectionProps {
   section: Section
+  primaryGoalElementId: string | null
 }
 
 function renderGridSection(
   section: Section,
   defaultTextColor: string,
+  primaryGoalElementId: string | null,
 ): React.JSX.Element {
   const columns = section.layout.columns ?? 1
   const slots = groupElementsBySlot(section.elements)
@@ -46,6 +48,7 @@ function renderGridSection(
             key: element.id,
             element,
             defaultTextColor,
+            primaryGoalElementId,
           }),
         ),
       )
@@ -56,6 +59,7 @@ function renderGridSection(
 function renderStackSection(
   section: Section,
   defaultTextColor: string,
+  primaryGoalElementId: string | null,
 ): React.JSX.Element {
   const allElements = [...groupElementsBySlot(section.elements).values()].flat()
 
@@ -70,6 +74,7 @@ function renderStackSection(
         key: element.id,
         element,
         defaultTextColor,
+        primaryGoalElementId,
       }),
     ),
   )
@@ -77,6 +82,7 @@ function renderStackSection(
 
 export function PublishedPageSection({
   section,
+  primaryGoalElementId,
 }: PublishedPageSectionProps): React.JSX.Element {
   const defaultTextColor = resolveDefaultTextColor(section)
 
@@ -100,8 +106,8 @@ export function PublishedPageSection({
       'div',
       { className: 'pb-content' },
       section.layout.type === 'grid' && section.layout.columns
-        ? renderGridSection(section, defaultTextColor)
-        : renderStackSection(section, defaultTextColor),
+        ? renderGridSection(section, defaultTextColor, primaryGoalElementId)
+        : renderStackSection(section, defaultTextColor, primaryGoalElementId),
     ),
   )
 }

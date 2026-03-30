@@ -13,6 +13,8 @@ export interface PublishedPageMetadata {
   storageProvider: PublishStorageProvider
   storageKey: string
   contentHash: string
+  trafficWeight: number
+  primaryGoalElementId: string | null
   publishedAt: Date
 }
 
@@ -36,10 +38,10 @@ export type ReadPublishedPageBySlugResult =
   | ReadPublishedPageBySlugErrorResult
   | ReadPublishedPageBySlugSuccessResult
 
-export async function getPublishedPageMetadataBySlug(
+export async function getPublishedPageMetadataListBySlug(
   slug: string,
-): Promise<PublishedPageMetadata | null> {
-  const rows = await db
+): Promise<PublishedPageMetadata[]> {
+  return db
     .select({
       pageId: publishedPages.pageId,
       slug: publishedPages.slug,
@@ -47,25 +49,25 @@ export async function getPublishedPageMetadataBySlug(
       storageProvider: publishedPages.storageProvider,
       storageKey: publishedPages.storageKey,
       contentHash: publishedPages.contentHash,
+      trafficWeight: publishedPages.trafficWeight,
+      primaryGoalElementId: publishedPages.primaryGoalElementId,
       publishedAt: publishedPages.publishedAt,
     })
     .from(publishedPages)
     .where(eq(publishedPages.slug, slug))
     .orderBy(desc(publishedPages.publishedAt))
-    .limit(1)
+}
 
+export async function getPublishedPageMetadataBySlug(
+  slug: string,
+): Promise<PublishedPageMetadata | null> {
+  const rows = await getPublishedPageMetadataListBySlug(slug)
   return rows[0] ?? null
 }
 
-export async function readPublishedPageBySlug(
-  slug: string,
+export async function readPublishedPageByMetadata(
+  metadata: PublishedPageMetadata,
 ): Promise<ReadPublishedPageBySlugResult> {
-  const metadata = await getPublishedPageMetadataBySlug(slug)
-
-  if (!metadata) {
-    return { success: false, errorCode: 'NOT_FOUND' }
-  }
-
   try {
     const storageAdapter = createPublishStorageAdapter({
       provider: metadata.storageProvider,
@@ -76,7 +78,7 @@ export async function readPublishedPageBySlug(
 
     if (!artifactResult.success) {
       logger.error('Published artifact read failed for slug', {
-        slug,
+        slug: metadata.slug,
         pageId: metadata.pageId,
         variantId: metadata.variantId,
         storageProvider: metadata.storageProvider,
@@ -96,7 +98,7 @@ export async function readPublishedPageBySlug(
     }
   } catch (error) {
     logger.error('Published artifact adapter failed for slug', {
-      slug,
+      slug: metadata.slug,
       pageId: metadata.pageId,
       variantId: metadata.variantId,
       storageProvider: metadata.storageProvider,
@@ -106,6 +108,18 @@ export async function readPublishedPageBySlug(
 
     return { success: false, errorCode: 'ARTIFACT_UNAVAILABLE' }
   }
+}
+
+export async function readPublishedPageBySlug(
+  slug: string,
+): Promise<ReadPublishedPageBySlugResult> {
+  const metadata = await getPublishedPageMetadataBySlug(slug)
+
+  if (!metadata) {
+    return { success: false, errorCode: 'NOT_FOUND' }
+  }
+
+  return readPublishedPageByMetadata(metadata)
 }
 
 function getReadableErrorMessage(error: unknown): string {

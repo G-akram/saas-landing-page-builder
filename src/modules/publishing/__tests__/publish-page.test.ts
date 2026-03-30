@@ -25,6 +25,8 @@ const mocked = vi.hoisted(() => ({
   publishedPagesTable: {
     pageId: Symbol('publishedPages.pageId'),
     variantId: Symbol('publishedPages.variantId'),
+    trafficWeight: Symbol('publishedPages.trafficWeight'),
+    primaryGoalElementId: Symbol('publishedPages.primaryGoalElementId'),
   },
 }))
 
@@ -288,6 +290,8 @@ describe('publishPage', () => {
     expect(result.artifacts[0]?.storageProvider).toBe('local')
     expect(result.artifacts[0]?.storageKey).toContain('pages/page-1/')
     expect(result.artifacts[0]?.contentHash).toBe('a'.repeat(64))
+    expect(result.artifacts[0]?.trafficWeight).toBe(100)
+    expect(result.artifacts[0]?.primaryGoalElementId).toBeNull()
 
     expect(mocked.delete).toHaveBeenCalled()
     expect(mocked.revalidatePath).toHaveBeenCalledWith('/dashboard')

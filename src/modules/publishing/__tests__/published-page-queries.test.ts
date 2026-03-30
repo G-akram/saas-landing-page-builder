@@ -12,6 +12,8 @@ const mocked = vi.hoisted(() => ({
     storageProvider: Symbol('publishedPages.storageProvider'),
     storageKey: Symbol('publishedPages.storageKey'),
     contentHash: Symbol('publishedPages.contentHash'),
+    trafficWeight: Symbol('publishedPages.trafficWeight'),
+    primaryGoalElementId: Symbol('publishedPages.primaryGoalElementId'),
     publishedAt: Symbol('publishedPages.publishedAt'),
   },
 }))
@@ -37,7 +39,9 @@ vi.mock('@/shared/lib/logger', () => ({
 }))
 
 import {
+  getPublishedPageMetadataListBySlug,
   getPublishedPageMetadataBySlug,
+  readPublishedPageByMetadata,
   readPublishedPageBySlug,
 } from '../published-page-queries'
 
@@ -48,6 +52,8 @@ interface MockPublishedPageRow {
   storageProvider: 'local'
   storageKey: string
   contentHash: string
+  trafficWeight: number
+  primaryGoalElementId: string | null
   publishedAt: Date
 }
 
@@ -59,14 +65,15 @@ function createPublishedRow(overrides: Partial<MockPublishedPageRow> = {}): Mock
     storageProvider: 'local',
     storageKey: `pages/page-1/${'a'.repeat(64)}.html`,
     contentHash: 'a'.repeat(64),
+    trafficWeight: 100,
+    primaryGoalElementId: null,
     publishedAt: new Date('2026-03-28T21:20:00.000Z'),
     ...overrides,
   }
 }
 
 function mockSelectRows(rows: MockPublishedPageRow[]): void {
-  const limitMock = vi.fn().mockResolvedValue(rows)
-  const orderByMock = vi.fn().mockReturnValue({ limit: limitMock })
+  const orderByMock = vi.fn().mockResolvedValue(rows)
   const whereMock = vi.fn().mockReturnValue({ orderBy: orderByMock })
   const fromMock = vi.fn().mockReturnValue({ where: whereMock })
 
@@ -93,6 +100,22 @@ describe('published-page queries', () => {
     expect(result?.pageId).toBe('page-1')
     expect(result?.slug).toBe('acme')
     expect(result?.variantId).toBe('variant-a')
+    expect(result?.trafficWeight).toBe(100)
+  })
+
+  it('returns all published metadata rows for a slug', async () => {
+    mockSelectRows([
+      createPublishedRow(),
+      createPublishedRow({
+        variantId: 'variant-b',
+        contentHash: 'b'.repeat(64),
+        storageKey: `pages/page-1/${'b'.repeat(64)}.html`,
+      }),
+    ])
+
+    const result = await getPublishedPageMetadataListBySlug('acme')
+
+    expect(result).toHaveLength(2)
   })
 
   it('returns NOT_FOUND when metadata does not exist', async () => {
@@ -142,6 +165,23 @@ describe('published-page queries', () => {
     expect(result.page.variantId).toBe(row.variantId)
     expect(result.page.contentHash).toBe(row.contentHash)
     expect(result.page.html).toContain('<h1>Acme</h1>')
+  })
+
+  it('reads a published page directly from metadata', async () => {
+    const row = createPublishedRow()
+    mocked.readArtifact.mockResolvedValue({
+      success: true,
+      html: '<!DOCTYPE html><html><body><h1>Acme</h1></body></html>',
+      bytes: 54,
+    })
+
+    const result = await readPublishedPageByMetadata(row)
+
+    expect(result.success).toBe(true)
+    if (!result.success) return
+
+    expect(result.page.variantId).toBe(row.variantId)
+    expect(result.page.trafficWeight).toBe(row.trafficWeight)
   })
 
   it('returns ARTIFACT_UNAVAILABLE when storage adapter throws', async () => {

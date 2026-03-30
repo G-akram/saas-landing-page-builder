@@ -34,6 +34,11 @@ interface PageForPublish {
   document: PageDocument
 }
 
+interface PublishedVariantRuntimeMetadata {
+  trafficWeight: number
+  primaryGoalElementId: string | null
+}
+
 export async function publishPage(input: PublishInput): Promise<PublishResult> {
   const session = await auth()
   if (!session?.user?.id) {
@@ -199,6 +204,26 @@ async function writePublishedArtifacts({
   const artifacts: PublishedArtifact[] = []
 
   for (const [index, renderResult] of renderResults.entries()) {
+    const runtimeMetadata = getPublishedVariantRuntimeMetadata(
+      page.document,
+      renderResult.variantId,
+    )
+    if (!runtimeMetadata) {
+      logger.warn('Publish runtime metadata missing for variant', {
+        pageId: page.id,
+        userId,
+        variantId: renderResult.variantId,
+      })
+
+      return {
+        success: false,
+        result: createPublishError(
+          'INVALID_DOCUMENT',
+          `Variant ${renderResult.variantId} is missing publish metadata`,
+        ),
+      }
+    }
+
     const writeResult = await storageAdapter.writeArtifact({
       pageId: page.id,
       contentHash: renderResult.contentHash,
@@ -226,6 +251,8 @@ async function writePublishedArtifacts({
       storageProvider: writeResult.storageProvider,
       storageKey: writeResult.storageKey,
       contentHash: renderResult.contentHash,
+      trafficWeight: runtimeMetadata.trafficWeight,
+      primaryGoalElementId: runtimeMetadata.primaryGoalElementId,
       publishedAt: new Date(
         publishedAtBase + index * PUBLISHED_VARIANT_TIMESTAMP_INCREMENT_MS,
       ),
@@ -252,6 +279,8 @@ async function upsertPublishedArtifacts(
         storageProvider: artifact.storageProvider,
         storageKey: artifact.storageKey,
         contentHash: artifact.contentHash,
+        trafficWeight: artifact.trafficWeight,
+        primaryGoalElementId: artifact.primaryGoalElementId,
         publishedAt: artifact.publishedAt,
       })
       .onConflictDoUpdate({
@@ -261,6 +290,8 @@ async function upsertPublishedArtifacts(
           storageProvider: artifact.storageProvider,
           storageKey: artifact.storageKey,
           contentHash: artifact.contentHash,
+          trafficWeight: artifact.trafficWeight,
+          primaryGoalElementId: artifact.primaryGoalElementId,
           publishedAt: artifact.publishedAt,
         },
       })
@@ -292,6 +323,21 @@ function getPublishVariantOrder(document: PageDocument): PageDocument['variants'
     ...document.variants.filter((variant) => variant.id !== document.activeVariantId),
     activeVariant,
   ]
+}
+
+function getPublishedVariantRuntimeMetadata(
+  document: PageDocument,
+  variantId: string,
+): PublishedVariantRuntimeMetadata | null {
+  const variant = document.variants.find((candidate) => candidate.id === variantId)
+  if (!variant) {
+    return null
+  }
+
+  return {
+    trafficWeight: variant.trafficWeight,
+    primaryGoalElementId: variant.primaryGoal?.elementId ?? null,
+  }
 }
 
 function createPublishError(errorCode: PublishErrorCode, message: string): PublishErrorResult {

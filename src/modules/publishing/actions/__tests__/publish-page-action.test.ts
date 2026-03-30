@@ -25,6 +25,8 @@ const mocked = vi.hoisted(() => ({
   publishedPagesTable: {
     pageId: Symbol('publishedPages.pageId'),
     variantId: Symbol('publishedPages.variantId'),
+    trafficWeight: Symbol('publishedPages.trafficWeight'),
+    primaryGoalElementId: Symbol('publishedPages.primaryGoalElementId'),
   },
 }))
 
@@ -276,9 +278,12 @@ describe('publishPage', () => {
     expect(result.artifacts).toHaveLength(1)
     expect(result.artifacts[0]?.pageId).toBe('page-1')
     expect(result.artifacts[0]?.slug).toBe('acme-page')
+    expect(result.artifacts[0]?.variantId).toBe('variant-a')
     expect(result.artifacts[0]?.storageProvider).toBe('local')
     expect(result.artifacts[0]?.storageKey).toContain('pages/page-1/')
     expect(result.artifacts[0]?.contentHash).toBe('a'.repeat(64))
+    expect(result.artifacts[0]?.trafficWeight).toBe(100)
+    expect(result.artifacts[0]?.primaryGoalElementId).toBeNull()
 
     expect(mocked.delete).toHaveBeenCalled()
     expect(mocked.revalidatePath).toHaveBeenCalledWith('/dashboard')

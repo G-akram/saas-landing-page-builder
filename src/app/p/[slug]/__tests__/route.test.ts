@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocked = vi.hoisted(() => ({
-  readPublishedPageBySlug: vi.fn(),
+  servePublishedPage: vi.fn(),
   loggerError: vi.fn(),
 }))
 
 vi.mock('@/modules/publishing', () => ({
-  readPublishedPageBySlug: mocked.readPublishedPageBySlug,
+  servePublishedPage: mocked.servePublishedPage,
 }))
 
 vi.mock('@/shared/lib/logger', () => ({
@@ -36,21 +36,32 @@ describe('GET /p/[slug]', () => {
   })
 
   it('serves published HTML with strict headers', async () => {
-    const publishedAt = new Date('2026-03-28T21:00:00.000Z')
-    const contentHash = 'a'.repeat(64)
-
-    mocked.readPublishedPageBySlug.mockResolvedValue({
+    mocked.servePublishedPage.mockResolvedValue({
       success: true,
       page: {
         pageId: 'page-1',
         slug: 'acme',
         variantId: 'variant-a',
         storageProvider: 'local',
-        storageKey: `pages/page-1/${contentHash}.html`,
-        contentHash,
-        publishedAt,
+        storageKey: `pages/page-1/${'a'.repeat(64)}.html`,
+        contentHash: 'a'.repeat(64),
+        trafficWeight: 100,
+        primaryGoalElementId: 'cta-button',
+        publishedAt: new Date('2026-03-28T21:00:00.000Z'),
         html: '<!DOCTYPE html><html><body><h1>Published</h1></body></html>',
       },
+      assignment: {
+        assignmentId: 'assignment-1',
+        pageId: 'page-1',
+        variantId: 'variant-a',
+        contentHash: 'a'.repeat(64),
+        assignedAt: '2026-03-28T21:00:00.000Z',
+      },
+      assignmentCookie: {
+        name: 'pb-assignment-acme',
+        value: 'encoded-cookie',
+      },
+      isNewAssignment: true,
     })
 
     const response = await GET(
@@ -61,45 +72,48 @@ describe('GET /p/[slug]', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('Content-Type')).toBe('text/html; charset=utf-8')
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
-    expect(response.headers.get('Cache-Control')).toBe('public, max-age=0, must-revalidate')
-    expect(response.headers.get('ETag')).toBe(`"${contentHash}"`)
-    expect(response.headers.get('Last-Modified')).toBe(publishedAt.toUTCString())
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store, max-age=0')
+    expect(response.headers.get('Set-Cookie')).toContain('pb-assignment-acme=encoded-cookie')
     expect(await response.text()).toContain('<h1>Published</h1>')
   })
 
-  it('returns 304 when If-None-Match matches current content hash', async () => {
-    const contentHash = 'b'.repeat(64)
-
-    mocked.readPublishedPageBySlug.mockResolvedValue({
+  it('does not set a cookie when an existing assignment is reused', async () => {
+    mocked.servePublishedPage.mockResolvedValue({
       success: true,
       page: {
         pageId: 'page-2',
         slug: 'beta',
         variantId: 'variant-b',
         storageProvider: 'local',
-        storageKey: `pages/page-2/${contentHash}.html`,
-        contentHash,
+        storageKey: `pages/page-2/${'b'.repeat(64)}.html`,
+        contentHash: 'b'.repeat(64),
+        trafficWeight: 50,
+        primaryGoalElementId: null,
         publishedAt: new Date('2026-03-28T21:10:00.000Z'),
         html: '<!DOCTYPE html><html><body><h1>Beta</h1></body></html>',
       },
+      assignment: {
+        assignmentId: 'assignment-existing',
+        pageId: 'page-2',
+        variantId: 'variant-b',
+        contentHash: 'b'.repeat(64),
+        assignedAt: '2026-03-28T21:10:00.000Z',
+      },
+      assignmentCookie: null,
+      isNewAssignment: false,
     })
 
     const response = await GET(
-      new Request('https://builder.example.com/p/beta', {
-        headers: { 'if-none-match': `"${contentHash}"` },
-      }),
+      new Request('https://builder.example.com/p/beta'),
       createRouteContext('beta'),
     )
 
-    expect(response.status).toBe(304)
-    expect(response.headers.get('Cache-Control')).toBe('public, max-age=0, must-revalidate')
-    expect(response.headers.get('ETag')).toBe(`"${contentHash}"`)
-    expect(response.headers.get('Content-Type')).toBeNull()
-    expect(await response.text()).toBe('')
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Set-Cookie')).toBeNull()
   })
 
   it('returns 404 when slug has no published artifact', async () => {
-    mocked.readPublishedPageBySlug.mockResolvedValue({
+    mocked.servePublishedPage.mockResolvedValue({
       success: false,
       errorCode: 'NOT_FOUND',
     })
@@ -114,7 +128,7 @@ describe('GET /p/[slug]', () => {
   })
 
   it('returns 404 when published metadata exists but artifact is unavailable', async () => {
-    mocked.readPublishedPageBySlug.mockResolvedValue({
+    mocked.servePublishedPage.mockResolvedValue({
       success: false,
       errorCode: 'ARTIFACT_UNAVAILABLE',
     })
@@ -135,7 +149,7 @@ describe('GET /p/[slug]', () => {
     )
 
     expect(response.status).toBe(404)
-    expect(mocked.readPublishedPageBySlug).not.toHaveBeenCalled()
+    expect(mocked.servePublishedPage).not.toHaveBeenCalled()
   })
 })
 

@@ -1,8 +1,8 @@
-import { readPublishedPageBySlug } from '@/modules/publishing'
+import { servePublishedPage } from '@/modules/publishing'
 import { logger } from '@/shared/lib/logger'
 
 const HTML_CONTENT_TYPE = 'text/html; charset=utf-8'
-const CACHE_CONTROL_VALUE = 'public, max-age=0, must-revalidate'
+const CACHE_CONTROL_VALUE = 'private, no-store, max-age=0'
 const NO_STORE_CACHE_CONTROL_VALUE = 'no-store'
 const X_CONTENT_TYPE_OPTIONS_VALUE = 'nosniff'
 
@@ -24,25 +24,26 @@ export async function GET(
   }
 
   try {
-    const readResult = await readPublishedPageBySlug(slug)
-    if (!readResult.success) {
+    const serveResult = await servePublishedPage({
+      slug,
+      cookieHeader: request.headers.get('cookie'),
+    })
+    if (!serveResult.success) {
       return createNotFoundResponse()
     }
 
-    const etag = buildEtag(readResult.page.contentHash)
-    const successHeaders = createSuccessHeaders(etag, readResult.page.publishedAt)
-
-    if (hasMatchingIfNoneMatch(request, etag)) {
-      return new Response(null, {
-        status: 304,
-        headers: successHeaders,
-      })
+    const successHeaders = createSuccessHeaders()
+    if (serveResult.assignmentCookie) {
+      successHeaders.set(
+        'Set-Cookie',
+        buildAssignmentCookieHeader(serveResult.assignmentCookie.name, serveResult.assignmentCookie.value),
+      )
     }
 
     successHeaders.set('Content-Type', HTML_CONTENT_TYPE)
     successHeaders.set('X-Content-Type-Options', X_CONTENT_TYPE_OPTIONS_VALUE)
 
-    return new Response(readResult.page.html, {
+    return new Response(serveResult.page.html, {
       status: 200,
       headers: successHeaders,
     })
@@ -56,11 +57,9 @@ export async function GET(
   }
 }
 
-function createSuccessHeaders(etag: string, publishedAt: Date): Headers {
+function createSuccessHeaders(): Headers {
   const headers = new Headers()
   headers.set('Cache-Control', CACHE_CONTROL_VALUE)
-  headers.set('ETag', etag)
-  headers.set('Last-Modified', publishedAt.toUTCString())
   return headers
 }
 
@@ -73,31 +72,19 @@ function createNotFoundResponse(): Response {
   })
 }
 
-function buildEtag(contentHash: string): string {
-  return `"${contentHash}"`
-}
+function buildAssignmentCookieHeader(name: string, value: string): string {
+  const segments = [
+    `${name}=${value}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+  ]
 
-function hasMatchingIfNoneMatch(request: Request, etag: string): boolean {
-  const ifNoneMatch = request.headers.get('if-none-match')
-  if (!ifNoneMatch) {
-    return false
+  if (process.env.NODE_ENV === 'production') {
+    segments.push('Secure')
   }
 
-  const normalizedCandidates = ifNoneMatch
-    .split(',')
-    .map((candidate) => candidate.trim())
-
-  return normalizedCandidates.some((candidate) => {
-    if (candidate === '*') {
-      return true
-    }
-
-    if (candidate === etag) {
-      return true
-    }
-
-    return candidate === `W/${etag}`
-  })
+  return segments.join('; ')
 }
 
 function getReadableErrorMessage(error: unknown): string {

@@ -1,5 +1,7 @@
 export {
+  getPublishedPageMetadataListBySlug,
   getPublishedPageMetadataBySlug,
+  readPublishedPageByMetadata,
   readPublishedPageBySlug,
   type PublishedPageMetadata,
   type PublishedPageSnapshot,

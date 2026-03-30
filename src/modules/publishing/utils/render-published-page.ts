@@ -17,8 +17,10 @@ import { buildPublishedSeoMetadata } from './publish-renderer-utils'
 const HTML_DOCTYPE = '<!DOCTYPE html>'
 
 interface RenderStaticDocumentInput {
+  slug: string
   sections: RenderPublishedPageInput['document']['variants'][number]['sections']
   metadata: PublishedSeoMetadata
+  primaryGoalElementId: string | null
   variantId: string
 }
 
@@ -69,21 +71,27 @@ export function renderPublishedPage(
 
   return Promise.resolve(
     renderStaticDocument({
+      slug: input.slug,
       sections: variant.sections,
       metadata,
+      primaryGoalElementId: variant.primaryGoal?.elementId ?? null,
       variantId: variant.id,
     }),
   )
 }
 
 function renderStaticDocument({
+  slug,
   sections,
   metadata,
+  primaryGoalElementId,
   variantId,
 }: RenderStaticDocumentInput): RenderPublishedPageResult {
   const markup = getRenderToStaticMarkup()(createElement(PublishedPageDocument, {
+    slug,
     sections,
     metadata,
+    primaryGoalElementId,
   }))
 
   const html = markup.startsWith(HTML_DOCTYPE) ? markup : `${HTML_DOCTYPE}${markup}`

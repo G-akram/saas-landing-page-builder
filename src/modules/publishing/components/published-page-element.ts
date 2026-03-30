@@ -12,6 +12,7 @@ import {
 interface PublishedPageElementProps {
   element: PageElement
   defaultTextColor: string
+  primaryGoalElementId: string | null
 }
 
 const HEADING_TAG_BY_LEVEL = {
@@ -40,6 +41,7 @@ function resolveIconMonogram(name: string): string {
 function wrapWithLinkIfPresent(
   element: PageElement,
   child: React.JSX.Element,
+  primaryGoalElementId: string | null,
 ): React.JSX.Element {
   const href = resolvePublishedHref(element.link)
   if (!href) return child
@@ -52,6 +54,8 @@ function wrapWithLinkIfPresent(
       href,
       target: shouldOpenNewTab ? '_blank' : undefined,
       rel: shouldOpenNewTab ? 'noopener noreferrer' : undefined,
+      'data-pb-primary-goal-id':
+        element.id === primaryGoalElementId ? primaryGoalElementId : undefined,
       style: { textDecoration: 'none', color: 'inherit' },
     },
     child,
@@ -104,6 +108,7 @@ function renderText(
 function renderButton(
   element: PageElement,
   defaultTextColor: string,
+  primaryGoalElementId: string | null,
 ): React.JSX.Element {
   if (element.content.type !== 'button') {
     throw new Error('Expected button element content')
@@ -120,10 +125,13 @@ function renderButton(
     element.content.text,
   )
 
-  return wrapWithLinkIfPresent(element, buttonNode)
+  return wrapWithLinkIfPresent(element, buttonNode, primaryGoalElementId)
 }
 
-function renderImage(element: PageElement): React.JSX.Element {
+function renderImage(
+  element: PageElement,
+  primaryGoalElementId: string | null,
+): React.JSX.Element {
   if (element.content.type !== 'image') {
     throw new Error('Expected image element content')
   }
@@ -148,12 +156,13 @@ function renderImage(element: PageElement): React.JSX.Element {
       style: buildImageStyle(element.styles),
     })
 
-  return wrapWithLinkIfPresent(element, imageNode)
+  return wrapWithLinkIfPresent(element, imageNode, primaryGoalElementId)
 }
 
 function renderIcon(
   element: PageElement,
   defaultTextColor: string,
+  primaryGoalElementId: string | null,
 ): React.JSX.Element {
   if (element.content.type !== 'icon') {
     throw new Error('Expected icon element content')
@@ -185,12 +194,13 @@ function renderIcon(
     resolveIconMonogram(element.content.name),
   )
 
-  return wrapWithLinkIfPresent(element, iconNode)
+  return wrapWithLinkIfPresent(element, iconNode, primaryGoalElementId)
 }
 
 export function PublishedPageElement({
   element,
   defaultTextColor,
+  primaryGoalElementId,
 }: PublishedPageElementProps): React.JSX.Element {
   switch (element.content.type) {
     case 'heading':
@@ -198,10 +208,10 @@ export function PublishedPageElement({
     case 'text':
       return renderText(element, defaultTextColor)
     case 'button':
-      return renderButton(element, defaultTextColor)
+      return renderButton(element, defaultTextColor, primaryGoalElementId)
     case 'image':
-      return renderImage(element)
+      return renderImage(element, primaryGoalElementId)
     case 'icon':
-      return renderIcon(element, defaultTextColor)
+      return renderIcon(element, defaultTextColor, primaryGoalElementId)
   }
 }

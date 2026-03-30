@@ -25,6 +25,8 @@ export interface PublishedArtifact {
   storageProvider: PublishStorageProvider
   storageKey: string
   contentHash: string
+  trafficWeight: number
+  primaryGoalElementId: string | null
   publishedAt: Date
 }
 

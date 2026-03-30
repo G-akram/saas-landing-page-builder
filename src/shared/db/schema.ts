@@ -95,6 +95,8 @@ export const publishedPages = pgTable(
     storageProvider: text('storageProvider', { enum: ['local', 'object-storage'] }).notNull(),
     storageKey: text('storageKey').notNull(),
     contentHash: text('contentHash').notNull(),
+    trafficWeight: integer('trafficWeight').notNull(),
+    primaryGoalElementId: text('primaryGoalElementId'),
     publishedAt: timestamp('publishedAt', { mode: 'date' }).notNull().defaultNow(),
   },
   (publishedPage) => [

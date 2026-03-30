@@ -15,6 +15,13 @@
       "when": 1774821486418,
       "tag": "0001_odd_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774862803796,
+      "tag": "0002_spooky_thunderbolt_ross",
+      "breakpoints": true
     }
   ]
 }
