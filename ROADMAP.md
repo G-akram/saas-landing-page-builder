@@ -15,6 +15,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 **Why first:** No code before architecture. The block schema must be variant-aware from day 1 — retrofitting `variants[]` into a flat schema later means a DB migration + state management rewrite. Same for the module structure: getting import direction wrong early means circular deps at scale.
 
 **Steps:**
+
 - [x] Competitive Research → `research/competitive-analysis.md`
 - [x] MVP Feature Set → `decisions/001-mvp-features.md`
 - [x] Tech Stack + Architecture → `decisions/003` through `decisions/010`
@@ -22,6 +23,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] Roadmap → `ROADMAP.md`
 
 **Deliverables:**
+
 - Competitive analysis done
 - MVP feature set locked
 - Tech stack, DB, auth, styling, state, block schema, publishing pipeline, folder structure, key libraries — all decided and documented
@@ -39,6 +41,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 **Why second:** Everything else depends on this. You can't build the editor without a DB to save to. You can't test saving without auth. The schema must be migrated before any editor state is designed, because the shape of `Page → Variants → Sections → Elements` drives every other data structure.
 
 **What we build:**
+
 - Next.js app bootstrapped (TypeScript, Tailwind, shadcn/ui, ESLint/Prettier, path aliases)
 - Drizzle schema for users, pages, variants, sections, elements — migrated to Neon
 - NextAuth.js: sign up, log in, session, protected routes
@@ -48,6 +51,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 **Implementation approach:** See `decisions/011-foundation-approach.md` for rationale.
 
 **Steps:**
+
 - [x] Scaffold: Next.js + TypeScript + Tailwind + shadcn/ui + ESLint strict + Prettier + path aliases
 - [x] Folder structure per ADR-009 (module dirs, barrel exports, shared/)
 - [x] Drizzle schema + Neon migration (users, accounts, sessions, pages, publishedPages)
@@ -57,6 +61,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] Page round-trip: load from DB, display document (proves full data path)
 
 **Deliverables:**
+
 - Sign up, log in, create a named page, see it in the dashboard, delete it
 - DB schema matches the variant-aware shape from ADR-005
 - Auth gates the dashboard and editor routes
@@ -72,6 +77,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 **Why third:** Shell before content. State management and the drag-and-drop runtime must be proven before adding 6 complex block types. Building blocks first means constantly refactoring around a moving editor foundation.
 
 **What we build:**
+
 - Editor route loads a page from DB
 - Canvas renders sections as a vertical stack
 - dnd-kit: drag to reorder sections
@@ -84,6 +90,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 **Implementation approach:** See `decisions/014-editor-core-approach.md` for rationale.
 
 **Steps:**
+
 - [x] Zustand stores (`useDocumentStore` + `useUIStore`) with undo/redo
 - [x] Editor route + canvas rendering (Server Component → client `EditorShell` → section stack)
 - [x] dnd-kit: drag to reorder sections (with undo/redo integration)
@@ -93,6 +100,7 @@ Each phase produces a working vertical slice. You can demo something real at the
 - [x] Editor chrome: dark theme, top bar, section list panel, layout shell
 
 **Deliverables:**
+
 - Open a page → see a canvas → drag sections around → changes persist on reload
 - Zustand store shape matches ADR-004 (no server state in Zustand)
 - Auto-save works without user intervention
@@ -137,6 +145,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Why fourth:** Blocks plug into an existing system. Building blocks without the editor means building in a vacuum — no way to test selection, inline editing, or property panels in real conditions.
 
 **What we build:**
+
 - All 6 block types: Hero, Features, CTA, Pricing, Testimonials, Footer
 - 2–3 variants per block (different layouts/styles)
 - Inline text editing (click to edit text in-canvas)
@@ -148,6 +157,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Implementation approach:** See `decisions/021-block-library-approach.md` for rationale.
 
 **Steps:**
+
 - [x] Document store element actions (`updateElement`, `addElement`, `deleteElement`, `updateSectionStyles`) + block template definitions (6 types × 2-3 variants)
 - [x] Visual element rendering — upgrade SectionRenderer from text previews to styled elements (hybrid Tailwind + inline styles)
 - [x] Element selection + visual highlight — click element → XState `SELECT_ELEMENT` → highlight ring
@@ -158,6 +168,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Mobile preview toggle — container queries, responsive reflow
 
 **Deliverables:**
+
 - Build a complete, realistic landing page end-to-end in the editor
 - Every block is editable (text, colors, images) via the sidebar
 - Mobile preview shows the responsive layout
@@ -173,6 +184,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Why fifth:** You need real content to publish. Publishing before Phase 3 means publishing placeholder blocks — useless as an integration test and as a demo.
 
 **What we build:**
+
 - "Publish" button triggers server action
 - Server renders the active variant's sections to static HTML (`renderToStaticMarkup`)
 - Published HTML + assets written to storage (local FS in dev, object storage in prod)
@@ -182,10 +194,12 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Implementation approach:** See `decisions/028-publishing-pipeline-approach.md` for rationale.
 
 **Readiness:**
+
 - [x] Phase 4 architecture decisions locked (artifact storage strategy, variant scope, routing rollout, step order)
 - [x] Step 1 scope locked (contracts + schema changes)
 
 **Steps:**
+
 - [x] Lock contracts and schema changes (publishing contracts + `publishedPages` metadata/index shape) - see `decisions/029-publishing-contracts-schema.md`
 - [x] Build pure HTML renderer (page + active variant -> full HTML document) - see `decisions/030-publish-renderer-boundary.md`
 - [x] Add publish storage adapter (local FS in dev, object storage boundary for prod) - see `decisions/031-publish-storage-adapter.md`
@@ -196,6 +210,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Hardening: tests + docs updates (`docs/api.md`, `docs/deployment.md`)
 
 **Deliverables:**
+
 - Click Publish → get a real URL → open in a new tab → see the live page
 - Page loads without the editor runtime (pure static HTML + CSS)
 - Sharing the URL with anyone works
@@ -211,6 +226,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Why last in MVP:** The schema supports variants from day 1 (Phase 1), but the UI is built last because it requires the editor (to create/edit variants) and the publishing pipeline (to serve split traffic) to already exist.
 
 **What we build:**
+
 - Variant tabs in the editor: create, duplicate, delete, switch variants
 - Each variant is a full independent section stack
 - Traffic split config: 50/50 default, adjustable per variant
@@ -222,9 +238,11 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Implementation approach:** See `decisions/036-ab-testing-approach.md` for rationale.
 
 **Readiness:**
+
 - [x] Phase 5 architecture decisions locked (published variant storage, sticky serving, analytics model, conversion model, step order)
 
 **Steps:**
+
 - [x] Lock contracts and schema (published variant metadata/index shape, analytics event storage, conversion-goal contracts) - see `decisions/037-ab-testing-contracts-schema.md`
 - [x] Add variant store actions and invariants (create, duplicate, delete, switch, traffic-weight normalization, goal invariants)
 - [x] Ship editor variant UX (variant tabs, management flows, traffic split controls, link + primary goal UI)
@@ -262,6 +280,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
    - Done when: Phase 5 behavior is covered by targeted tests and the project docs match the shipped runtime.
 
 **Deliverables:**
+
 - Create two variants → publish → open in incognito → land on variant A or B per traffic split
 - Dashboard shows per-variant stats
 - Can set one variant to 100% traffic to declare a winner
@@ -270,13 +289,78 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ---
 
-## Post-MVP (v1.1)
+## Phase 6 - MVP Hardening
 
-Custom domains, per-breakpoint style overrides, version history, starter templates, Smart Traffic (AI-driven routing), editor i18n.
+**Status: next**
+
+**Why now:** Feature scope is complete, but the MVP should not be considered truly closed until the repo is green, the docs match the shipped product, and the highest-risk production gaps are tightened. This phase is intentionally short and focused: no major new surface area, just finish quality work properly.
+
+**What we build:**
+
+- Green quality gates (lint + format + typecheck + tests + build)
+- Doc and product copy alignment with Phase 5 reality
+- Focused cleanup of the largest/riskiest files
+- Missing MVP hardening from the existing tech debt list
+- Deployment-ready publish/storage/rate-limit follow-through where it matters
+
+**Steps:**
+
+- [ ] Fix current ESLint failures and restore `npm run lint` to green
+- [ ] Restore `npm run format:check` to green across code + docs
+- [ ] Update stale copy/docs (`src/app/page.tsx`, getting-started/deployment env vars, roadmap alignment)
+- [ ] Decide the fate of the editor light-theme toggle: ship it or officially descoped it from MVP docs
+- [ ] Add the missing direct hook/component integration tests called out in the debt list
+- [ ] Clean obvious duplication and split oversized hot-spot files where it improves maintainability
+- [ ] Add dashboard pagination and improve `deletePage` success feedback
+- [ ] Implement the production publish-storage path and distributed rate limiting if we want the MVP to be deployable beyond local/demo use
+
+**Deliverables:**
+
+- All standard quality checks pass cleanly
+- Docs and product messaging match the shipped app
+- No obvious "known red" items remain for MVP-quality standards
+- MVP can be closed as a finished milestone, not just a feature-complete one
+
+**You have:** A fully closed MVP, not just complete in scope, but hardened enough to stand behind.
+
+---
+
+## Phase 7 - Wow Factor
+
+**Status: proposed**
+
+**Why next:** Once the MVP is properly closed, the highest-leverage move is not broad SaaS expansion. It is making the product feel more premium, more visually impressive, and more instantly memorable to visitors. This phase focuses on polish and showcase value.
+
+**What we build:**
+
+- Stronger visual identity and a more polished free/premium template and component library
+- Better first impression on the marketing/home experience
+- More polished editor outputs without changing the product thesis
+- One or two high-impact new content capabilities
+
+**Steps:**
+
+- [ ] Upgrade the public home/marketing experience so the product looks as polished as the editor ambition
+- [ ] Enhance existing block variants and tighten visual quality across the 6 core block types
+- [ ] Add high-quality page templates with an explicit `free | premium` tier model from day one, while keeping premium templates accessible until billing exists
+- [ ] Expand the editor with a small set of high-impact components using the same `free | premium` content model, starting with forms / lead capture
+- [ ] Improve publish/demo storytelling: better sample pages, stronger empty states, stronger template previews
+- [ ] Use high-end references such as Creative Tim UI and Creative Tim premium template galleries as inspiration for composition, polish, and presentation quality without copying their products directly
+- [ ] Tighten editor UX polish (microcopy, affordances, selection clarity, property-panel ergonomics)
+- [ ] Decide whether AI belongs here as a narrow assistive feature (template generation, copy suggestions, variant ideas) rather than a broad platform pivot
+
+**Deliverables:**
+
+- The product looks materially more premium at first glance
+- New users can start from better-looking free and premium-tier templates instead of only assembling blocks from scratch
+- The editor produces pages that feel closer to a polished commercial tool than a strong prototype
+
+**You have:** A more impressive, portfolio-worthy product with stronger "wow" appeal and clearer differentiation.
+
+---
+
+## Later
+
+Custom domains, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), payments/subscriptions, broader component system, editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
-
-
-
-
-
