@@ -44,6 +44,7 @@ export const VariantSchema = z
 
 export const PageDocumentSchema = z
   .object({
+    themeId: z.string().optional(),
     activeVariantId: z.string(),
     variants: z.array(VariantSchema).min(1),
   })

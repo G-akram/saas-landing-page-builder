@@ -54,6 +54,10 @@ export const ElementStylesSchema = z.object({
   // Spacing within section
   marginTop: z.number().optional(),
   marginBottom: z.number().optional(),
+
+  // Design token keys (hybrid approach — store token key + resolved value)
+  colorToken: z.string().optional(),
+  backgroundColorToken: z.string().optional(),
 })
 
 // ── Element ────────────────────────────────────────────────────────────────

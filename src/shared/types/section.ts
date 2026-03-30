@@ -18,6 +18,7 @@ export const BackgroundConfigSchema = z.object({
   type: z.enum(['color', 'gradient', 'image']),
   value: z.string(), // hex, gradient string, or image URL
   overlay: z.string().optional(),
+  valueToken: z.string().optional(), // design token key for the background value
 })
 
 // ── Section ────────────────────────────────────────────────────────────────
