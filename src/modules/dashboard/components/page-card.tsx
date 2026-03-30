@@ -14,12 +14,15 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { deletePage } from '@/modules/dashboard/actions/page-actions'
 
+import { type PageVariantAnalyticsSummary } from '../queries/page-queries'
+
 interface PageCardProps {
   id: string
   name: string
   slug: string
   status: string
   updatedAt: Date
+  analytics: PageVariantAnalyticsSummary[]
 }
 
 function formatRelativeDate(date: Date): string {
@@ -36,7 +39,14 @@ function formatRelativeDate(date: Date): string {
   return date.toLocaleDateString()
 }
 
-export function PageCard({ id, name, slug, status, updatedAt }: PageCardProps): React.JSX.Element {
+export function PageCard({
+  id,
+  name,
+  slug,
+  status,
+  updatedAt,
+  analytics,
+}: PageCardProps): React.JSX.Element {
   const [, formAction, isPending] = useActionState(
     async (_prev: Record<string, never>, formData: FormData): Promise<Record<string, never>> => {
       await deletePage(formData)
@@ -60,6 +70,26 @@ export function PageCard({ id, name, slug, status, updatedAt }: PageCardProps): 
           </span>
         </div>
       </CardHeader>
+      {analytics.length > 0 ? (
+        <div className="border-t px-6 py-4">
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            A/B performance
+          </div>
+          <div className="space-y-2">
+            {analytics.map((variant) => (
+              <div
+                key={variant.variantId}
+                className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm"
+              >
+                <span className="font-medium">{variant.variantName}</span>
+                <span className="text-muted-foreground">
+                  {variant.views} views · {variant.conversions} conv · {variant.conversionRate}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <CardFooter className="flex items-center justify-between">
         <span className="text-muted-foreground text-xs">
           Updated {formatRelativeDate(updatedAt)}

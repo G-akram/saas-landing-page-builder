@@ -52,6 +52,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                 slug={page.slug}
                 status={page.status}
                 updatedAt={page.updatedAt}
+                analytics={page.analytics}
               />
             ))}
           </div>
