@@ -291,7 +291,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 6 - MVP Hardening
 
-**Status: next**
+**Status: complete**
 
 **Why now:** Feature scope is complete, but the MVP should not be considered truly closed until the repo is green, the docs match the shipped product, and the highest-risk production gaps are tightened. This phase is intentionally short and focused: no major new surface area, just finish quality work properly.
 
@@ -305,8 +305,8 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 **Steps:**
 
-- [ ] Fix current ESLint failures and restore `npm run lint` to green
-- [ ] Restore `npm run format:check` to green across code + docs
+- [x] Fix current ESLint failures and restore `npm run lint` to green
+- [x] Restore `npm run format:check` to green across code + docs
 - [x] Update stale copy/docs (`src/app/page.tsx`, getting-started/deployment env vars, roadmap alignment)
 - [x] Decide the fate of the editor light-theme toggle: officially descoped from MVP docs; editor remains dark-first for MVP
 - [x] Add the missing direct hook/component integration tests called out in the debt list
