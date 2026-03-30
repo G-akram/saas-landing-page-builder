@@ -102,7 +102,7 @@ function EditorLayout({
         gridTemplateColumns: `${showSidebar ? String(SIDEBAR_WIDTH) : '0'}px 1fr ${showRightPanel ? String(RIGHT_PANEL_WIDTH) : '0'}px`,
       }}
     >
-      <div className="overflow-hidden" style={{ gridArea: 'header' }}>
+      <div className="overflow-visible" style={{ gridArea: 'header' }}>
         {showTopBar && (
           <div className="flex flex-col">
             <EditorTopBar

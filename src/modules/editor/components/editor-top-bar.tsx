@@ -11,6 +11,7 @@ import { resolvePublishFeedback } from '../lib/publish-feedback'
 import { useDocumentStore, useUIStore } from '../store'
 import { useEditorActor } from '../context'
 import { SaveStatusIndicator } from './save-status-indicator'
+import { ThemePicker } from './theme-picker'
 
 interface EditorTopBarProps {
   pageName: string
@@ -121,6 +122,10 @@ export function EditorTopBar({
             <Smartphone className="h-4 w-4" />
           </button>
         </div>
+
+        <div className="h-4 w-px bg-white/10" />
+
+        <ThemePicker />
       </div>
 
       <div className="flex items-center gap-3">
