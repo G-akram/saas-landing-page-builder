@@ -19,9 +19,7 @@ interface TrackConversionSuccessResult {
   success: true
 }
 
-export type TrackConversionResult =
-  | TrackConversionErrorResult
-  | TrackConversionSuccessResult
+export type TrackConversionResult = TrackConversionErrorResult | TrackConversionSuccessResult
 
 interface TrackConversionInput {
   slug: string

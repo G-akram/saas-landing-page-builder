@@ -6,7 +6,7 @@
 
 ## Decision 1: Transform-then-Commit, Not Live Array Mutation
 
-dnd-kit never reorders the array during a drag. The sortable context applies CSS `transform` to each item to *visually* simulate the reordered position. `reorderSections()` is called once, in `onDragEnd`, after the user releases.
+dnd-kit never reorders the array during a drag. The sortable context applies CSS `transform` to each item to _visually_ simulate the reordered position. `reorderSections()` is called once, in `onDragEnd`, after the user releases.
 
 **Why:** If the array reordered on every drag-over event, React would unmount and remount every affected section component — resetting DOM state, firing effects, losing input focus. The transform approach keeps all components mounted; only their visual position changes.
 
@@ -25,6 +25,7 @@ The actively-dragged item renders via `<DragOverlay>`, which portals to `documen
 When `isDragging` is true on a `SortableSection`, the component renders a dashed-border `div` (blue, semi-transparent) instead of the invisible original item.
 
 **Why not `opacity: 0`:** The original item stays mounted so dnd-kit can measure its height for drop target calculations. `opacity: 0` makes the drop slot completely invisible on a dark background — users can't tell where the section will land. The dashed-border box:
+
 - Preserves the exact height (via matching `paddingTop`/`paddingBottom` from the section)
 - Signals the drop target clearly
 - Matches the blue accent used on the overlay clone for visual coherence
@@ -34,6 +35,7 @@ When `isDragging` is true on a `SortableSection`, the component renders a dashed
 `listeners` (the dnd-kit pointer/touch event handlers) are spread on a **child** grip handle element (`<GripVertical>` icon), not the root section `div`.
 
 **Why:** Spreading listeners on the root means any click anywhere on the section starts a drag. That kills click-to-select. Isolating to a visible grip handle:
+
 - Click anywhere on the section → selects it (normal event propagation)
 - Click and drag the grip → starts a drag (listeners only on grip)
 

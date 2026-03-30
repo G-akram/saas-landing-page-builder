@@ -8,6 +8,7 @@
 
 Publishing crosses auth, DB state, rendering, storage, and metadata updates.  
 If orchestration order is ambiguous, we can end up with:
+
 - published metadata pointing to missing artifacts,
 - action logic coupled to storage internals,
 - unstable error contracts for editor UX.
@@ -19,6 +20,7 @@ We need one deterministic server action contract before route serving and editor
 ### 1) publishPage is orchestration-only
 
 `publishPage` handles:
+
 - auth + ownership checks,
 - loading current page snapshot from DB,
 - rendering active variant HTML via publishing renderer,
@@ -38,6 +40,7 @@ The action accepts `pageId` only, then reads `name`, `slug`, and `document` from
 ### 3) Operation order is render -> storage write -> DB persistence sequence
 
 Chosen order:
+
 1. render HTML + hash,
 2. write artifact to storage,
 3. DB persistence sequence: upsert metadata + update page status.
@@ -47,6 +50,7 @@ Chosen order:
 ### 4) DB mutation is sequential and idempotent (not fully atomic)
 
 Current implementation uses two sequential statements:
+
 - upsert by unique `publishedPages.pageId`,
 - update `pages.status` to `published`.
 
@@ -92,16 +96,15 @@ Renderer/storage/DB failures are mapped to `PublishErrorCode` instead of leaking
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| DB snapshot source of truth | Strong trust boundary, deterministic publish input | Requires DB read before publish |
-| render -> store -> DB commit | Prevents broken metadata pointers | Possible orphan artifact on DB failure |
-| Sequential idempotent metadata + status writes | Works with current Neon HTTP driver | Not fully atomic across both writes |
-| Normalized publish errors | Stable UX/API surface | Loses low-level details at action boundary |
+| Decision                                       | Upside                                             | Downside                                   |
+| ---------------------------------------------- | -------------------------------------------------- | ------------------------------------------ |
+| DB snapshot source of truth                    | Strong trust boundary, deterministic publish input | Requires DB read before publish            |
+| render -> store -> DB commit                   | Prevents broken metadata pointers                  | Possible orphan artifact on DB failure     |
+| Sequential idempotent metadata + status writes | Works with current Neon HTTP driver                | Not fully atomic across both writes        |
+| Normalized publish errors                      | Stable UX/API surface                              | Loses low-level details at action boundary |
 
 ## Consequences
 
 - Step 5 (`/p/[slug]`) can trust metadata rows to point to real artifacts.
 - Step 7 publish UX can rely on typed error states and deterministic success payloads.
 - Future provider swaps stay contained in storage adapters, not action flow.
-

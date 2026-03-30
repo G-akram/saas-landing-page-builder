@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-03-26
-**Context:** Phase 0 (research + decisions) is complete. Phase 1 (Foundation) builds the scaffold, database, auth, and dashboard. This ADR captures *how* we approach Phase 1 — build order, configuration strategy, and scope decisions. Informed by ADR-003 (Next.js), ADR-005 (block schema), ADR-007 (Neon + Drizzle + NextAuth), ADR-009 (folder structure).
+**Context:** Phase 0 (research + decisions) is complete. Phase 1 (Foundation) builds the scaffold, database, auth, and dashboard. This ADR captures _how_ we approach Phase 1 — build order, configuration strategy, and scope decisions. Informed by ADR-003 (Next.js), ADR-005 (block schema), ADR-007 (Neon + Drizzle + NextAuth), ADR-009 (folder structure).
 
 ## Decisions
 
@@ -13,8 +13,9 @@
 **Why:** If ESLint boundaries and path aliases aren't configured before module code exists, early files will violate rules silently. Fixing import patterns retroactively is tedious and error-prone. Bottom-up ensures each layer is testable before the layer above depends on it.
 
 **Rejected:**
-- *Vertical slice first* — tempts skipping proper schema design to reach "working" faster. Schema mistakes propagate to every later phase.
-- *Config later* — guarantees a cleanup pass. Every file written before config is a file that needs fixing.
+
+- _Vertical slice first_ — tempts skipping proper schema design to reach "working" faster. Schema mistakes propagate to every later phase.
+- _Config later_ — guarantees a cleanup pass. Every file written before config is a file that needs fixing.
 
 ### 2. ESLint Strategy — Strict TypeScript Now, Boundaries Later
 
@@ -23,22 +24,25 @@
 **Why:** Strict TypeScript rules catch real bugs (unsafe `any`, missing null checks). Boundary enforcement is less critical in Phase 1 because only `auth`, `dashboard`, and `shared` exist — the folder structure itself prevents most violations. Adding boundaries when the editor module arrives (Phase 2) is the natural trigger.
 
 **Rejected:**
-- *Full strict + boundaries day 1* — boundary config requires defining every module upfront, but some modules are empty until later phases. Over-configuration.
-- *Incremental strictness* — writing code that later fails stricter rules means a cleanup pass. Defeats the purpose.
+
+- _Full strict + boundaries day 1_ — boundary config requires defining every module upfront, but some modules are empty until later phases. Over-configuration.
+- _Incremental strictness_ — writing code that later fails stricter rules means a cleanup pass. Defeats the purpose.
 
 ### 3. Zod Schema — Full ADR-005 Types from Day 1
 
 **Approach:** Define complete Zod schemas for Page, Variant, Section, Element (matching ADR-005 TypeScript types) in `shared/types/` during Phase 1.
 
 **Why:**
+
 - The "create page" server action needs to produce a valid default document. Zod schemas validate this at runtime.
 - When Phase 2 (editor) starts, the contract between editor state and DB is already enforced — no "the editor saved invalid JSON" bugs.
 - Translating ADR-005 types to Zod is mechanical, not creative. Low effort, high payoff.
 - Runtime validation patterns are strong interview material.
 
 **Rejected:**
-- *Drizzle tables only, JSONB accepts `unknown`* — no runtime validation means malformed documents slip into the DB. Debugging in Phase 2.
-- *Lightweight top-level Zod only* — half-validated is worse than unvalidated. Gives false confidence.
+
+- _Drizzle tables only, JSONB accepts `unknown`_ — no runtime validation means malformed documents slip into the DB. Debugging in Phase 2.
+- _Lightweight top-level Zod only_ — half-validated is worse than unvalidated. Gives false confidence.
 
 ### 4. Auth — OAuth Only, No Credentials Provider
 
@@ -47,8 +51,9 @@
 **Why:** NextAuth docs explicitly discourage credentials providers. They're a common source of session bugs, and they create a code path that doesn't exist in production. Setting up Google/GitHub OAuth apps takes 5 minutes each. Using the real auth flow from day 1 catches integration bugs early.
 
 **Rejected:**
-- *Credentials for dev convenience* — extra code path, risk of shipping to prod, divergent dev/prod behavior.
-- *Seed user + session* — seed script to maintain, still a divergent flow.
+
+- _Credentials for dev convenience_ — extra code path, risk of shipping to prod, divergent dev/prod behavior.
+- _Seed user + session_ — seed script to maintain, still a divergent flow.
 
 ### 5. Dashboard Scope — Functional with shadcn, Not Over-Polished
 
@@ -57,8 +62,9 @@
 **Why:** shadcn components are already decided (ADR-006) and give a professional baseline for free. Good empty states demonstrate UX thinking. Analytics and templates are Phase 5 and post-MVP respectively — building placeholders for them violates YAGNI.
 
 **Rejected:**
-- *Minimal (just text and buttons)* — looks like a tutorial project, not a portfolio piece.
-- *Polished with previews/stats* — time spent on UI that changes when the editor ships. Premature.
+
+- _Minimal (just text and buttons)_ — looks like a tutorial project, not a portfolio piece.
+- _Polished with previews/stats_ — time spent on UI that changes when the editor ships. Premature.
 
 ### 6. Default Page Document — Single Hero Section
 
@@ -67,8 +73,9 @@
 **Why:** Validates the full data path in Phase 1: create → Zod validate → serialize → store → load → display. When Phase 2 (editor) starts, there's already a section to render. The hero data is a JSON literal — no block components needed.
 
 **Rejected:**
-- *Empty document (`sections: []`)* — can't verify the schema round-trip, feels broken.
-- *Template picker* — over-engineering for Phase 1, templates are post-MVP.
+
+- _Empty document (`sections: []`)_ — can't verify the schema round-trip, feels broken.
+- _Template picker_ — over-engineering for Phase 1, templates are post-MVP.
 
 ### 7. Testing — None Until Phase 2
 
@@ -77,8 +84,9 @@
 **Why:** Phase 1 deliverables are small: 4 DB tables, ~3 server actions, 2 pages. One developer, low regression risk. The testing payoff comes in Phase 2 when Zustand state, undo/redo, and editor interactions create complex state transitions worth covering. Adding Vitest/Playwright config before there's meaningful logic to test is overhead.
 
 **Rejected:**
-- *Unit tests for DB + auth* — test setup overhead (test DB, mocks) outweighs value for simple CRUD.
-- *E2E from day 1* — Playwright setup + test writing for 2 pages is not a good time investment yet.
+
+- _Unit tests for DB + auth_ — test setup overhead (test DB, mocks) outweighs value for simple CRUD.
+- _E2E from day 1_ — Playwright setup + test writing for 2 pages is not a good time investment yet.
 
 **When to add tests:** Phase 2, starting with Zustand store unit tests and save/load integration tests.
 
@@ -98,4 +106,3 @@
 - Full Zod schemas may need minor adjustments when the editor reveals edge cases (Phase 2). This is expected — the schema is a living contract, not a frozen spec.
 - OAuth-only auth means local development requires internet access and valid OAuth credentials. No offline dev mode.
 - `eslint-plugin-boundaries` is intentionally deferred. Must be added in Phase 2 — tracking this in the roadmap.
-

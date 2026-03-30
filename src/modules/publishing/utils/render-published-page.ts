@@ -87,12 +87,14 @@ function renderStaticDocument({
   primaryGoalElementId,
   variantId,
 }: RenderStaticDocumentInput): RenderPublishedPageResult {
-  const markup = getRenderToStaticMarkup()(createElement(PublishedPageDocument, {
-    slug,
-    sections,
-    metadata,
-    primaryGoalElementId,
-  }))
+  const markup = getRenderToStaticMarkup()(
+    createElement(PublishedPageDocument, {
+      slug,
+      sections,
+      metadata,
+      primaryGoalElementId,
+    }),
+  )
 
   const html = markup.startsWith(HTML_DOCTYPE) ? markup : `${HTML_DOCTYPE}${markup}`
   const contentHash = createHash('sha256').update(html).digest('hex')

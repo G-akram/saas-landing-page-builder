@@ -8,6 +8,7 @@
 
 Published traffic must resolve a slug to the latest published artifact and return strict HTML/cache headers.  
 If this boundary is unclear, we risk:
+
 - mixing persistence/storage logic into app route files,
 - stale HTML behavior after republish,
 - ambiguous behavior when metadata and storage drift.
@@ -31,6 +32,7 @@ We need one serving contract before subdomain middleware (Step 6) and editor pub
 ### 3) Cache policy is revalidation-first with explicit ETag
 
 Successful responses include:
+
 - `Content-Type: text/html; charset=utf-8`
 - `X-Content-Type-Options: nosniff`
 - `Cache-Control: public, max-age=0, must-revalidate`
@@ -80,16 +82,15 @@ The route honors `If-None-Match` and returns `304` when tags match.
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| Route handler boundary | Exact response/header control | Slightly more manual response plumbing |
-| Node runtime | Works with current FS adapter | No edge execution for this step |
-| Revalidation-first cache policy | Strong freshness guarantees | More origin revalidation traffic |
-| Drift -> 404 | Stable public surface, no infra leakage | Harder to distinguish absent page vs storage fault externally |
+| Decision                        | Upside                                  | Downside                                                      |
+| ------------------------------- | --------------------------------------- | ------------------------------------------------------------- |
+| Route handler boundary          | Exact response/header control           | Slightly more manual response plumbing                        |
+| Node runtime                    | Works with current FS adapter           | No edge execution for this step                               |
+| Revalidation-first cache policy | Strong freshness guarantees             | More origin revalidation traffic                              |
+| Drift -> 404                    | Stable public surface, no infra leakage | Harder to distinguish absent page vs storage fault externally |
 
 ## Consequences
 
 - Step 6 middleware can be a pure hostname rewrite to `/p/[slug]`.
 - Step 7 publish UX can trust a stable serving URL behavior.
 - Storage provider internals stay inside publishing module, not app route files.
-

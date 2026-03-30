@@ -92,11 +92,7 @@ export function BlockPreview({ template }: BlockPreviewProps): React.JSX.Element
       >
         {/* Background overlay for image backgrounds */}
         {bg.overlay ? (
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{ backgroundColor: bg.overlay }}
-          />
+          <div aria-hidden className="absolute inset-0" style={{ backgroundColor: bg.overlay }} />
         ) : null}
 
         <div className="relative">
@@ -154,11 +150,7 @@ function PreviewGridLayout({
             style={{ gap: `${String(Math.min(layout.gap, 16))}px` }}
           >
             {elements.map((element) => (
-              <ElementRenderer
-                key={element.id}
-                element={element}
-                textColorClass={textColorClass}
-              />
+              <ElementRenderer key={element.id} element={element} textColorClass={textColorClass} />
             ))}
           </div>
         )
@@ -182,11 +174,7 @@ function PreviewStackLayout({
       style={{ gap: `${String(layout.gap)}px` }}
     >
       {allElements.map((element) => (
-        <ElementRenderer
-          key={element.id}
-          element={element}
-          textColorClass={textColorClass}
-        />
+        <ElementRenderer key={element.id} element={element} textColorClass={textColorClass} />
       ))}
     </div>
   )

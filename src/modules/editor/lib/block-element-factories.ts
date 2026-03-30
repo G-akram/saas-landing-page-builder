@@ -15,11 +15,7 @@ export function heading(
   }
 }
 
-export function text(
-  slot: number,
-  value: string,
-  styles: PageElement['styles'] = {},
-): PageElement {
+export function text(slot: number, value: string, styles: PageElement['styles'] = {}): PageElement {
   return {
     id: crypto.randomUUID(),
     type: 'text',
@@ -51,11 +47,7 @@ export function button(
   }
 }
 
-export function image(
-  slot: number,
-  alt: string,
-  styles: PageElement['styles'] = {},
-): PageElement {
+export function image(slot: number, alt: string, styles: PageElement['styles'] = {}): PageElement {
   return {
     id: crypto.randomUUID(),
     type: 'image',
@@ -65,11 +57,7 @@ export function image(
   }
 }
 
-export function icon(
-  slot: number,
-  name: string,
-  styles: PageElement['styles'] = {},
-): PageElement {
+export function icon(slot: number, name: string, styles: PageElement['styles'] = {}): PageElement {
   return {
     id: crypto.randomUUID(),
     type: 'icon',

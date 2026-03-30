@@ -49,4 +49,3 @@ export function resolvePublishedHref(link: LinkConfig | undefined): string | nul
 export function isExternalHttpLink(href: string): boolean {
   return href.startsWith('http://') || href.startsWith('https://')
 }
-

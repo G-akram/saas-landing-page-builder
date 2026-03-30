@@ -2,15 +2,15 @@
 
 Where content goes — follow strictly, no exceptions.
 
-| Content | Location | Auto-loaded? |
-|---|---|---|
-| App docs (architecture, API, getting started) | `docs/*.md` | No |
-| Project roadmap (phases, ordering, deliverables, progress) | `ROADMAP.md` | No |
-| Competitive research, user research, market analysis | `research/*.md` | No |
-| Architecture decisions (ADR format) | `decisions/NNN-*.md` | No |
-| Personal notes (interview prep, learning log) | `notes/*.md` | No |
-| Code standards, git rules, working rules | `.claude/rules/*.md` | Yes (keep short) |
-| Claude persistent memory | `~/.claude/projects/.../memory/` | Index only |
+| Content                                                    | Location                         | Auto-loaded?     |
+| ---------------------------------------------------------- | -------------------------------- | ---------------- |
+| App docs (architecture, API, getting started)              | `docs/*.md`                      | No               |
+| Project roadmap (phases, ordering, deliverables, progress) | `ROADMAP.md`                     | No               |
+| Competitive research, user research, market analysis       | `research/*.md`                  | No               |
+| Architecture decisions (ADR format)                        | `decisions/NNN-*.md`             | No               |
+| Personal notes (interview prep, learning log)              | `notes/*.md`                     | No               |
+| Code standards, git rules, working rules                   | `.claude/rules/*.md`             | Yes (keep short) |
+| Claude persistent memory                                   | `~/.claude/projects/.../memory/` | Index only       |
 
 ## Rules
 

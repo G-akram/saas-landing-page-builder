@@ -30,10 +30,7 @@ vi.mock('@/shared/lib/logger', () => ({
 }))
 
 import { encodePublishedAssignmentCookieValue } from '../published-assignment-cookie'
-import {
-  recordPublishedPageConversion,
-  recordPublishedPageView,
-} from '../published-page-events'
+import { recordPublishedPageConversion, recordPublishedPageView } from '../published-page-events'
 
 function mockInsertSuccess(): void {
   mocked.insert.mockReturnValue({

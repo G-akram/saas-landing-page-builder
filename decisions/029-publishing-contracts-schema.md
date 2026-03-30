@@ -8,6 +8,7 @@
 
 Publishing needs a stable contract boundary and a durable storage index before implementation.
 If these are unclear, later steps (publish action, public route, subdomain routing) will either:
+
 - couple UI to infrastructure details,
 - force breaking refactors in server actions, or
 - create weak data invariants for slug/page lookups.
@@ -17,6 +18,7 @@ If these are unclear, later steps (publish action, public route, subdomain routi
 ### 1) Keep `publishedPages` and evolve it to metadata/index shape
 
 `publishedPages` remains the canonical table for published artifacts, but stores metadata instead of full HTML:
+
 - `pageId`
 - `slug`
 - `variantId` (nullable in Phase 4)
@@ -83,16 +85,15 @@ Publishing result contracts include typed error codes plus message.
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| In-place table evolution | Minimal module/query churn | Requires careful migration from old column set |
-| Unique `pageId` + `slug` | Strong integrity and deterministic upsert | Slightly stricter write constraints |
-| Nullable `variantId` now | Smooth Phase 5 path | Extra nullable field before immediate use |
-| Stable error codes | Predictable clients/tests | Additional contract typing upfront |
+| Decision                 | Upside                                    | Downside                                       |
+| ------------------------ | ----------------------------------------- | ---------------------------------------------- |
+| In-place table evolution | Minimal module/query churn                | Requires careful migration from old column set |
+| Unique `pageId` + `slug` | Strong integrity and deterministic upsert | Slightly stricter write constraints            |
+| Nullable `variantId` now | Smooth Phase 5 path                       | Extra nullable field before immediate use      |
+| Stable error codes       | Predictable clients/tests                 | Additional contract typing upfront             |
 
 ## Consequences
 
 - Publishing contracts are now a first-class API in `modules/publishing`.
 - Database model is aligned with storage-backed artifact architecture from ADR-028.
 - Later Phase 4 steps can proceed without reopening schema-level design debates.
-

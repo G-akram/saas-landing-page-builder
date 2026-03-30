@@ -67,7 +67,7 @@ Watch `documentStore` for changes. After 2s idle, serialize and save via Server 
 
 Replace `editorMode` union string with XState machine. States: `idle`, `selected`, `dragging`. Wire DnD and selection events through machine transitions.
 
-**Why sixth:** Real modes now exist from Steps 2-5. XState encodes *observed* behavior, not speculation. Machine will grow in Phase 3 (editingText, resizing).
+**Why sixth:** Real modes now exist from Steps 2-5. XState encodes _observed_ behavior, not speculation. Machine will grow in Phase 3 (editingText, resizing).
 
 **Deliverable:** Click section → selected. Drag → dragging (locked). Drop → selected. Escape → idle. Visualizable in XState inspector.
 
@@ -81,13 +81,13 @@ Editor layout: dark background, top bar (page name, save status, back button), l
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| XState deferred to Step 6 | Build on real behavior, not speculation | Brief period of implicit mode management |
-| Full document save over patches | Simple, no diff logic | Slightly wasteful at scale (irrelevant for MVP) |
-| Chrome last | Zero rework on layout | Editor looks rough during Steps 1-6 |
-| dnd-kit v6 over @dnd-kit/react 0.x | Stable, documented | Migration needed when v1 ships |
-| TanStack Query for auto-save | Retry, error handling, optimistic UI free | Extra dependency in editor module |
+| Decision                           | Upside                                    | Downside                                        |
+| ---------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| XState deferred to Step 6          | Build on real behavior, not speculation   | Brief period of implicit mode management        |
+| Full document save over patches    | Simple, no diff logic                     | Slightly wasteful at scale (irrelevant for MVP) |
+| Chrome last                        | Zero rework on layout                     | Editor looks rough during Steps 1-6             |
+| dnd-kit v6 over @dnd-kit/react 0.x | Stable, documented                        | Migration needed when v1 ships                  |
+| TanStack Query for auto-save       | Retry, error handling, optimistic UI free | Extra dependency in editor module               |
 
 ## Consequences
 
@@ -95,4 +95,3 @@ Editor layout: dark background, top bar (page name, save status, back button), l
 - Phase 3 (Block Library) can add block types without touching DnD or store architecture.
 - XState machine starts minimal (3 states) and grows as interactions are added.
 - Auto-save uses TanStack Query mutations, establishing the pattern for all future editor → server communication.
-

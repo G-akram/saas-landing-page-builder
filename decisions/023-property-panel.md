@@ -10,10 +10,10 @@ The right property panel is a permanent third grid column in the editor shell, a
 
 ### Alternatives considered
 
-| Approach | Pros | Cons |
-|---|---|---|
-| **A) Grid column** (chosen) | Canvas width adjusts naturally — no overlap. Consistent with the left sidebar pattern. No z-index management. Works with existing CSS Grid layout. | Canvas gets narrower with both panels open. |
-| **B) Overlay / floating panel** | Canvas keeps full width. Can be dragged/repositioned. | Overlaps content — user can't see what they're editing. Z-index conflicts with DragOverlay. Needs portal + focus trap. More complex keyboard navigation. |
+| Approach                        | Pros                                                                                                                                               | Cons                                                                                                                                                     |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A) Grid column** (chosen)     | Canvas width adjusts naturally — no overlap. Consistent with the left sidebar pattern. No z-index management. Works with existing CSS Grid layout. | Canvas gets narrower with both panels open.                                                                                                              |
+| **B) Overlay / floating panel** | Canvas keeps full width. Can be dragged/repositioned.                                                                                              | Overlaps content — user can't see what they're editing. Z-index conflicts with DragOverlay. Needs portal + focus trap. More complex keyboard navigation. |
 
 ### Why A wins
 

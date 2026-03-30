@@ -145,9 +145,7 @@ describe('renderPublishedPage', () => {
     expect(result.html).not.toContain('javascript:alert(1)')
 
     expect(result.metadata.title).toBe('Acme - Ship Faster')
-    expect(result.metadata.description).toBe(
-      'Build, publish, and iterate faster with Acme.',
-    )
+    expect(result.metadata.description).toBe('Build, publish, and iterate faster with Acme.')
     expect(result.metadata.ogImage).toBe('https://cdn.example.com/og.png')
     expect(result.metadata.canonicalUrl).toBe('https://acme.example.com/')
     expect(result.contentHash).toMatch(/^[a-f0-9]{64}$/)
@@ -206,4 +204,3 @@ describe('renderPublishedPage', () => {
     expect(result.message).toContain('variant-missing')
   })
 })
-

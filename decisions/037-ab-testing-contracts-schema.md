@@ -7,6 +7,7 @@
 ## The Problem
 
 Phase 5 introduces A/B testing across multiple boundaries:
+
 - draft editor state,
 - published artifact indexing,
 - sticky assignment cookies,
@@ -20,6 +21,7 @@ If these contracts stay implicit, later steps will either duplicate logic across
 ### 1. `publishedPages` becomes one row per published variant
 
 The existing `publishedPages` table stays in place, but its invariants change:
+
 - `variantId` is required,
 - uniqueness moves to `pageId + variantId`,
 - `slug` is no longer unique,
@@ -27,6 +29,7 @@ The existing `publishedPages` table stays in place, but its invariants change:
 - `pages.slug` stays the canonical unique page slug.
 
 **Why:**
+
 - preserves the Phase 4 publish boundary,
 - keeps published serving inside the published domain,
 - and avoids inventing a second table for the same artifact index concern.
@@ -34,15 +37,18 @@ The existing `publishedPages` table stays in place, but its invariants change:
 ### 2. Draft variants gain an explicit primary conversion goal contract
 
 Each draft variant may optionally declare one `primaryGoal` with:
+
 - `type = 'link-click'`
 - `elementId`
 
 Validation rules:
+
 - the referenced element must exist in the same variant,
 - the referenced element must already be linked,
 - variant ids within a page document must be unique.
 
 **Why:**
+
 - keeps conversion semantics explicit and teachable,
 - prevents invalid analytics configurations from being saved,
 - and gives later editor UI/store work a stable invariant to enforce.
@@ -50,6 +56,7 @@ Validation rules:
 ### 3. Sticky assignment uses an explicit assignment payload
 
 The assignment contract includes:
+
 - `assignmentId`
 - `pageId`
 - `variantId`
@@ -59,6 +66,7 @@ The assignment contract includes:
 `assignmentId` is the stable identity for dedupe and attribution. `contentHash` ties the assignment to the exact published artifact version that was served.
 
 **Why:**
+
 - keeps serving and analytics aligned on a single identity,
 - avoids ambiguous attribution after republish,
 - and gives us a contract we can serialize directly into a cookie later.
@@ -66,6 +74,7 @@ The assignment contract includes:
 ### 4. Analytics uses append-only published-page events
 
 Phase 5 adds a dedicated `publishedPageEvents` table with:
+
 - `pageId`
 - `variantId`
 - `assignmentId`
@@ -75,11 +84,13 @@ Phase 5 adds a dedicated `publishedPageEvents` table with:
 - `occurredAt`
 
 Write invariant:
+
 - unique `(assignmentId, eventType)`
 
 This means one `view` and one `conversion` max per assignment in MVP.
 
 **Why:**
+
 - preserves raw events for auditability,
 - matches the “first conversion per assigned session” product rule,
 - and prevents accidental double counting without mutable counters.
@@ -89,6 +100,7 @@ This means one `view` and one `conversion` max per assignment in MVP.
 Analytics rows store `contentHash` from the published artifact, not just `pageId + variantId`.
 
 **Why:**
+
 - prevents pre-republish and post-republish events from becoming indistinguishable,
 - supports later debugging and historical analysis,
 - and costs very little because publish already computes the hash.
@@ -98,6 +110,7 @@ Analytics rows store `contentHash` from the published artifact, not just `pageId
 Until Phase 5 Step 4 ships full multi-variant publish fan-out, the live publish action continues to keep one active published row per page by clearing stale rows for other variants before upserting the current variant row.
 
 **Why:**
+
 - lets us land the schema early without breaking today’s Phase 4 behavior,
 - keeps `/p/[slug]` deterministic during the intermediate state,
 - and avoids forcing sticky serving work before its planned step.
@@ -127,13 +140,13 @@ Until Phase 5 Step 4 ships full multi-variant publish fan-out, the live publish 
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| Per-variant `publishedPages` rows | Preserves architecture and future serving model | Requires migration + query changes |
-| Variant-level `primaryGoal` | Clear invariant, easier editor rules | Goal references can become stale when elements change |
-| Explicit assignment payload | Better dedupe and attribution | More contract surface up front |
-| Append-only event table | Auditable and extensible | More rows than counters |
-| Transitional single-row publish behavior | No regression during Step 1 | Temporary shim to remove later |
+| Decision                                 | Upside                                          | Downside                                              |
+| ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------------- |
+| Per-variant `publishedPages` rows        | Preserves architecture and future serving model | Requires migration + query changes                    |
+| Variant-level `primaryGoal`              | Clear invariant, easier editor rules            | Goal references can become stale when elements change |
+| Explicit assignment payload              | Better dedupe and attribution                   | More contract surface up front                        |
+| Append-only event table                  | Auditable and extensible                        | More rows than counters                               |
+| Transitional single-row publish behavior | No regression during Step 1                     | Temporary shim to remove later                        |
 
 ## Consequences
 

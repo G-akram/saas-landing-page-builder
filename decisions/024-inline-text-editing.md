@@ -8,11 +8,12 @@
 
 ### 1. `contentEditable` over a floating input overlay
 
-A floating `<input>` positioned over the element requires coordinate math that drifts when the canvas scrolls or sections are styled with transforms. `contentEditable` is WYSIWYG by construction — the element the user edits *is* the element they see. The downside (limited to plain text) matches our schema: `PageElement` content has no rich-text format.
+A floating `<input>` positioned over the element requires coordinate math that drifts when the canvas scrolls or sections are styled with transforms. `contentEditable` is WYSIWYG by construction — the element the user edits _is_ the element they see. The downside (limited to plain text) matches our schema: `PageElement` content has no rich-text format.
 
 ### 2. `editing` state in XState — not a Zustand flag
 
 `isEditing: boolean` in UIStore would require manual guards everywhere:
+
 - "block DRAG_START if editing"
 - "block SELECT_SECTION if editing"
 - "save before TOGGLE_PREVIEW if editing"
@@ -20,6 +21,7 @@ A floating `<input>` positioned over the element requires coordinate math that d
 In XState, impossible transitions are structurally absent. The `editing` state has no `DRAG_START` handler — drag while typing is impossible by design, not by runtime check.
 
 Transition map:
+
 ```
 selected → (EDIT_START) → editing
 editing  → (EDIT_END)   → selected
@@ -31,12 +33,14 @@ editing drops: DRAG_START, SELECT_ELEMENT   // silently ignored, not guarded
 ### 3. Blur fires before click — no save/transition race
 
 Browser event order: `mousedown` on new element → `blur` on contentEditable (synchronous) → `mouseup` → `click`. This means:
+
 - `EDIT_END` + inline save commit before any click-triggered `SELECT_ELEMENT` or `TOGGLE_PREVIEW`.
 - No timer or `flushSync` needed.
 
 ### 4. React + `contentEditable` coexistence
 
 React's reconciler would overwrite DOM text on re-render if another subtree update triggers. This is safe because:
+
 - The store only updates `element.content.text` on `updateElement`, which is called from the blur handler.
 - Blur fires before the store update, which fires before the re-render.
 - By re-render time, `element.content.text` in the store equals what's in the DOM.

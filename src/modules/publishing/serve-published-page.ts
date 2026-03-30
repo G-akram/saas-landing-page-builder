@@ -144,12 +144,17 @@ function selectPublishedVariantForAssignment(
 ): PublishedPageMetadata {
   const eligibleVariants = publishedVariants.filter((variant) => variant.trafficWeight > 0)
   if (eligibleVariants.length === 0) {
+    const fallbackVariant = publishedVariants[0]
+    if (!fallbackVariant) {
+      throw new Error('Expected at least one published variant when serving a page')
+    }
+
     logger.warn('Published variants have no positive traffic weight; falling back to latest', {
-      slug: publishedVariants[0]?.slug,
+      slug: fallbackVariant.slug,
       variantCount: publishedVariants.length,
     })
 
-    return publishedVariants[0] as PublishedPageMetadata
+    return fallbackVariant
   }
 
   const totalWeight = eligibleVariants.reduce((sum, variant) => sum + variant.trafficWeight, 0)
@@ -163,7 +168,12 @@ function selectPublishedVariantForAssignment(
     threshold -= variant.trafficWeight
   }
 
-  return eligibleVariants[eligibleVariants.length - 1] as PublishedPageMetadata
+  const finalVariant = eligibleVariants[eligibleVariants.length - 1]
+  if (!finalVariant) {
+    throw new Error('Expected an eligible published variant after positive-weight filtering')
+  }
+
+  return finalVariant
 }
 
 function clampRandomValue(value: number): number {

@@ -20,17 +20,11 @@ interface EditorActorProviderProps {
   children: React.ReactNode
 }
 
-export function EditorActorProvider({
-  children,
-}: EditorActorProviderProps): React.JSX.Element {
+export function EditorActorProvider({ children }: EditorActorProviderProps): React.JSX.Element {
   // useActorRef handles start/stop and Strict Mode rehydration correctly.
   const actor = useActorRef(editorMachine)
 
-  return (
-    <EditorActorContext.Provider value={actor}>
-      {children}
-    </EditorActorContext.Provider>
-  )
+  return <EditorActorContext.Provider value={actor}>{children}</EditorActorContext.Provider>
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────

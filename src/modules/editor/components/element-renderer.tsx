@@ -189,9 +189,7 @@ function ButtonElement({
 
 // ── Image ────────────────────────────────────────────────────────────────────
 
-function ImageElement({
-  element,
-}: ElementRendererProps): React.JSX.Element {
+function ImageElement({ element }: ElementRendererProps): React.JSX.Element {
   if (element.content.type !== 'image') throw new Error('Expected image')
 
   const { src, alt } = element.content
@@ -235,9 +233,7 @@ function ImageElement({
 
 // ── Icon ────────────────────────────────────────────────────────────────────
 
-function IconElement({
-  element,
-}: ElementRendererProps): React.JSX.Element {
+function IconElement({ element }: ElementRendererProps): React.JSX.Element {
   if (element.content.type !== 'icon') throw new Error('Expected icon')
 
   const Icon = resolveLucideIcon(element.content.name)

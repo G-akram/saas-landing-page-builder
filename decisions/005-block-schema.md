@@ -8,15 +8,15 @@
 
 We need a data structure that supports:
 
-| Requirement | Why |
-| --- | --- |
-| **Render a page** | Editor canvas iterates sections → elements and draws them |
-| **Edit any element** | Sidebar reads/writes properties on a specific element by ID |
-| **Reorder sections** | Drag-drop changes section order — must be a simple array operation |
-| **Undo/redo** | `documentStore` snapshots the entire document — complexity = snapshot cost |
-| **A/B variants** | Each variant may have different sections, elements, or content |
-| **Publish to HTML** | Schema must be walkable to generate static HTML + CSS |
-| **Multi-column layouts** | Features section has 3 cards side-by-side, hero stacks vertically |
+| Requirement              | Why                                                                        |
+| ------------------------ | -------------------------------------------------------------------------- |
+| **Render a page**        | Editor canvas iterates sections → elements and draws them                  |
+| **Edit any element**     | Sidebar reads/writes properties on a specific element by ID                |
+| **Reorder sections**     | Drag-drop changes section order — must be a simple array operation         |
+| **Undo/redo**            | `documentStore` snapshots the entire document — complexity = snapshot cost |
+| **A/B variants**         | Each variant may have different sections, elements, or content             |
+| **Publish to HTML**      | Schema must be walkable to generate static HTML + CSS                      |
+| **Multi-column layouts** | Features section has 3 cards side-by-side, hero stacks vertically          |
 
 The schema must be **simple enough** to snapshot for undo/redo (deep clone on every action), **structured enough** to support section layouts, and **variant-aware** from day 1 (ADR-001).
 
@@ -24,11 +24,11 @@ The schema must be **simple enough** to snapshot for undo/redo (deep clone on ev
 
 ### 1. Hierarchy — how deep does nesting go?
 
-| Approach | Structure | Pros | Cons |
-| --- | --- | --- | --- |
-| **2-level** | Section → Elements (layout config on section) | Simple, flat, easy to snapshot/serialize | Layout logic implicit via config |
-| **3-level** | Section → Columns → Elements | Explicit column containers | Extra nesting, harder to manipulate |
-| **Recursive tree** | Node → children → children → ... (like DOM) | Maximum flexibility | Complex traversal, hard undo/redo, overkill for landing pages |
+| Approach           | Structure                                     | Pros                                     | Cons                                                          |
+| ------------------ | --------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------- |
+| **2-level**        | Section → Elements (layout config on section) | Simple, flat, easy to snapshot/serialize | Layout logic implicit via config                              |
+| **3-level**        | Section → Columns → Elements                  | Explicit column containers               | Extra nesting, harder to manipulate                           |
+| **Recursive tree** | Node → children → children → ... (like DOM)   | Maximum flexibility                      | Complex traversal, hard undo/redo, overkill for landing pages |
 
 **Decision: 2-level.** Sections define their layout (e.g., "3-column grid"), elements declare which slot they occupy. No intermediate column nodes. Matches ADR-002 — sections are the unit of layout, elements are leaf nodes.
 
@@ -36,20 +36,20 @@ Why not 3-level? A Features section with 3 cards doesn't need explicit `<Column>
 
 ### 2. Variants — full copy or diff-based?
 
-| Approach | How it works | Pros | Cons |
-| --- | --- | --- | --- |
-| **Full copy** | Each variant owns its own complete sections array | Simple — render/edit/publish any variant independently | Duplicated data |
-| **Diff-based** | Variants share a base, store only overrides | Space-efficient | Complex — what's the "base"? How do you reorder sections in one variant? Merge conflicts. |
+| Approach       | How it works                                      | Pros                                                   | Cons                                                                                      |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| **Full copy**  | Each variant owns its own complete sections array | Simple — render/edit/publish any variant independently | Duplicated data                                                                           |
+| **Diff-based** | Variants share a base, store only overrides       | Space-efficient                                        | Complex — what's the "base"? How do you reorder sections in one variant? Merge conflicts. |
 
 **Decision: Full copy.** A landing page is a few KB of JSON. Duplicating the sections array per variant costs nothing in storage but saves massive complexity in editing, undo/redo, and publishing. Each variant is a self-contained renderable document.
 
 ### 3. Styles — where do they live?
 
-| Approach | How it works | Pros | Cons |
-| --- | --- | --- | --- |
-| **Inline on element** | Each element has a `styles` object | Simple, direct, no indirection | Repeated values if elements share styles |
-| **Shared style objects** | Elements reference style IDs | DRY | Indirection, harder to edit, shared mutation risk |
-| **CSS classes** | Elements reference class names | Familiar | Requires CSS knowledge from users, class management UI |
+| Approach                 | How it works                       | Pros                           | Cons                                                   |
+| ------------------------ | ---------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| **Inline on element**    | Each element has a `styles` object | Simple, direct, no indirection | Repeated values if elements share styles               |
+| **Shared style objects** | Elements reference style IDs       | DRY                            | Indirection, harder to edit, shared mutation risk      |
+| **CSS classes**          | Elements reference class names     | Familiar                       | Requires CSS knowledge from users, class management UI |
 
 **Decision: Inline on element.** Per-element styles (ADR-001). No CSS classes, no shared style objects. Users pick a color, it goes on that element. Style duplication across elements is fine — landing pages have <50 elements, not 5000.
 
@@ -70,10 +70,10 @@ Page
 // ── Page ──────────────────────────────────────────────
 interface Page {
   id: string
-  name: string                    // user-facing name ("My Startup Landing Page")
-  slug: string                    // URL path ("my-startup")
+  name: string // user-facing name ("My Startup Landing Page")
+  slug: string // URL path ("my-startup")
   variants: Variant[]
-  activeVariantId: string         // which variant is shown in editor
+  activeVariantId: string // which variant is shown in editor
   createdAt: string
   updatedAt: string
 }
@@ -81,9 +81,9 @@ interface Page {
 // ── Variant ───────────────────────────────────────────
 interface Variant {
   id: string
-  name: string                    // "Original", "Variant B"
-  trafficWeight: number           // 0-100, all variants sum to 100
-  sections: Section[]             // full copy — independent per variant
+  name: string // "Original", "Variant B"
+  trafficWeight: number // 0-100, all variants sum to 100
+  sections: Section[] // full copy — independent per variant
 }
 
 // ── Section ───────────────────────────────────────────
@@ -92,7 +92,7 @@ type SectionType = 'hero' | 'features' | 'cta' | 'pricing' | 'testimonials' | 'f
 interface Section {
   id: string
   type: SectionType
-  variantStyleId: string          // which visual variant of this section type ("hero-1", "hero-2")
+  variantStyleId: string // which visual variant of this section type ("hero-1", "hero-2")
   layout: SectionLayout
   background: BackgroundConfig
   padding: SpacingConfig
@@ -101,16 +101,16 @@ interface Section {
 
 interface SectionLayout {
   type: 'stack' | 'grid'
-  columns?: number                // for grid: 2, 3, 4
-  gap: number                     // px between elements
+  columns?: number // for grid: 2, 3, 4
+  gap: number // px between elements
   align: 'left' | 'center' | 'right'
   verticalAlign: 'top' | 'center' | 'bottom'
 }
 
 interface BackgroundConfig {
   type: 'color' | 'gradient' | 'image'
-  value: string                   // hex, gradient string, or image URL
-  overlay?: string                // optional overlay color with opacity
+  value: string // hex, gradient string, or image URL
+  overlay?: string // optional overlay color with opacity
 }
 
 interface SpacingConfig {
@@ -126,7 +126,7 @@ type ElementType = 'heading' | 'text' | 'button' | 'image' | 'icon'
 interface Element {
   id: string
   type: ElementType
-  slot: number                    // position in section layout (0-indexed)
+  slot: number // position in section layout (0-indexed)
   content: ElementContent
   styles: ElementStyles
   link?: LinkConfig
@@ -155,7 +155,7 @@ interface ElementStyles {
   padding?: SpacingConfig
 
   // Dimensions
-  width?: string                  // "100%", "auto", "300px"
+  width?: string // "100%", "auto", "300px"
   maxWidth?: string
 
   // Spacing within section
@@ -165,7 +165,7 @@ interface ElementStyles {
 
 interface LinkConfig {
   type: 'url' | 'section' | 'variant'
-  value: string                   // URL, section ID, or variant ID
+  value: string // URL, section ID, or variant ID
   newTab: boolean
 }
 ```
@@ -204,21 +204,41 @@ A page with a Hero and Features section, one variant:
               "type": "heading",
               "slot": 0,
               "content": { "type": "heading", "text": "Build landing pages fast", "level": 1 },
-              "styles": { "fontSize": 48, "fontWeight": 700, "color": "#ffffff", "textAlign": "center" }
+              "styles": {
+                "fontSize": 48,
+                "fontWeight": 700,
+                "color": "#ffffff",
+                "textAlign": "center"
+              }
             },
             {
               "id": "el_2",
               "type": "text",
               "slot": 1,
-              "content": { "type": "text", "text": "No code required. Just drag, drop, and publish." },
-              "styles": { "fontSize": 18, "color": "#a0a0a0", "textAlign": "center", "maxWidth": "600px" }
+              "content": {
+                "type": "text",
+                "text": "No code required. Just drag, drop, and publish."
+              },
+              "styles": {
+                "fontSize": 18,
+                "color": "#a0a0a0",
+                "textAlign": "center",
+                "maxWidth": "600px"
+              }
             },
             {
               "id": "el_3",
               "type": "button",
               "slot": 2,
               "content": { "type": "button", "text": "Get Started" },
-              "styles": { "fontSize": 16, "fontWeight": 600, "color": "#ffffff", "backgroundColor": "#6366f1", "borderRadius": 8, "padding": { "top": 12, "bottom": 12, "left": 24, "right": 24 } },
+              "styles": {
+                "fontSize": 16,
+                "fontWeight": 600,
+                "color": "#ffffff",
+                "backgroundColor": "#6366f1",
+                "borderRadius": 8,
+                "padding": { "top": 12, "bottom": 12, "left": 24, "right": 24 }
+              },
               "link": { "type": "url", "value": "#pricing", "newTab": false }
             }
           ]
@@ -314,14 +334,14 @@ This avoids a 3rd level of nesting (no column containers). The section's layout 
 
 ## How This Connects to Other Decisions
 
-| Decision | Connection |
-| --- | --- |
-| **ADR-002** (Section-based editor) | Schema mirrors the editor model: page = stack of sections, sections contain elements |
-| **ADR-004** (`documentStore`) | This schema is what `documentStore` holds. Undo/redo = snapshot this JSON. |
-| **ADR-004** (XState) | Editor machine events map to schema mutations: `DRAG_START` → reorder `sections[]`, `SELECT` → find element by ID |
-| **ADR-006** (Styling — TBD) | `ElementStyles` and `BackgroundConfig` define what's customizable. Styling ADR will define how these render to CSS. |
-| **ADR-007** (Database — TBD) | Schema must be serializable. Likely stored as a single JSON column (document model) vs normalized tables. |
-| **ADR-008** (Publishing — TBD) | Publisher walks this schema to generate static HTML. Simpler schema = simpler publisher. |
+| Decision                           | Connection                                                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **ADR-002** (Section-based editor) | Schema mirrors the editor model: page = stack of sections, sections contain elements                                |
+| **ADR-004** (`documentStore`)      | This schema is what `documentStore` holds. Undo/redo = snapshot this JSON.                                          |
+| **ADR-004** (XState)               | Editor machine events map to schema mutations: `DRAG_START` → reorder `sections[]`, `SELECT` → find element by ID   |
+| **ADR-006** (Styling — TBD)        | `ElementStyles` and `BackgroundConfig` define what's customizable. Styling ADR will define how these render to CSS. |
+| **ADR-007** (Database — TBD)       | Schema must be serializable. Likely stored as a single JSON column (document model) vs normalized tables.           |
+| **ADR-008** (Publishing — TBD)     | Publisher walks this schema to generate static HTML. Simpler schema = simpler publisher.                            |
 
 ## Extensibility — What If We Need More Nesting?
 
@@ -340,12 +360,12 @@ No real landing page needs nested grids (a card containing a grid containing ano
 
 **If we later need grouped content** (e.g., a feature card with icon + heading + text as a unit), two options:
 
-| Approach | How | Schema change? |
-| --- | --- | --- |
-| **Composite element type** | Add `ElementType = 'feature-card'` with structured content `{ icon, heading, text }` | No structural change — new element type, same 2-level schema |
-| **3rd level nesting** | Add `children: Element[]` on Element | Structural change — every function that walks elements needs updating |
+| Approach                   | How                                                                                  | Schema change?                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| **Composite element type** | Add `ElementType = 'feature-card'` with structured content `{ icon, heading, text }` | No structural change — new element type, same 2-level schema          |
+| **3rd level nesting**      | Add `children: Element[]` on Element                                                 | Structural change — every function that walks elements needs updating |
 
-**Rule: prefer composite element types over deeper nesting.** Add nesting only when users need multiple *different* arrangements of children, not when the structure is known and fixed. A feature card always has icon + heading + text — that's a data type, not a tree.
+**Rule: prefer composite element types over deeper nesting.** Add nesting only when users need multiple _different_ arrangements of children, not when the structure is known and fixed. A feature card always has icon + heading + text — that's a data type, not a tree.
 
 **Recursive trees** (like Notion blocks or the DOM) solve a different problem: arbitrary user-defined structures. Our users pick pre-built sections and customize content. The structure is defined by us, the content by them.
 
@@ -356,6 +376,7 @@ From ADR-004: undo/redo uses snapshot-based history in `documentStore`. This mea
 ### Snapshot cost
 
 Schema complexity directly affects snapshot cost:
+
 - **Our schema**: 2 levels of nesting, ~50 elements max → deep clone is <1ms. No concern.
 - **If we had recursive nesting**: tree diffing, structural sharing needed. Unnecessary complexity.
 - **If variants were diff-based**: undo on one variant could affect the "base" that other variants reference. Full copy avoids this entirely.
@@ -364,13 +385,14 @@ Schema complexity directly affects snapshot cost:
 
 A typical landing page (6 sections, ~30 elements) is **5-15 KB** of JSON.
 
-| Snapshots | Memory cost | Context |
-| --- | --- | --- |
-| 30 | ~150-450 KB | Comfortable |
-| 50 | ~250-750 KB | Still nothing |
-| 100 | ~500 KB - 1.5 MB | Fine, but unnecessary |
+| Snapshots | Memory cost      | Context               |
+| --------- | ---------------- | --------------------- |
+| 30        | ~150-450 KB      | Comfortable           |
+| 50        | ~250-750 KB      | Still nothing         |
+| 100       | ~500 KB - 1.5 MB | Fine, but unnecessary |
 
 **Cap at 50 undo steps.** Rationale:
+
 - Enough to undo any realistic sequence of edits in a session
 - Memory cost is negligible (~500 KB worst case)
 - Simple implementation — fixed-size array, push new, shift oldest when full
@@ -381,8 +403,8 @@ A typical landing page (6 sections, ~30 elements) is **5-15 KB** of JSON.
 const MAX_HISTORY = 50
 
 interface DocumentHistory {
-  undoStack: DocumentSnapshot[]   // max 50
-  redoStack: DocumentSnapshot[]   // cleared on new action, also max 50
+  undoStack: DocumentSnapshot[] // max 50
+  redoStack: DocumentSnapshot[] // cleared on new action, also max 50
 }
 
 // On every action:
@@ -395,10 +417,10 @@ Reference: Figma uses ~100 steps, Photoshop defaults to ~50. Both deal with much
 
 ### When snapshots stop being enough
 
-| Trigger | What to do |
-| --- | --- |
-| **Large documents (hundreds of elements)** | Switch to **patches** (store only what changed). `immer` gives patches for free. Not needed for MVP. |
-| **Collaborative editing** | Snapshots don't work — need operational transforms or CRDTs. "Later" feature (ADR-003 migration path). |
+| Trigger                                    | What to do                                                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Large documents (hundreds of elements)** | Switch to **patches** (store only what changed). `immer` gives patches for free. Not needed for MVP.   |
+| **Collaborative editing**                  | Snapshots don't work — need operational transforms or CRDTs. "Later" feature (ADR-003 migration path). |
 
 Both are post-MVP concerns. Full snapshots with a cap of 50 is the right starting point.
 

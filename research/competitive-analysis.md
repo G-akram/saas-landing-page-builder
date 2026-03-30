@@ -52,16 +52,16 @@ Completed: 2026-03-24
 
 ## Cross-tool comparison
 
-| Dimension | Carrd | Framer | Webflow | Unbounce |
-|---|---|---|---|---|
-| **Complexity** | Minimal | High | Highest | Medium |
-| **Editor model** | Section stack | Canvas + layers | DOM-structured canvas | Section grid |
-| **Style system** | Per-element props | Per-node inline | Class-based CSS | Per-element props |
-| **Responsive** | Auto-stack | Breakpoint overrides | Breakpoint cascade | Separate layouts |
-| **Learning curve** | Minutes | Hours-days | Days-weeks | ~1 hour |
-| **A/B testing** | No | No | No | Core feature |
-| **CMS** | No | Basic | Powerful | No |
-| **Free tier** | Yes | Yes | Yes | No |
+| Dimension          | Carrd             | Framer               | Webflow               | Unbounce          |
+| ------------------ | ----------------- | -------------------- | --------------------- | ----------------- |
+| **Complexity**     | Minimal           | High                 | Highest               | Medium            |
+| **Editor model**   | Section stack     | Canvas + layers      | DOM-structured canvas | Section grid      |
+| **Style system**   | Per-element props | Per-node inline      | Class-based CSS       | Per-element props |
+| **Responsive**     | Auto-stack        | Breakpoint overrides | Breakpoint cascade    | Separate layouts  |
+| **Learning curve** | Minutes           | Hours-days           | Days-weeks            | ~1 hour           |
+| **A/B testing**    | No                | No                   | No                    | Core feature      |
+| **CMS**            | No                | Basic                | Powerful              | No                |
+| **Free tier**      | Yes               | Yes                  | Yes                   | No                |
 
 ## Key insights for our builder
 

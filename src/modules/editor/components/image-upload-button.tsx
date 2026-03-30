@@ -108,12 +108,12 @@ export function ImageUploadButton({
         aria-label="Upload image"
         className={[
           'relative flex cursor-pointer flex-col items-center justify-center rounded border border-dashed px-3 py-3 text-center transition-colors',
-          isDragging
-            ? 'border-blue-400 bg-blue-500/10'
-            : 'border-white/20 hover:border-white/40',
+          isDragging ? 'border-blue-400 bg-blue-500/10' : 'border-white/20 hover:border-white/40',
           isUploading ? 'pointer-events-none opacity-60' : '',
         ].join(' ')}
-        onClick={() => { inputRef.current?.click() }}
+        onClick={() => {
+          inputRef.current?.click()
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click()
         }}
@@ -165,9 +165,7 @@ export function ImageUploadButton({
         )}
       </div>
 
-      {error !== null && (
-        <p className="text-[10px] text-red-400">{error}</p>
-      )}
+      {error !== null && <p className="text-[10px] text-red-400">{error}</p>}
 
       <input
         ref={inputRef}

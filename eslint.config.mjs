@@ -43,10 +43,7 @@ export default tseslint.config(
   // Strict TypeScript rules applied to TS/TSX files only
   {
     files: ['**/*.ts', '**/*.tsx'],
-    extends: [
-      ...tseslint.configs.strictTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
-    ],
+    extends: [...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked],
     languageOptions: {
       parserOptions: {
         project: true,
@@ -102,13 +99,29 @@ export default tseslint.config(
             // auth → shared only
             { from: { type: 'auth' }, allow: { to: { type: ['shared', 'auth', 'ui'] } } },
             // editor → auth + shared
-            { from: { type: 'editor' }, allow: { to: { type: ['shared', 'auth', 'editor', 'ui'] } } },
+            {
+              from: { type: 'editor' },
+              allow: { to: { type: ['shared', 'auth', 'editor', 'ui'] } },
+            },
             // publishing → editor + auth + shared
-            { from: { type: 'publishing' }, allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'ui'] } } },
+            {
+              from: { type: 'publishing' },
+              allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'ui'] } },
+            },
             // dashboard → all modules + shared
-            { from: { type: 'dashboard' }, allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'ui'] } } },
+            {
+              from: { type: 'dashboard' },
+              allow: {
+                to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'ui'] },
+              },
+            },
             // app routes → everything (thin composition layer)
-            { from: { type: 'app' }, allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'app', 'ui'] } } },
+            {
+              from: { type: 'app' },
+              allow: {
+                to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'app', 'ui'] },
+              },
+            },
           ],
         },
       ],

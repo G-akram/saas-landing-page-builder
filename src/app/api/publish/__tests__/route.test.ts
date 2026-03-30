@@ -173,4 +173,3 @@ describe('POST /api/publish', () => {
     expect(mocked.loggerError).toHaveBeenCalledTimes(1)
   })
 })
-

@@ -74,9 +74,7 @@ export function PublishedPageDocument({
     )
   }
 
-  headChildren.push(
-    createElement('style', { key: 'base-style' }, PUBLISHED_PAGE_BASE_CSS),
-  )
+  headChildren.push(createElement('style', { key: 'base-style' }, PUBLISHED_PAGE_BASE_CSS))
 
   return createElement(
     'html',

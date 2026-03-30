@@ -6,10 +6,7 @@ import { type Element as PageElement, type ElementStyles } from '@/shared/types'
 
 import { FieldRow, BlurInput, INPUT_CLASS, SELECT_CLASS } from './field-row'
 
-type StyleUpdater = (
-  styles: Partial<ElementStyles>,
-  options?: { pushHistory?: boolean },
-) => void
+type StyleUpdater = (styles: Partial<ElementStyles>, options?: { pushHistory?: boolean }) => void
 
 interface TypographyControlsProps {
   element: PageElement

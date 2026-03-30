@@ -12,10 +12,7 @@ interface PublishedPageRouteContext {
   params: Promise<{ slug: string }>
 }
 
-export async function GET(
-  request: Request,
-  context: PublishedPageRouteContext,
-): Promise<Response> {
+export async function GET(request: Request, context: PublishedPageRouteContext): Promise<Response> {
   const { slug: rawSlug } = await context.params
   const slug = rawSlug.trim()
 
@@ -36,7 +33,10 @@ export async function GET(
     if (serveResult.assignmentCookie) {
       successHeaders.set(
         'Set-Cookie',
-        buildAssignmentCookieHeader(serveResult.assignmentCookie.name, serveResult.assignmentCookie.value),
+        buildAssignmentCookieHeader(
+          serveResult.assignmentCookie.name,
+          serveResult.assignmentCookie.value,
+        ),
       )
     }
 
@@ -73,12 +73,7 @@ function createNotFoundResponse(): Response {
 }
 
 function buildAssignmentCookieHeader(name: string, value: string): string {
-  const segments = [
-    `${name}=${value}`,
-    'Path=/',
-    'HttpOnly',
-    'SameSite=Lax',
-  ]
+  const segments = [`${name}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
 
   if (process.env.NODE_ENV === 'production') {
     segments.push('Secure')

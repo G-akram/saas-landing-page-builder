@@ -39,4 +39,3 @@ export function resolvePublishFeedback(
 
   return null
 }
-

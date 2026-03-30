@@ -7,6 +7,7 @@
 ## The Problem
 
 Phase 4 spans multiple layers: data contracts, rendering, storage, serving, routing, and editor UX. If we build these in the wrong order, we will either:
+
 - hardcode infra choices in the UI,
 - mix rendering logic into route handlers, or
 - refactor storage + URL logic when Phase 5 A/B traffic routing starts.
@@ -20,11 +21,13 @@ We need an order that keeps architecture clean and ships a real publish URL earl
 **Decision:** Use storage for generated HTML artifacts and keep `publishedPages` as metadata/index (not HTML body).
 
 **Why:**
+
 - Matches roadmap expectation: local filesystem in dev, object storage in prod.
 - Gives clean CDN/header strategy and smooth migration path to production storage.
 - Keeps serving route simple: resolve slug -> find artifact key -> return artifact.
 
 **Alternatives considered:**
+
 - **DB-only HTML (`publishedPages.html`)**: fastest MVP coding, but higher DB read pressure per visit and weaker storage/CDN evolution path.
 - **Hybrid DB + storage copy**: extra resilience, but unnecessary complexity for MVP.
 
@@ -33,11 +36,13 @@ We need an order that keeps architecture clean and ships a real publish URL earl
 **Decision:** Phase 4 publishes the active variant only.
 
 **Why:**
+
 - Fastest route to end-to-end publish URL.
 - Avoids pulling weighted variant serving into Phase 4 (that belongs to Phase 5).
 - Keeps publish feedback deterministic ("this variant is live").
 
 **Alternative considered:**
+
 - Publish all variants now and add weighted serving immediately. Rejected as premature coupling to Phase 5.
 
 ### 3. Routing rollout - path first, subdomain second
@@ -45,11 +50,13 @@ We need an order that keeps architecture clean and ships a real publish URL earl
 **Decision:** Implement `/p/[slug]` serving first, then add middleware subdomain rewrite to `/p/[slug]`.
 
 **Why:**
+
 - `/p/[slug]` is easiest to test and debug locally and in preview.
 - Subdomain logic becomes a thin rewrite layer over a proven serving route.
 - Reduces failure surface while core publish path is still new.
 
 **Alternative considered:**
+
 - Subdomain-only from day 1. Rejected due local dev complexity and slower debugging loops.
 
 ### 4. Step order - contracts before UI
@@ -59,6 +66,7 @@ We need an order that keeps architecture clean and ships a real publish URL earl
 `contracts -> renderer -> storage -> publish action -> serving route -> subdomain routing -> editor UX -> hardening`
 
 **Why:**
+
 - Same proven ordering pattern used in earlier phases: data/contracts -> behavior -> polish.
 - UI integrates late against stable backend contracts.
 - Each step produces a verifiable increment.
@@ -87,12 +95,12 @@ We need an order that keeps architecture clean and ships a real publish URL earl
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| Storage artifacts + DB metadata | Matches roadmap, clean scaling path | More moving parts than DB-only |
-| Active variant only in Phase 4 | Faster delivery, lower scope risk | Phase 5 must extend for weighted serving |
-| Path route first, subdomain second | Better debugging and rollout safety | Temporary two-URL model during transition |
-| Contracts-first order | Less UI churn and clearer boundaries | Slower visible UI progress early |
+| Decision                           | Upside                               | Downside                                  |
+| ---------------------------------- | ------------------------------------ | ----------------------------------------- |
+| Storage artifacts + DB metadata    | Matches roadmap, clean scaling path  | More moving parts than DB-only            |
+| Active variant only in Phase 4     | Faster delivery, lower scope risk    | Phase 5 must extend for weighted serving  |
+| Path route first, subdomain second | Better debugging and rollout safety  | Temporary two-URL model during transition |
+| Contracts-first order              | Less UI churn and clearer boundaries | Slower visible UI progress early          |
 
 ## Consequences
 
@@ -104,10 +112,10 @@ We need an order that keeps architecture clean and ships a real publish URL earl
 ## Step 1 Readiness Definition
 
 Before coding Step 1, the following are now locked:
+
 - Artifact strategy: storage-backed artifacts + DB metadata index.
 - Variant scope for Phase 4: active variant only.
 - Routing rollout: `/p/[slug]` first, then subdomain rewrite.
 - Dependency order for implementation: contracts-first chain above.
 
 This removes architectural ambiguity and allows Step 1 implementation to begin immediately.
-

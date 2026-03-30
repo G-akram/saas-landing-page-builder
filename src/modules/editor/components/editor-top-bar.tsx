@@ -92,7 +92,9 @@ export function EditorTopBar({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => { setPreviewViewport('desktop') }}
+            onClick={() => {
+              setPreviewViewport('desktop')
+            }}
             aria-label="Desktop view"
             className={cn(
               'rounded p-1.5 transition-colors',
@@ -105,7 +107,9 @@ export function EditorTopBar({
           </button>
           <button
             type="button"
-            onClick={() => { setPreviewViewport('mobile') }}
+            onClick={() => {
+              setPreviewViewport('mobile')
+            }}
             aria-label="Mobile view"
             className={cn(
               'rounded p-1.5 transition-colors',
@@ -124,7 +128,9 @@ export function EditorTopBar({
 
         <button
           type="button"
-          onClick={() => { void onManualSave() }}
+          onClick={() => {
+            void onManualSave()
+          }}
           disabled={isManualSaveDisabled}
           aria-label="Save page now"
           className={cn(
@@ -156,7 +162,9 @@ export function EditorTopBar({
 
         <button
           type="button"
-          onClick={() => { void onPublish() }}
+          onClick={() => {
+            void onPublish()
+          }}
           disabled={isPublishDisabled}
           aria-label="Publish page"
           className={cn(

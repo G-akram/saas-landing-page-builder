@@ -55,7 +55,9 @@ describe('middleware', () => {
       hostHeader: 'acme.app.com',
       rootDomain: 'app.com',
     })
-    expect(response.headers.get('x-middleware-rewrite')).toBe('https://acme.app.com/p/acme?preview=1')
+    expect(response.headers.get('x-middleware-rewrite')).toBe(
+      'https://acme.app.com/p/acme?preview=1',
+    )
     expect(mocked.protectedRouteAuthMiddleware).not.toHaveBeenCalled()
   })
 

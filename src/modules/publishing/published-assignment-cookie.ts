@@ -32,9 +32,7 @@ export function readPublishedAssignmentFromCookieHeader({
   return decodePublishedAssignmentCookieValue(cookieValue)
 }
 
-function decodePublishedAssignmentCookieValue(
-  value: string,
-): PublishedVariantAssignment | null {
+function decodePublishedAssignmentCookieValue(value: string): PublishedVariantAssignment | null {
   try {
     const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as unknown
     const result = PublishedVariantAssignmentSchema.safeParse(parsed)

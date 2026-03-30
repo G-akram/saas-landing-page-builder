@@ -108,7 +108,9 @@ export function ContentControls({
         <>
           <ImageUploadButton
             {...(content.src ? { currentSrc: content.src } : {})}
-            onUpload={(src) => { onUpdateContent({ ...content, src }) }}
+            onUpload={(src) => {
+              onUpdateContent({ ...content, src })
+            }}
           />
           <FieldRow label="Alt text">
             <BlurInput

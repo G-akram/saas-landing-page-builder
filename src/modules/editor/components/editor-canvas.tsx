@@ -37,14 +37,8 @@ export function EditorCanvas(): React.JSX.Element {
   const isMobile = useUIStore((s) => s.previewViewport === 'mobile')
 
   const actor = useEditorActor()
-  const selectedSectionId = useSelector(
-    actor,
-    (state) => state.context.selectedSectionId,
-  )
-  const selectedElementId = useSelector(
-    actor,
-    (state) => state.context.selectedElementId,
-  )
+  const selectedSectionId = useSelector(actor, (state) => state.context.selectedSectionId)
+  const selectedElementId = useSelector(actor, (state) => state.context.selectedElementId)
   // Only expose editingElementId while in the 'editing' state so element
   // renderers know to activate contentEditable.
   const editingElementId = useSelector(actor, (state) =>
@@ -72,9 +66,7 @@ export function EditorCanvas(): React.JSX.Element {
     )
   }
 
-  const activeVariant = document.variants.find(
-    (v) => v.id === document.activeVariantId,
-  )
+  const activeVariant = document.variants.find((v) => v.id === document.activeVariantId)
 
   if (!activeVariant) {
     return (
@@ -100,11 +92,7 @@ export function EditorCanvas(): React.JSX.Element {
     const element = section?.elements.find((el) => el.id === elementId)
     if (!element) return
     const { content } = element
-    if (
-      content.type === 'heading' ||
-      content.type === 'text' ||
-      content.type === 'button'
-    ) {
+    if (content.type === 'heading' || content.type === 'text' || content.type === 'button') {
       updateElement(activeVariant.id, sectionId, elementId, {
         content: { ...content, text },
       })
@@ -159,15 +147,10 @@ export function EditorCanvas(): React.JSX.Element {
       >
         {activeVariant.sections.length === 0 ? (
           <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-white/10">
-            <p className="text-gray-500">
-              No sections yet — click &quot;Add Section&quot; below
-            </p>
+            <p className="text-gray-500">No sections yet — click &quot;Add Section&quot; below</p>
           </div>
         ) : (
-          <SortableContext
-            items={sectionIds}
-            strategy={verticalListSortingStrategy}
-          >
+          <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col" role="presentation">
               {activeVariant.sections.map((section) => (
                 <div key={section.id} role="listitem">
@@ -205,7 +188,7 @@ export function EditorCanvas(): React.JSX.Element {
         DragOverlay renders as a portal to document.body — escapes scroll/overflow constraints.
         Renders a non-interactive clone of the dragged section at the cursor position.
       */}
-      <div className="relative mx-auto w-full max-w-4xl pl-8 pt-2">
+      <div className="relative mx-auto w-full max-w-4xl pt-2 pl-8">
         <AddSectionButton
           onAdd={(type, variantStyleId) => {
             addSection(activeVariant.id, type, undefined, variantStyleId)

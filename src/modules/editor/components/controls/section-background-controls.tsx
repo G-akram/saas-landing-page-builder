@@ -41,14 +41,18 @@ export function SectionBackgroundControls({
       {background.type === 'image' ? (
         <ImageUploadButton
           {...(background.value ? { currentSrc: background.value } : {})}
-          onUpload={(value) => { onUpdate({ ...background, value }) }}
+          onUpload={(value) => {
+            onUpdate({ ...background, value })
+          }}
         />
       ) : (
         <FieldRow label="Value">
           <BlurInput
             value={background.value}
             placeholder={background.type === 'color' ? '#1a1a2e' : 'linear-gradient(...)'}
-            onCommit={(value) => { onUpdate({ ...background, value }) }}
+            onCommit={(value) => {
+              onUpdate({ ...background, value })
+            }}
           />
         </FieldRow>
       )}

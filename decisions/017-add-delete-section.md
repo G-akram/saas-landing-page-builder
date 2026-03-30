@@ -17,11 +17,14 @@
 Creating a valid `Section` requires a UUID, default layout, background, padding, and elements array. These templates live in `editor/lib/section-templates.ts` as a registry:
 
 ```ts
-SECTION_TEMPLATES: Record<SectionType, {
-  label: string
-  icon: LucideIcon
-  createSection: () => Section
-}>
+SECTION_TEMPLATES: Record<
+  SectionType,
+  {
+    label: string
+    icon: LucideIcon
+    createSection: () => Section
+  }
+>
 ```
 
 **Why a registry over inline switch:** The type picker, the factory, and Phase 3's block library all need the same type → metadata mapping. A registry centralizes it — Phase 3 adds a `previewComponent` field to each entry without touching picker or factory code.
@@ -34,11 +37,11 @@ SECTION_TEMPLATES: Record<SectionType, {
 
 The "Add section" trigger opens a `shadcn/ui Dialog`, not a popover or slide-in panel.
 
-| Option | Why rejected |
-|---|---|
-| Popover | No room for visual previews. Phase 3 adds 2-3 layout variants per type — a popover would need to be replaced entirely. |
-| Slide-in panel | Panels are for tools kept open *while* working. Type picking is a one-shot action: open → pick → close. A panel would also compete with the left (section list) and right (properties) panels for screen edges. |
-| **Dialog (chosen)** | Correct primitive for transient decisions. Has room for a 2–3 column type grid today, and preview thumbnails in Phase 3 without changing the trigger or open/close logic. |
+| Option              | Why rejected                                                                                                                                                                                                    |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Popover             | No room for visual previews. Phase 3 adds 2-3 layout variants per type — a popover would need to be replaced entirely.                                                                                          |
+| Slide-in panel      | Panels are for tools kept open _while_ working. Type picking is a one-shot action: open → pick → close. A panel would also compete with the left (section list) and right (properties) panels for screen edges. |
+| **Dialog (chosen)** | Correct primitive for transient decisions. Has room for a 2–3 column type grid today, and preview thumbnails in Phase 3 without changing the trigger or open/close logic.                                       |
 
 ## Decision 4: Delete UX — Immediate, No Confirmation
 

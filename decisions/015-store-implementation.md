@@ -20,10 +20,10 @@ Two stores = clean persistence boundary. `documentStore.getState()` is always DB
 
 On every mutation, `structuredClone()` the full `PageDocument` and push to a history array.
 
-| Approach | How | Memory (50 entries) | Complexity |
-|---|---|---|---|
-| **Snapshot (chosen)** | Clone full doc before each mutation | ~750KB (50 × 15KB) | Trivial |
-| **Patch** | Compute JSON diff, store forward + inverse patches | ~50KB | High — inverse patches, ordering, partial update bugs |
+| Approach              | How                                                | Memory (50 entries) | Complexity                                            |
+| --------------------- | -------------------------------------------------- | ------------------- | ----------------------------------------------------- |
+| **Snapshot (chosen)** | Clone full doc before each mutation                | ~750KB (50 × 15KB)  | Trivial                                               |
+| **Patch**             | Compute JSON diff, store forward + inverse patches | ~50KB               | High — inverse patches, ordering, partial update bugs |
 
 **Why snapshots:** Landing pages are ~15KB. 750KB of history is nothing. Patch-based undo is the right call for Figma (megabyte docs) but premature optimization here — it adds real complexity (inverse patch computation, ordering edge cases) for zero user-visible benefit.
 
@@ -43,7 +43,7 @@ On every mutation, `structuredClone()` the full `PageDocument` and push to a his
 
 **Why not XState immediately:** Steps 1-5 don't have real mode transitions. There's no DnD (Step 3), no canvas selection (Step 2). Building a state machine for transitions that don't exist is speculative architecture — we'd be guessing at guards and events, then rewriting when reality differs.
 
-**The replacement plan:** Step 6 introduces XState to formalize the transitions we've *observed* from Steps 2-5. The union type is a deliberate, temporary placeholder that's trivially replaced — components already read `editorMode` via selector, so swapping the source from Zustand to XState changes the store internals, not the component API.
+**The replacement plan:** Step 6 introduces XState to formalize the transitions we've _observed_ from Steps 2-5. The union type is a deliberate, temporary placeholder that's trivially replaced — components already read `editorMode` via selector, so swapping the source from Zustand to XState changes the store internals, not the component API.
 
 ## Decision 5: Actions Return Void
 

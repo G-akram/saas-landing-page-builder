@@ -34,9 +34,7 @@ export interface PublishArtifactWriteSuccess {
   bytes: number
 }
 
-export type PublishArtifactWriteResult =
-  | PublishArtifactWriteSuccess
-  | PublishStorageOperationError
+export type PublishArtifactWriteResult = PublishArtifactWriteSuccess | PublishStorageOperationError
 
 export interface PublishArtifactReadInput {
   storageKey: string
@@ -48,9 +46,7 @@ export interface PublishArtifactReadSuccess {
   bytes: number
 }
 
-export type PublishArtifactReadResult =
-  | PublishArtifactReadSuccess
-  | PublishStorageOperationError
+export type PublishArtifactReadResult = PublishArtifactReadSuccess | PublishStorageOperationError
 
 export interface PublishStorageAdapter {
   readonly provider: PublishStorageProvider

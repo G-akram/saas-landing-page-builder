@@ -21,7 +21,12 @@ const LAYOUT_BY_MODE: Record<EditorMode, LayoutConfig> = {
   selected: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
   editing: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
   dragging: { showSidebar: true, showTopBar: true, showRightPanel: true, canvasMode: 'edit' },
-  previewing: { showSidebar: false, showTopBar: true, showRightPanel: false, canvasMode: 'preview' },
+  previewing: {
+    showSidebar: false,
+    showTopBar: true,
+    showRightPanel: false,
+    canvasMode: 'preview',
+  },
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────

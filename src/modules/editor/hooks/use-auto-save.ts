@@ -119,13 +119,7 @@ export function useAutoSave(
     }
   }, [document, isDirty, isEnabled, isPending, mutateAsync])
 
-  const status: SaveStatus = isPending
-    ? 'saving'
-    : isError
-      ? 'error'
-      : isSuccess
-        ? 'saved'
-        : 'idle'
+  const status: SaveStatus = isPending ? 'saving' : isError ? 'error' : isSuccess ? 'saved' : 'idle'
 
   return {
     status: isEnabled ? status : 'idle',

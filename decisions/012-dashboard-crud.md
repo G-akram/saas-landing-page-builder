@@ -24,9 +24,10 @@ modules/dashboard/
 **Why:** Server Components can fetch data at render time without the overhead of a server action round-trip. Actions are reserved for user-initiated mutations where `'use server'` is required. This maps cleanly to the read/write split that scales well — queries can be cached or deduplicated later, actions can add revalidation.
 
 **Rejected:**
-- *Inline server actions in page.tsx* — violates the "no business logic in app/ route files" code standard. Untestable, doesn't scale.
-- *Server actions for everything (reads + writes)* — unnecessary indirection for reads. Server Components already run on the server — calling a server action to read data adds a network hop for no benefit.
-- *Single data-access file* — works at this scale but doesn't communicate intent. Separating reads from writes makes the codebase scannable.
+
+- _Inline server actions in page.tsx_ — violates the "no business logic in app/ route files" code standard. Untestable, doesn't scale.
+- _Server actions for everything (reads + writes)_ — unnecessary indirection for reads. Server Components already run on the server — calling a server action to read data adds a network hop for no benefit.
+- _Single data-access file_ — works at this scale but doesn't communicate intent. Separating reads from writes makes the codebase scannable.
 
 ### 2. Create Page UX — Dialog Modal
 
@@ -35,12 +36,14 @@ modules/dashboard/
 **Why:** Standard SaaS pattern (Notion, Linear, Vercel). Keeps the user on the dashboard — no navigation to a separate `/new` route. The dialog is a client component (needs `useState` for open/close), but the form action inside it is a server action — minimal client JS.
 
 **Rejected:**
-- *Separate /dashboard/new route* — heavy for a single text input. Navigating away from the list and back feels sluggish.
-- *Inline form at top of list* — awkward layout, always visible even when not creating.
+
+- _Separate /dashboard/new route_ — heavy for a single text input. Navigating away from the list and back feels sluggish.
+- _Inline form at top of list_ — awkward layout, always visible even when not creating.
 
 ### 3. Default Page Document — Starter Hero Section
 
 **Approach:** When a user creates a page, the `document` column gets a default `PageDocument` with:
+
 - 1 variant ("Default", 100% traffic weight)
 - 1 Hero section with 3 elements: heading ("Your Landing Page"), text (subtitle), button ("Get Started")
 - Sensible default styles (font sizes, colors, padding)
@@ -48,8 +51,9 @@ modules/dashboard/
 **Why:** Per ADR-011, the default document validates the full Zod schema round-trip (Page → Variant → Section → Element). A non-empty document also means the editor (Phase 2) has something to render immediately — no empty-state edge case on first load.
 
 **Rejected:**
-- *Empty document* — editor would need an empty-state flow before any blocks exist. Adds Phase 2 complexity for no benefit.
-- *Multiple sections* — over-scoped for a default. One Hero section is enough to validate the schema path.
+
+- _Empty document_ — editor would need an empty-state flow before any blocks exist. Adds Phase 2 complexity for no benefit.
+- _Multiple sections_ — over-scoped for a default. One Hero section is enough to validate the schema path.
 
 ### 4. Slug Generation — Auto-Generated from Name
 
@@ -58,8 +62,9 @@ modules/dashboard/
 **Why:** Slugs matter for publishing (`[slug].app.com` in Phase 4). Auto-generation removes friction — the user only types a name. Uniqueness check is per-user since published URLs will be scoped to user subdomains.
 
 **Rejected:**
-- *User-typed slug* — extra friction at creation time. Can add an "edit slug" feature later if needed.
-- *UUID slugs* — no collisions but ugly URLs. Defeats the purpose of human-readable published paths.
+
+- _User-typed slug_ — extra friction at creation time. Can add an "edit slug" feature later if needed.
+- _UUID slugs_ — no collisions but ugly URLs. Defeats the purpose of human-readable published paths.
 
 ### 5. Delete Flow — Inline with Confirmation
 
@@ -70,6 +75,7 @@ modules/dashboard/
 ## Components Needed
 
 New shadcn/ui components to install:
+
 - `dialog` — create page modal
 - `input` — name field
 - `label` — form labels

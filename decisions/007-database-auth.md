@@ -126,13 +126,13 @@ Supabase is Postgres underneath — the database itself is excellent. The concer
 
 ```typescript
 // Relational tables
-users: (id, email, name, avatar, createdAt);
-accounts: (id, userId, provider, providerAccountId); // OAuth links
-sessions: (id, sessionToken, userId, expiresAt);
+users: (id, email, name, avatar, createdAt)
+accounts: (id, userId, provider, providerAccountId) // OAuth links
+sessions: (id, sessionToken, userId, expiresAt)
 
 // App tables
-pages: (id, userId, name, slug, document(JSONB), status, createdAt, updatedAt);
-publishedPages: (id, pageId, slug, html, publishedAt);
+pages: (id, userId, name, slug, document(JSONB), status, createdAt, updatedAt)
+publishedPages: (id, pageId, slug, html, publishedAt)
 ```
 
 The `document` column holds the full Page JSON from ADR-005. No normalization of sections/elements into separate tables — the editor reads/writes the whole document atomically, and JSONB lets us query into it if needed (e.g., `WHERE document->'variants' @> ...`).
@@ -253,13 +253,13 @@ The save operation writes the entire page JSON blob on every save. This feels ex
 
 A typical landing page (ADR-005: ~6 sections, ~30 elements) is **5-15 KB** of JSON.
 
-| What | Size / Cost | Context |
-|---|---|---|
-| Page document | 5-15 KB | A single unoptimized hero image is 500 KB - 2 MB |
-| Network transfer | 15 KB payload in Server Action body | Negligible — smaller than most API responses |
-| Postgres write | `UPDATE pages SET document = $1 WHERE id = $2` — one row, one column | <5ms for a 15 KB JSONB update |
-| Auto-save frequency | Debounced — fires after a few seconds of inactivity | ~1 write per 10-30 seconds during active editing |
-| Write volume | ~120-360 writes per hour of active editing | Neon free tier handles this trivially |
+| What                | Size / Cost                                                          | Context                                          |
+| ------------------- | -------------------------------------------------------------------- | ------------------------------------------------ |
+| Page document       | 5-15 KB                                                              | A single unoptimized hero image is 500 KB - 2 MB |
+| Network transfer    | 15 KB payload in Server Action body                                  | Negligible — smaller than most API responses     |
+| Postgres write      | `UPDATE pages SET document = $1 WHERE id = $2` — one row, one column | <5ms for a 15 KB JSONB update                    |
+| Auto-save frequency | Debounced — fires after a few seconds of inactivity                  | ~1 write per 10-30 seconds during active editing |
+| Write volume        | ~120-360 writes per hour of active editing                           | Neon free tier handles this trivially            |
 
 For comparison: a Postgres row can hold up to **1 GB** in a JSONB column. Our 15 KB document is 0.0015% of that limit. Even a complex page with 100+ elements (~50-100 KB) is nothing.
 
@@ -278,6 +278,7 @@ db.update(pages).set({
 ```
 
 Patches require:
+
 - **Diff generation** on client (compare previous vs current state)
 - **Patch application** on server (`jsonb_set()` calls or custom merge logic)
 - **Conflict resolution** (what if two patches touch the same path?)
@@ -287,11 +288,11 @@ That's real engineering for saving ~10 KB. The complexity cost far exceeds the p
 
 ### When to switch to patches
 
-| Trigger | Why full writes break | What to do |
-|---|---|---|
-| **Documents exceed ~500 KB** (hundreds of elements) | Network transfer and Postgres write time become noticeable | Wrap `documentStore` mutations in `immer.produce()` — immer emits patches for free. Send patches instead of full document. Server applies with `jsonb_set()`. |
-| **Real-time collaboration** (multiple users editing same page) | Last-write-wins destroys concurrent edits — two users save at the same time, one loses changes | Patches alone aren't enough — need operational transforms (OT) or CRDTs. This is a fundamentally different architecture (ADR-003 migration path). |
-| **Auto-save frequency increases** (sub-second, on every keystroke) | High write volume to Postgres | Batch patches client-side, flush periodically. Or use a write-ahead buffer (localStorage) that syncs to DB. |
+| Trigger                                                            | Why full writes break                                                                          | What to do                                                                                                                                                    |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Documents exceed ~500 KB** (hundreds of elements)                | Network transfer and Postgres write time become noticeable                                     | Wrap `documentStore` mutations in `immer.produce()` — immer emits patches for free. Send patches instead of full document. Server applies with `jsonb_set()`. |
+| **Real-time collaboration** (multiple users editing same page)     | Last-write-wins destroys concurrent edits — two users save at the same time, one loses changes | Patches alone aren't enough — need operational transforms (OT) or CRDTs. This is a fundamentally different architecture (ADR-003 migration path).             |
+| **Auto-save frequency increases** (sub-second, on every keystroke) | High write volume to Postgres                                                                  | Batch patches client-side, flush periodically. Or use a write-ahead buffer (localStorage) that syncs to DB.                                                   |
 
 **None of these apply at MVP scale.** A single user editing a 15 KB document with 10-30 second auto-save debounce is well within what a single Postgres row update can handle.
 

@@ -63,17 +63,13 @@ function resolveFirstImageSource(sections: Section[]): string | null {
   return null
 }
 
-export function buildPublishedSeoMetadata(
-  input: BuildSeoMetadataInput,
-): PublishedSeoMetadata {
-  const resolvedTitle =
-    (trimToNull(input.seo?.title) ?? input.pageName.trim()) || 'Published page'
+export function buildPublishedSeoMetadata(input: BuildSeoMetadataInput): PublishedSeoMetadata {
+  const resolvedTitle = (trimToNull(input.seo?.title) ?? input.pageName.trim()) || 'Published page'
 
   const descriptionFromInput = trimToNull(input.seo?.description)
   const resolvedDescription = descriptionFromInput
     ? normalizeTextForMeta(descriptionFromInput)
-    : resolveFirstTextDescription(input.sections) ??
-      `Published page for ${resolvedTitle}.`
+    : (resolveFirstTextDescription(input.sections) ?? `Published page for ${resolvedTitle}.`)
 
   const canonicalCandidate = trimToNull(input.liveUrl)
   const canonicalUrl = canonicalCandidate
@@ -92,4 +88,3 @@ export function buildPublishedSeoMetadata(
     ogImage: resolvedOgImage,
   }
 }
-

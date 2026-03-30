@@ -20,7 +20,11 @@ export const TextModeSchema = z.enum(['inline', 'multiline'])
 // ── Element content — discriminated union keyed on `type` ──────────────────
 
 export const ElementContentSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('heading'), text: z.string(), level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]) }),
+  z.object({
+    type: z.literal('heading'),
+    text: z.string(),
+    level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  }),
   z.object({ type: z.literal('text'), text: z.string(), mode: TextModeSchema.optional() }),
   z.object({ type: z.literal('button'), text: z.string() }),
   z.object({ type: z.literal('image'), src: z.string(), alt: z.string() }),

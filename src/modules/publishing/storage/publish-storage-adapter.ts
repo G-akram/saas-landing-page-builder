@@ -1,7 +1,4 @@
-import {
-  PUBLISH_STORAGE_PROVIDERS,
-  type PublishStorageProvider,
-} from '../types/publishing'
+import { PUBLISH_STORAGE_PROVIDERS, type PublishStorageProvider } from '../types/publishing'
 import {
   type CreatePublishStorageAdapterOptions,
   type PublishStorageAdapter,

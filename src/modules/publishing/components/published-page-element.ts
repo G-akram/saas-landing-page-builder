@@ -62,10 +62,7 @@ function wrapWithLinkIfPresent(
   )
 }
 
-function renderHeading(
-  element: PageElement,
-  defaultTextColor: string,
-): React.JSX.Element {
+function renderHeading(element: PageElement, defaultTextColor: string): React.JSX.Element {
   if (element.content.type !== 'heading') {
     throw new Error('Expected heading element content')
   }
@@ -84,10 +81,7 @@ function renderHeading(
   )
 }
 
-function renderText(
-  element: PageElement,
-  defaultTextColor: string,
-): React.JSX.Element {
+function renderText(element: PageElement, defaultTextColor: string): React.JSX.Element {
   if (element.content.type !== 'text') {
     throw new Error('Expected text element content')
   }
@@ -128,10 +122,7 @@ function renderButton(
   return wrapWithLinkIfPresent(element, buttonNode, primaryGoalElementId)
 }
 
-function renderImage(
-  element: PageElement,
-  primaryGoalElementId: string | null,
-): React.JSX.Element {
+function renderImage(element: PageElement, primaryGoalElementId: string | null): React.JSX.Element {
   if (element.content.type !== 'image') {
     throw new Error('Expected image element content')
   }
@@ -149,12 +140,11 @@ function renderImage(
     )
   }
 
-  const imageNode =
-    createElement('img', {
-      src: source,
-      alt: element.content.alt,
-      style: buildImageStyle(element.styles),
-    })
+  const imageNode = createElement('img', {
+    src: source,
+    alt: element.content.alt,
+    style: buildImageStyle(element.styles),
+  })
 
   return wrapWithLinkIfPresent(element, imageNode, primaryGoalElementId)
 }

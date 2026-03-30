@@ -14,10 +14,12 @@ If Step 4 writes directly to filesystem APIs, we will hardcode infrastructure co
 ### 1) Add a provider-agnostic storage contract in `modules/publishing`
 
 Create a `PublishStorageAdapter` contract with explicit operations for:
+
 - writing published artifacts
 - reading published artifacts by storage key
 
 **Why:**
+
 - isolates storage concerns from publish orchestration
 - keeps Step 4 server action focused on auth/ownership/render/upsert flow
 - makes provider swaps a factory concern, not a business-logic refactor
@@ -25,9 +27,11 @@ Create a `PublishStorageAdapter` contract with explicit operations for:
 ### 2) Use deterministic storage keys from `pageId + contentHash`
 
 Storage key format:
+
 - `pages/{pageId}/{contentHash}.html`
 
 **Why:**
+
 - stable and idempotent for identical published content
 - avoids coupling storage paths to mutable slug values
 - supports straightforward cache/integrity reasoning in later serving steps
@@ -35,11 +39,13 @@ Storage key format:
 ### 3) Implement local filesystem adapter now; keep object storage as boundary-only
 
 Step 3 ships:
+
 - working local adapter
 - provider resolver/factory that supports `local`
 - explicit unsupported-provider behavior for `object-storage` until Step 4+ production wiring
 
 **Why:**
+
 - satisfies current roadmap scope without prematurely adding cloud-provider complexity
 - preserves production migration path with zero API churn
 
@@ -48,6 +54,7 @@ Step 3 ships:
 Adapter returns typed failures (`WRITE_FAILED`, `READ_FAILED`, `NOT_FOUND`, `INVALID_KEY`) instead of leaking raw Node errors.
 
 **Why:**
+
 - lets Step 4 and Step 5 map failures to user-safe and route-safe responses predictably
 - simplifies test assertions and prevents provider-specific error branching
 
@@ -84,16 +91,15 @@ Adapter returns typed failures (`WRITE_FAILED`, `READ_FAILED`, `NOT_FOUND`, `INV
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| Contract boundary before publish action | Lower coupling and easier migration | Small upfront abstraction cost |
-| Hash-based deterministic key | Idempotent writes and stable identity | Keys are less human-readable |
-| Local-only implementation now | Fast delivery for current phase | Production provider still pending |
-| Typed storage errors | Predictable orchestration and tests | Slightly more code than throwing raw errors |
+| Decision                                | Upside                                | Downside                                    |
+| --------------------------------------- | ------------------------------------- | ------------------------------------------- |
+| Contract boundary before publish action | Lower coupling and easier migration   | Small upfront abstraction cost              |
+| Hash-based deterministic key            | Idempotent writes and stable identity | Keys are less human-readable                |
+| Local-only implementation now           | Fast delivery for current phase       | Production provider still pending           |
+| Typed storage errors                    | Predictable orchestration and tests   | Slightly more code than throwing raw errors |
 
 ## Consequences
 
 - Step 4 can consume storage through a stable interface.
 - Step 5 serving route can remain provider-agnostic (`storageKey -> html`).
 - Phase 4 keeps roadmap velocity while preserving production evolution path.
-

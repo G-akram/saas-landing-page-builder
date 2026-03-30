@@ -111,7 +111,9 @@ describe('useInlineEditing', () => {
 
   it('blurs on Enter for single-line elements', () => {
     let blurCalled = false
-    ref.current.blur = () => { blurCalled = true }
+    ref.current.blur = () => {
+      blurCalled = true
+    }
 
     const { result } = renderHook(() =>
       useInlineEditing(ref, 'Hello', true, false, vi.fn(), vi.fn()),
@@ -128,7 +130,9 @@ describe('useInlineEditing', () => {
 
   it('blurs on Enter for multi-line elements', () => {
     let blurCalled = false
-    ref.current.blur = () => { blurCalled = true }
+    ref.current.blur = () => {
+      blurCalled = true
+    }
 
     const { result } = renderHook(() =>
       useInlineEditing(ref, 'Hello', false, false, vi.fn(), vi.fn()),
@@ -158,7 +162,9 @@ describe('useInlineEditing', () => {
 
   it('blurs on Shift+Enter for single-line elements', () => {
     let blurCalled = false
-    ref.current.blur = () => { blurCalled = true }
+    ref.current.blur = () => {
+      blurCalled = true
+    }
 
     const { result } = renderHook(() =>
       useInlineEditing(ref, 'Hello', true, false, vi.fn(), vi.fn()),
@@ -173,7 +179,9 @@ describe('useInlineEditing', () => {
 
   it('allows Shift+Enter on multi-line elements without blurring', () => {
     let blurCalled = false
-    ref.current.blur = () => { blurCalled = true }
+    ref.current.blur = () => {
+      blurCalled = true
+    }
 
     const { result } = renderHook(() =>
       useInlineEditing(ref, 'Hello', false, false, vi.fn(), vi.fn()),
@@ -206,7 +214,9 @@ describe('useInlineEditing', () => {
 
   it('ignores unrelated key presses', () => {
     let blurCalled = false
-    ref.current.blur = () => { blurCalled = true }
+    ref.current.blur = () => {
+      blurCalled = true
+    }
 
     const { result } = renderHook(() =>
       useInlineEditing(ref, 'Hello', true, false, vi.fn(), vi.fn()),

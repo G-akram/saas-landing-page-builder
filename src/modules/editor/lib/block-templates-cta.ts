@@ -21,8 +21,16 @@ export const CTA_TEMPLATES: BlockTemplate[] = [
     background: { type: 'color', value: '#1e293b' },
     padding: { top: 64, bottom: 64, left: 48, right: 48 },
     createElements: () => [
-      heading(0, 'Start building today', 2, { fontSize: 32, fontWeight: 700, color: '#f8fafc', textAlign: 'left' }),
-      text(0, 'No credit card required. Free for small teams.', { color: '#94a3b8', textAlign: 'left' }),
+      heading(0, 'Start building today', 2, {
+        fontSize: 32,
+        fontWeight: 700,
+        color: '#f8fafc',
+        textAlign: 'left',
+      }),
+      text(0, 'No credit card required. Free for small teams.', {
+        color: '#94a3b8',
+        textAlign: 'left',
+      }),
       button(1, 'Sign Up Free', { backgroundColor: '#6366f1' }),
     ],
   },

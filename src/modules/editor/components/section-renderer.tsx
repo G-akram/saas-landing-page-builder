@@ -102,10 +102,8 @@ export function SectionRenderer({
       {/* Section type badge */}
       <div className="absolute top-2 left-2 z-10">
         <span
-          className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
-            isDarkBg
-              ? 'bg-white/15 text-white/70'
-              : 'bg-black/5 text-gray-500'
+          className={`rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wider uppercase ${
+            isDarkBg ? 'bg-white/15 text-white/70' : 'bg-black/5 text-gray-500'
           }`}
         >
           {SECTION_LABELS[section.type]}
@@ -143,9 +141,7 @@ export function SectionRenderer({
             />
           )
         ) : (
-          <p className={`text-sm italic ${mutedClass}`}>
-            Empty section — add elements
-          </p>
+          <p className={`text-sm italic ${mutedClass}`}>Empty section — add elements</p>
         )}
       </div>
     </div>
@@ -186,9 +182,7 @@ function GridLayout({
   const effectiveGap = isMobile ? Math.round(layout.gap * 0.6) : layout.gap
 
   // On mobile, flatten all slots into a single column
-  const columnIndices = isMobile
-    ? [0]
-    : Array.from({ length: columns }, (_, i) => i)
+  const columnIndices = isMobile ? [0] : Array.from({ length: columns }, (_, i) => i)
 
   // When collapsed to single column, merge all slot groups in order
   const getMobileElements = (): PageElement[] => {

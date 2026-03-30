@@ -9,12 +9,14 @@
 We need to complete the remaining Phase 5 work without reopening the earlier architecture decisions.
 
 Goal:
+
 - ship sticky weighted serving,
 - capture trustworthy `view` and `conversion` events,
 - surface per-variant metrics in the dashboard,
 - and keep the publish boundary teachable and explicit.
 
 Constraints:
+
 - `/p/[slug]` remains the assignment boundary, not middleware.
 - Published traffic must be served from prebuilt artifacts, not draft JSON rendered on demand.
 - Analytics stays append-only and deduped by `assignmentId`, not mutable counters.
@@ -39,12 +41,14 @@ This keeps the public path inside the publishing domain while letting the dashbo
 ### 1) Persist published runtime metadata on `publishedPages`
 
 `publishedPages` must store the published runtime fields needed after publish:
+
 - `trafficWeight` (integer, non-null),
 - `primaryGoalElementId` (nullable text).
 
 These values are copied from the draft variant at publish time and become the runtime source of truth for the live artifact.
 
 **Why:**
+
 - weighted assignment should not read `pages.document` on every public request,
 - conversion validation should not depend on mutable draft state after publish,
 - and the route can stay entirely inside the published-artifact boundary.
@@ -52,12 +56,14 @@ These values are copied from the draft variant at publish time and become the ru
 ### 2) Public serving queries all published variants for a slug, then reads the assigned artifact
 
 The publishing query layer should expose:
+
 - a helper that returns all published variant metadata rows for a slug,
 - and a helper that reads one artifact by already-selected metadata.
 
 `/p/[slug]` should stop using "latest row wins" logic for the public path.
 
 **Why:**
+
 - assignment requires the full published variant set,
 - artifact selection becomes a second step after cookie validation / weighted choice,
 - and the query layer stays reusable for serving and analytics validation.
@@ -65,6 +71,7 @@ The publishing query layer should expose:
 ### 3) Sticky assignment uses one host-only session cookie per slug
 
 Cookie contract:
+
 - name: `pb-assignment-${slug}`,
 - value: base64url-encoded JSON matching `PublishedVariantAssignmentSchema`,
 - path: `/`,
@@ -74,11 +81,13 @@ Cookie contract:
 - no explicit max-age so it remains session-scoped.
 
 Validation rules:
+
 - cookie payload must parse and satisfy the assignment schema,
 - `pageId`, `variantId`, and `contentHash` must still match one current published row for the slug,
 - malformed, stale, or mismatched cookies are discarded and replaced.
 
 **Why:**
+
 - one-cookie-per-slug avoids a large shared map cookie,
 - the value stays aligned with the existing contract object from ADR-037,
 - and `HttpOnly` lets the server own attribution while the client beacon remains minimal.
@@ -86,12 +95,14 @@ Validation rules:
 ### 4) Weighted assignment only considers published variants with positive weight
 
 Assignment behavior:
+
 - variants with `trafficWeight > 0` are eligible for new assignment,
 - variants with `trafficWeight = 0` remain published but are not eligible for new assignment,
 - an existing valid cookie for a zero-weight variant remains sticky until the session ends or the artifact becomes invalid,
 - if every published variant has `trafficWeight = 0`, the route falls back to the most recently published variant and logs a warning.
 
 **Why:**
+
 - matches ADR-036's product semantics,
 - preserves session stickiness when traffic is shifted away from an existing winner/loser,
 - and gives the route a deterministic fallback under bad data.
@@ -99,6 +110,7 @@ Assignment behavior:
 ### 5) Successful HTML responses switch from revalidation-first to private no-store
 
 For successful HTML responses, `/p/[slug]` should send:
+
 - `Content-Type: text/html; charset=utf-8`,
 - `X-Content-Type-Options: nosniff`,
 - `Cache-Control: private, no-store, max-age=0`.
@@ -106,6 +118,7 @@ For successful HTML responses, `/p/[slug]` should send:
 The route should stop using shared `ETag` / `304` behavior for HTML responses.
 
 **Why:**
+
 - the same slug can now serve different variants by session,
 - assignment may set or refresh cookies,
 - and simple correctness is more important than shared-cache efficiency for MVP.
@@ -113,12 +126,14 @@ The route should stop using shared `ETag` / `304` behavior for HTML responses.
 ### 6) View and conversion capture are server-attributed, with database dedupe as the hard guardrail
 
 Capture rules:
+
 - insert `view` when the route creates a new assignment or replaces an invalid stale assignment,
 - do not insert `view` when a valid existing assignment is reused,
 - insert `conversion` through a small POST beacon,
 - use database upsert / conflict-ignore semantics so `(assignmentId, eventType)` remains the final dedupe boundary.
 
 **Why:**
+
 - assignment creation is the cleanest moment to define a "view" for this MVP,
 - server-side attribution reduces trust in mutable client state,
 - and the database uniqueness rule remains the final source of truth under retries or races.
@@ -126,6 +141,7 @@ Capture rules:
 ### 7) Published HTML gets only a tiny primary-goal beacon hook
 
 At publish/render time:
+
 - the published primary-goal element should receive a stable marker (for example a `data-*` attribute),
 - published HTML should include a very small inline script only when the variant has a primary goal,
 - the script should prefer `navigator.sendBeacon` and fall back to `fetch(..., { keepalive: true })`.
@@ -133,6 +149,7 @@ At publish/render time:
 The beacon payload should only send the clicked `goalElementId`. Assignment identity comes from the cookie the server already owns.
 
 **Why:**
+
 - keeps published pages almost entirely static,
 - avoids a broader client analytics runtime,
 - and preserves the "first explicit goal click converts" model from ADR-036.
@@ -140,12 +157,14 @@ The beacon payload should only send the clicked `goalElementId`. Assignment iden
 ### 8) Dashboard analytics stays server-rendered on aggregate queries, with graceful fallback for missing variant labels
 
 Dashboard analytics should:
+
 - aggregate `views`, `conversions`, and `conversionRate` from `publishedPageEvents`,
 - group by `pageId + variantId`,
 - scope queries by authenticated owner,
 - and resolve display labels from the current page document when possible, falling back to `variantId` if a draft variant was later removed.
 
 **Why:**
+
 - aggregate SQL over raw events is enough for MVP,
 - dashboard is an internal authenticated surface, so server-rendered queries are appropriate,
 - and graceful fallback prevents historical analytics from disappearing when draft state changes.
@@ -186,14 +205,14 @@ Dashboard analytics should:
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| Persist published weight + goal metadata | Keeps serving inside publish boundary | Requires additive schema + publish changes |
-| One session cookie per slug | Simple, isolated, easy to invalidate | More cookies if a user visits many pages |
-| Private, no-store HTML responses | Correct under sticky assignment | Gives up shared HTML caching |
-| Server-attributed events with DB dedupe | Trustworthy and testable | More route/endpoint plumbing |
-| Tiny goal-only beacon script | Minimal client runtime | Still introduces some JS into published output |
-| Dashboard label fallback to `variantId` | Preserves historical rows | Less polished when draft variants were deleted |
+| Decision                                 | Upside                                | Downside                                       |
+| ---------------------------------------- | ------------------------------------- | ---------------------------------------------- |
+| Persist published weight + goal metadata | Keeps serving inside publish boundary | Requires additive schema + publish changes     |
+| One session cookie per slug              | Simple, isolated, easy to invalidate  | More cookies if a user visits many pages       |
+| Private, no-store HTML responses         | Correct under sticky assignment       | Gives up shared HTML caching                   |
+| Server-attributed events with DB dedupe  | Trustworthy and testable              | More route/endpoint plumbing                   |
+| Tiny goal-only beacon script             | Minimal client runtime                | Still introduces some JS into published output |
+| Dashboard label fallback to `variantId`  | Preserves historical rows             | Less polished when draft variants were deleted |
 
 ## Consequences
 

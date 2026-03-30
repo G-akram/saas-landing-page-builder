@@ -6,10 +6,7 @@ import { type Element as PageElement, type ElementStyles } from '@/shared/types'
 
 import { FieldRow, BlurInput, INPUT_CLASS } from './field-row'
 
-type StyleUpdater = (
-  styles: Partial<ElementStyles>,
-  options?: { pushHistory?: boolean },
-) => void
+type StyleUpdater = (styles: Partial<ElementStyles>, options?: { pushHistory?: boolean }) => void
 
 interface AppearanceControlsProps {
   element: PageElement
@@ -40,12 +37,8 @@ export function AppearanceControls({
   const hasLivePreviewSessionRef = useRef(false)
   const pendingColorRef = useRef<string | null>(null)
   const rafIdRef = useRef<number | null>(null)
-  const lastAppliedColorRef = useRef(
-    normalizeHexColor(styles.backgroundColor ?? ''),
-  )
-  const [bgDraft, setBgDraft] = useState(
-    pickerColor(styles.backgroundColor, '#3b82f6'),
-  )
+  const lastAppliedColorRef = useRef(normalizeHexColor(styles.backgroundColor ?? ''))
+  const [bgDraft, setBgDraft] = useState(pickerColor(styles.backgroundColor, '#3b82f6'))
 
   useEffect(() => {
     const normalized = normalizeHexColor(styles.backgroundColor ?? '')

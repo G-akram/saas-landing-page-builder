@@ -10,10 +10,10 @@ Each `<ElementRenderer>` is wrapped in a `<SelectableElement>` component — a `
 
 ### Alternatives considered
 
-| Approach | Pros | Cons |
-|---|---|---|
-| **A) Wrapper div** (chosen) | Single place for all selection logic. Highlight ring is outside element content — doesn't shift layout. ElementRenderer stays pure (rendering only). Easy to extend (double-click for inline edit, right-click for context menu). | Extra DOM node per element. |
-| **B) onClick on element root** | Fewer DOM nodes. | Selection logic duplicated across 5 sub-components (heading, text, button, image, icon). Ring styles interact differently with inline `<span>` vs block `<div>`. Harder to extend — every new element type must re-implement selection. |
+| Approach                       | Pros                                                                                                                                                                                                                              | Cons                                                                                                                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A) Wrapper div** (chosen)    | Single place for all selection logic. Highlight ring is outside element content — doesn't shift layout. ElementRenderer stays pure (rendering only). Easy to extend (double-click for inline edit, right-click for context menu). | Extra DOM node per element.                                                                                                                                                                                                             |
+| **B) onClick on element root** | Fewer DOM nodes.                                                                                                                                                                                                                  | Selection logic duplicated across 5 sub-components (heading, text, button, image, icon). Ring styles interact differently with inline `<span>` vs block `<div>`. Harder to extend — every new element type must re-implement selection. |
 
 ### Why A wins
 

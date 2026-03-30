@@ -101,8 +101,7 @@ export function buildGridLayoutStyle(columns: number, gap: number): CSSPropertie
     gap: `${String(gap)}px`,
   }
 
-  ;(style as CSSProperties & Record<'--pb-columns', string>)['--pb-columns'] =
-    String(columns)
+  ;(style as CSSProperties & Record<'--pb-columns', string>)['--pb-columns'] = String(columns)
 
   return style
 }
@@ -162,4 +161,3 @@ export function groupElementsBySlot(elements: PageElement[]): Map<number, PageEl
 
   return grouped
 }
-

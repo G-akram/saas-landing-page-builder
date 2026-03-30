@@ -21,9 +21,7 @@ const STATUS_CONFIG = {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function SaveStatusIndicator({
-  status,
-}: SaveStatusIndicatorProps): React.JSX.Element {
+export function SaveStatusIndicator({ status }: SaveStatusIndicatorProps): React.JSX.Element {
   const { label, className } = STATUS_CONFIG[status]
 
   return (

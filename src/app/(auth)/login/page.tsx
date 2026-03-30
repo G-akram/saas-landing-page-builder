@@ -15,9 +15,7 @@ export default async function LoginPage(): Promise<React.JSX.Element> {
       <div className="w-full max-w-sm space-y-6 rounded-lg border p-8">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold">Sign in</h1>
-          <p className="text-muted-foreground text-sm">
-            Choose a provider to continue
-          </p>
+          <p className="text-muted-foreground text-sm">Choose a provider to continue</p>
         </div>
 
         <div className="space-y-3">

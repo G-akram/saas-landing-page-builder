@@ -84,9 +84,9 @@ describe('savePage', () => {
   })
 
   it('saves valid documents and returns updatedAt timestamp', async () => {
-    const returning = vi.fn().mockResolvedValue([
-      { updatedAt: new Date('2026-03-28T23:40:00.000Z') },
-    ])
+    const returning = vi
+      .fn()
+      .mockResolvedValue([{ updatedAt: new Date('2026-03-28T23:40:00.000Z') }])
     const where = vi.fn().mockReturnValue({ returning })
     const set = vi.fn().mockReturnValue({ where })
     mocked.update.mockReturnValue({ set })
@@ -100,4 +100,3 @@ describe('savePage', () => {
     expect(mocked.update).toHaveBeenCalledTimes(1)
   })
 })
-

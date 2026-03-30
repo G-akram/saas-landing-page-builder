@@ -32,7 +32,9 @@ export function SelectableElement({
   // contentEditable child owns all pointer and keyboard events.
   if (isEditing) {
     return (
-      <div className={`relative rounded ring-2 ring-blue-400 ring-offset-1 ring-offset-transparent ${className}`}>
+      <div
+        className={`relative rounded ring-2 ring-blue-400 ring-offset-1 ring-offset-transparent ${className}`}
+      >
         {children}
       </div>
     )

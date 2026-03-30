@@ -7,6 +7,7 @@
 ## The Problem
 
 If rendering is coupled to editor UI components or route handlers, Phase 4 will accumulate hidden dependencies and regressions:
+
 - publishing output inherits client-only editor behavior,
 - storage/action steps must compensate for inconsistent renderer output,
 - future routing changes (path and subdomain) can force renderer rewrites.
@@ -18,6 +19,7 @@ We need a clear renderer boundary and an explicit fidelity policy before wiring 
 ### 1) Renderer is a publishing-domain, server-only primitive
 
 Create a dedicated renderer in `modules/publishing` with this contract shape:
+
 - input: page metadata + `PageDocument` + optional SEO/live URL context
 - output: typed success/error result with `html`, `contentHash`, and resolved SEO metadata
 
@@ -32,6 +34,7 @@ Render structured React components to static HTML and prepend document doctype.
 ### 3) Published artifact must be self-contained
 
 Output includes:
+
 - full HTML document (`<html><head><body>...`)
 - semantic section/element markup
 - inline base CSS + inline element/section styles
@@ -90,16 +93,15 @@ Reject unsupported/unsafe link targets rather than emitting ambiguous hrefs.
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| Dedicated publishing renderer | Strong isolation, fewer side effects | Some duplication vs editor rendering helpers |
-| Static markup + inline styles | Portable and deterministic artifacts | Slightly larger HTML payload |
-| Strict typed renderer errors | Predictable publish behavior | Publish can fail on malformed documents |
-| Safe link sanitization | Better security posture | Some user-provided links are dropped if invalid |
+| Decision                      | Upside                               | Downside                                        |
+| ----------------------------- | ------------------------------------ | ----------------------------------------------- |
+| Dedicated publishing renderer | Strong isolation, fewer side effects | Some duplication vs editor rendering helpers    |
+| Static markup + inline styles | Portable and deterministic artifacts | Slightly larger HTML payload                    |
+| Strict typed renderer errors  | Predictable publish behavior         | Publish can fail on malformed documents         |
+| Safe link sanitization        | Better security posture              | Some user-provided links are dropped if invalid |
 
 ## Consequences
 
 - Step 3/4 can consume renderer output as a stable primitive.
 - Public serving route can remain thin (`slug -> artifact -> response`).
 - Future Phase 5 variant-serving changes can extend around this renderer without redesigning Step 2.
-

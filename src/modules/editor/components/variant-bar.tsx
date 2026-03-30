@@ -38,7 +38,8 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
 
   const isDragging = useSelector(actor, (state) => state.matches('dragging'))
   const variantCount = document?.variants.length ?? 0
-  const activeVariant = document?.variants.find((variant) => variant.id === document.activeVariantId) ?? null
+  const activeVariant =
+    document?.variants.find((variant) => variant.id === document.activeVariantId) ?? null
 
   const [trafficInput, setTrafficInput] = useState(() =>
     activeVariant ? getTrafficInputValue(activeVariant.trafficWeight) : '100',
@@ -46,9 +47,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
-    setTrafficInput(
-      activeVariant ? getTrafficInputValue(activeVariant.trafficWeight) : '100',
-    )
+    setTrafficInput(activeVariant ? getTrafficInputValue(activeVariant.trafficWeight) : '100')
   }, [activeVariant])
 
   const publishNotice = useMemo(
@@ -119,9 +118,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
     )
 
     setTrafficInput(
-      getTrafficInputValue(
-        nextActiveVariant?.trafficWeight ?? currentActiveVariant.trafficWeight,
-      ),
+      getTrafficInputValue(nextActiveVariant?.trafficWeight ?? currentActiveVariant.trafficWeight),
     )
   }
 
@@ -150,7 +147,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
                 )}
               >
                 <span className="text-sm font-medium">{variant.name}</span>
-                <span className="rounded bg-black/20 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-300">
+                <span className="rounded bg-black/20 px-1.5 py-0.5 text-[10px] tracking-wide text-gray-300 uppercase">
                   {variant.trafficWeight}%
                 </span>
                 {hasPrimaryGoal && (
@@ -168,9 +165,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
 
         <div className="flex shrink-0 items-center gap-3 py-2">
           <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2 py-1.5">
-            <span className="text-[11px] uppercase tracking-wide text-gray-500">
-              Traffic
-            </span>
+            <span className="text-[11px] tracking-wide text-gray-500 uppercase">Traffic</span>
             <input
               type="number"
               min={0}
@@ -240,7 +235,10 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
       </div>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="border border-white/10 bg-gray-900 text-white" showCloseButton={false}>
+        <DialogContent
+          className="border border-white/10 bg-gray-900 text-white"
+          showCloseButton={false}
+        >
           <DialogHeader>
             <DialogTitle>Delete variant?</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -255,7 +253,12 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
           </div>
 
           <DialogFooter className="border-white/10 bg-gray-900/80">
-            <Button variant="outline" onClick={() => { setIsDeleteDialogOpen(false) }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false)
+              }}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteVariant}>

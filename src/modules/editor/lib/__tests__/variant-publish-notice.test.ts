@@ -14,8 +14,6 @@ describe('resolveVariantPublishNotice', () => {
   })
 
   it('explains that publish now updates every variant when no live URL exists yet', () => {
-    expect(resolveVariantPublishNotice(2, null)).toContain(
-      'Publishing now updates every variant.',
-    )
+    expect(resolveVariantPublishNotice(2, null)).toContain('Publishing now updates every variant.')
   })
 })

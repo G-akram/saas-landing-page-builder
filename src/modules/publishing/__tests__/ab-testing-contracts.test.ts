@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  PublishedPageEventSchema,
-  PublishedVariantAssignmentSchema,
-} from '../ab-testing-contracts'
+import { PublishedPageEventSchema, PublishedVariantAssignmentSchema } from '../ab-testing-contracts'
 
 describe('ab testing publishing contracts', () => {
   it('accepts a valid sticky assignment payload', () => {

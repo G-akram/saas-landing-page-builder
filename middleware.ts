@@ -1,6 +1,11 @@
 import { resolvePublishedSubdomainSlug } from '@/modules/publishing/routing'
 import { auth } from '@/shared/lib/auth'
-import { NextResponse, type NextFetchEvent, type NextMiddleware, type NextRequest } from 'next/server'
+import {
+  NextResponse,
+  type NextFetchEvent,
+  type NextMiddleware,
+  type NextRequest,
+} from 'next/server'
 
 const ROOT_PATHNAME = '/'
 const PUBLISH_ROUTE_PREFIX = '/p'
@@ -11,10 +16,7 @@ const protectedRoutePassThrough: NextMiddleware = (_request, _event) => NextResp
 
 const protectedRouteAuthMiddleware = auth(protectedRoutePassThrough)
 
-export async function middleware(
-  request: NextRequest,
-  event: NextFetchEvent,
-): Promise<Response> {
+export async function middleware(request: NextRequest, event: NextFetchEvent): Promise<Response> {
   const rewriteResponse = createSubdomainRewriteResponse(request)
   if (rewriteResponse) {
     return rewriteResponse

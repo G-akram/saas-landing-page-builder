@@ -2,10 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 
-import {
-  getFileExtensionForImageType,
-  type AllowedImageType,
-} from '@/shared/lib/upload-validation'
+import { getFileExtensionForImageType, type AllowedImageType } from '@/shared/lib/upload-validation'
 
 // ── Interface ────────────────────────────────────────────────────────────────
 

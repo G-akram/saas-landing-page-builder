@@ -44,14 +44,9 @@ function SortablePanelItem({
   isSelected,
   onSelect,
 }: SortablePanelItemProps): React.JSX.Element {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: section.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: section.id,
+  })
 
   const template = SECTION_TEMPLATES[section.type]
   const Icon = template.icon
@@ -60,10 +55,7 @@ function SortablePanelItem({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        'group/item flex items-center gap-1',
-        isDragging && 'opacity-40',
-      )}
+      className={cn('group/item flex items-center gap-1', isDragging && 'opacity-40')}
     >
       {/* Drag handle — separate from select button to avoid click/drag conflict */}
       <div
@@ -127,15 +119,10 @@ export function SectionListPanel(): React.JSX.Element {
   const document = useDocumentStore((s) => s.document)
   const reorderSections = useDocumentStore((s) => s.reorderSections)
   const actor = useEditorActor()
-  const selectedSectionId = useSelector(
-    actor,
-    (state) => state.context.selectedSectionId,
-  )
+  const selectedSectionId = useSelector(actor, (state) => state.context.selectedSectionId)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
 
-  const activeVariant = document?.variants.find(
-    (v) => v.id === document.activeVariantId,
-  )
+  const activeVariant = document?.variants.find((v) => v.id === document.activeVariantId)
   const sections = activeVariant?.sections ?? []
 
   const sensors = useSensors(
@@ -167,27 +154,19 @@ export function SectionListPanel(): React.JSX.Element {
     actor.send({ type: 'DRAG_CANCEL' })
   }
 
-  const activeDragSection = activeDragId
-    ? sections.find((s) => s.id === activeDragId)
-    : null
-  const activeDragIndex = activeDragId
-    ? sections.findIndex((s) => s.id === activeDragId)
-    : -1
+  const activeDragSection = activeDragId ? sections.find((s) => s.id === activeDragId) : null
+  const activeDragIndex = activeDragId ? sections.findIndex((s) => s.id === activeDragId) : -1
 
   return (
     <aside className="flex h-full flex-col border-r border-white/10 bg-gray-900">
       <div className="flex h-10 shrink-0 items-center border-b border-white/10 px-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-          Sections
-        </h2>
+        <h2 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">Sections</h2>
         <span className="ml-auto text-xs text-gray-500">{sections.length}</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto p-2" aria-label="Page sections">
         {sections.length === 0 ? (
-          <p className="px-2 py-4 text-center text-xs text-gray-500">
-            No sections yet
-          </p>
+          <p className="px-2 py-4 text-center text-xs text-gray-500">No sections yet</p>
         ) : (
           <DndContext
             id="section-panel-dnd"
@@ -218,10 +197,7 @@ export function SectionListPanel(): React.JSX.Element {
 
             <DragOverlay>
               {activeDragSection && activeDragIndex !== -1 ? (
-                <PanelItemOverlay
-                  section={activeDragSection}
-                  index={activeDragIndex}
-                />
+                <PanelItemOverlay section={activeDragSection} index={activeDragIndex} />
               ) : null}
             </DragOverlay>
           </DndContext>

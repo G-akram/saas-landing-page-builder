@@ -27,17 +27,19 @@ vi.mock('@/shared/lib/logger', () => ({
 
 import { servePublishedPage } from '../serve-published-page'
 
-function createPublishedVariant(overrides: Partial<{
-  pageId: string
-  slug: string
-  variantId: string
-  storageProvider: 'local'
-  storageKey: string
-  contentHash: string
-  trafficWeight: number
-  primaryGoalElementId: string | null
-  publishedAt: Date
-}> = {}) {
+function createPublishedVariant(
+  overrides: Partial<{
+    pageId: string
+    slug: string
+    variantId: string
+    storageProvider: 'local'
+    storageKey: string
+    contentHash: string
+    trafficWeight: number
+    primaryGoalElementId: string | null
+    publishedAt: Date
+  }> = {},
+) {
   return {
     pageId: 'page-1',
     slug: 'acme',
@@ -57,6 +59,12 @@ function createSnapshot(variantId: string) {
     ...createPublishedVariant({ variantId }),
     html: `<!DOCTYPE html><html><body>${variantId}</body></html>`,
   }
+}
+
+function assertSuccessResult(
+  result: Awaited<ReturnType<typeof servePublishedPage>>,
+): asserts result is Extract<Awaited<ReturnType<typeof servePublishedPage>>, { success: true }> {
+  expect(result.success).toBe(true)
 }
 
 describe('servePublishedPage', () => {
@@ -89,10 +97,7 @@ describe('servePublishedPage', () => {
       cookieHeader: `pb-assignment-acme=${cookiePayload}`,
     })
 
-    expect(result.success).toBe(true)
-    if (!result.success) {
-      return
-    }
+    assertSuccessResult(result)
 
     expect(result.isNewAssignment).toBe(false)
     expect(result.assignment.assignmentId).toBe('assignment-existing')
@@ -113,10 +118,7 @@ describe('servePublishedPage', () => {
       storageKey: `pages/page-1/${'b'.repeat(64)}.html`,
     })
 
-    mocked.getPublishedPageMetadataListBySlug.mockResolvedValue([
-      firstVariant,
-      secondVariant,
-    ])
+    mocked.getPublishedPageMetadataListBySlug.mockResolvedValue([firstVariant, secondVariant])
     mocked.readPublishedPageByMetadata.mockResolvedValue({
       success: true,
       page: createSnapshot(firstVariant.variantId),
@@ -129,17 +131,12 @@ describe('servePublishedPage', () => {
       randomValue: 0.2,
     })
 
-    expect(result.success).toBe(true)
-    if (!result.success) {
-      return
-    }
+    assertSuccessResult(result)
 
     expect(result.isNewAssignment).toBe(true)
     expect(result.assignment.variantId).toBe('variant-a')
-    expect(result.assignmentCookie).toEqual({
-      name: 'pb-assignment-acme',
-      value: expect.any(String),
-    })
+    expect(result.assignmentCookie?.name).toBe('pb-assignment-acme')
+    expect(typeof result.assignmentCookie?.value).toBe('string')
     expect(mocked.recordPublishedPageView).toHaveBeenCalledWith(
       expect.objectContaining({ assignmentId: 'assignment-1' }),
     )
@@ -176,10 +173,7 @@ describe('servePublishedPage', () => {
       now: new Date('2026-03-30T12:20:00.000Z'),
     })
 
-    expect(result.success).toBe(true)
-    if (!result.success) {
-      return
-    }
+    assertSuccessResult(result)
 
     expect(result.isNewAssignment).toBe(true)
     expect(result.assignment.assignmentId).toBe('assignment-1')
@@ -202,10 +196,7 @@ describe('servePublishedPage', () => {
       publishedAt: new Date('2026-03-30T12:10:00.000Z'),
     })
 
-    mocked.getPublishedPageMetadataListBySlug.mockResolvedValue([
-      latestVariant,
-      olderVariant,
-    ])
+    mocked.getPublishedPageMetadataListBySlug.mockResolvedValue([latestVariant, olderVariant])
     mocked.readPublishedPageByMetadata.mockResolvedValue({
       success: true,
       page: createSnapshot(latestVariant.variantId),
@@ -216,10 +207,7 @@ describe('servePublishedPage', () => {
       cookieHeader: null,
     })
 
-    expect(result.success).toBe(true)
-    if (!result.success) {
-      return
-    }
+    assertSuccessResult(result)
 
     expect(result.assignment.variantId).toBe('variant-b')
     expect(mocked.loggerWarn).toHaveBeenCalled()

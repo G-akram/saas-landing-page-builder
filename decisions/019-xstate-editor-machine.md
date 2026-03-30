@@ -137,18 +137,18 @@ previewing   — preview mode active (all interaction events dropped)
 
 ### Event table
 
-| Event | From | To | Context change |
-|---|---|---|---|
-| `SELECT_SECTION(sectionId ≠ null)` | idle, selected | selected | set selectedSectionId, clear selectedElementId |
-| `SELECT_SECTION(sectionId = null)` | selected | idle | clear all |
-| `SELECT_ELEMENT(elementId)` | selected | selected (internal) | set selectedElementId |
-| `DESELECT` | selected | idle | clear all |
-| `DRAG_START` | idle, selected | dragging | — |
-| `DRAG_END` | dragging | selected (if selectedSectionId set) else idle | — |
-| `DRAG_CANCEL` | dragging | selected (if selectedSectionId set) else idle | — |
-| `TOGGLE_PREVIEW` | idle, selected, dragging | previewing | — |
-| `TOGGLE_PREVIEW` | previewing | idle | — |
-| _any other event_ | previewing | — (dropped) | — |
+| Event                              | From                     | To                                            | Context change                                 |
+| ---------------------------------- | ------------------------ | --------------------------------------------- | ---------------------------------------------- |
+| `SELECT_SECTION(sectionId ≠ null)` | idle, selected           | selected                                      | set selectedSectionId, clear selectedElementId |
+| `SELECT_SECTION(sectionId = null)` | selected                 | idle                                          | clear all                                      |
+| `SELECT_ELEMENT(elementId)`        | selected                 | selected (internal)                           | set selectedElementId                          |
+| `DESELECT`                         | selected                 | idle                                          | clear all                                      |
+| `DRAG_START`                       | idle, selected           | dragging                                      | —                                              |
+| `DRAG_END`                         | dragging                 | selected (if selectedSectionId set) else idle | —                                              |
+| `DRAG_CANCEL`                      | dragging                 | selected (if selectedSectionId set) else idle | —                                              |
+| `TOGGLE_PREVIEW`                   | idle, selected, dragging | previewing                                    | —                                              |
+| `TOGGLE_PREVIEW`                   | previewing               | idle                                          | —                                              |
+| _any other event_                  | previewing               | — (dropped)                                   | —                                              |
 
 ---
 

@@ -152,4 +152,3 @@ describe('GET /p/[slug]', () => {
     expect(mocked.servePublishedPage).not.toHaveBeenCalled()
   })
 })
-

@@ -28,10 +28,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   if (file.size > MAX_IMAGE_SIZE_BYTES) {
-    return NextResponse.json(
-      { error: 'File exceeds 5 MB limit' },
-      { status: 413 },
-    )
+    return NextResponse.json({ error: 'File exceeds 5 MB limit' }, { status: 413 })
   }
 
   try {
@@ -53,7 +50,11 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const buffer = Buffer.from(fileBytes)
     const result = await getUploadService().upload(buffer, detectedType)
-    logger.info('Image uploaded', { url: result.url, userId: session.user.id, mimeType: detectedType })
+    logger.info('Image uploaded', {
+      url: result.url,
+      userId: session.user.id,
+      mimeType: detectedType,
+    })
     return NextResponse.json(result)
   } catch (err) {
     logger.error('Upload failed', { error: String(err) })

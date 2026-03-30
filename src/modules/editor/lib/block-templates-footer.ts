@@ -21,12 +21,19 @@ export const FOOTER_TEMPLATES: BlockTemplate[] = [
     padding: { top: 64, bottom: 48, left: 48, right: 48 },
     createElements: () => [
       text(0, 'YourBrand', { fontSize: 18, fontWeight: 700, color: '#f9fafb', textAlign: 'left' }),
-      text(0, 'Building the future of landing pages.', { fontSize: 14, color: '#9ca3af', textAlign: 'left' }),
+      text(0, 'Building the future of landing pages.', {
+        fontSize: 14,
+        color: '#9ca3af',
+        textAlign: 'left',
+      }),
       text(1, 'Product', { fontSize: 14, fontWeight: 600, color: '#f9fafb', textAlign: 'left' }),
-      text(1, 'Features - Pricing - Templates', { fontSize: 14, color: '#9ca3af', textAlign: 'left' }),
+      text(1, 'Features - Pricing - Templates', {
+        fontSize: 14,
+        color: '#9ca3af',
+        textAlign: 'left',
+      }),
       text(2, 'Company', { fontSize: 14, fontWeight: 600, color: '#f9fafb', textAlign: 'left' }),
       text(2, 'About - Blog - Careers', { fontSize: 14, color: '#9ca3af', textAlign: 'left' }),
     ],
   },
 ]
-

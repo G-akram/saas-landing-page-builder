@@ -8,6 +8,7 @@
 
 Step 7 must connect editor UI to `publishPage` without breaking module boundaries or publishing stale data.
 If we wire this naively, we risk:
+
 - `editor -> publishing` dependency violations,
 - publishing outdated DB snapshots while autosave is still pending,
 - runtime/build failures from `react-dom/server` constraints in app-router reachable modules,
@@ -20,6 +21,7 @@ If we wire this naively, we risk:
 Editor client UI calls a publish API route, and that route calls `publishPage`.
 
 **Why:**
+
 - preserves dependency direction (`editor` module does not import `publishing`),
 - avoids importing publish orchestration directly into app page/client graphs that trigger `react-dom/server` app-router constraints,
 - keeps existing `publishPage` orchestration as the single publish source of truth.
@@ -27,11 +29,13 @@ Editor client UI calls a publish API route, and that route calls `publishPage`.
 ### 2) Use strict publish gating against unsaved editor state
 
 Publish is disabled when:
+
 - autosave is currently running,
 - autosave is in error state,
 - document is dirty (unsaved changes).
 
 **Why:**
+
 - `publishPage` renders from persisted DB state, not transient client state,
 - strict gating prevents "I clicked publish but old content went live" behavior.
 
@@ -40,6 +44,7 @@ Publish is disabled when:
 Track publish UI state (`idle | publishing | published | error`), last live URL, and latest publish message inside editor shell scope.
 
 **Why:**
+
 - smallest state surface for current step,
 - no new global store required for a single-screen concern.
 
@@ -48,6 +53,7 @@ Track publish UI state (`idle | publishing | published | error`), last live URL,
 UI maps backend error codes to deterministic messages before rendering.
 
 **Why:**
+
 - stable, testable feedback contract,
 - avoids leaking low-level infra wording directly to users.
 
@@ -85,16 +91,15 @@ UI maps backend error codes to deterministic messages before rendering.
 
 ## Tradeoffs
 
-| Decision | Upside | Downside |
-|---|---|---|
-| API bridge (`/api/publish`) | Stable app-router integration, clear boundary | Extra network hop in same app |
-| Strict save/dirty gating | Prevents stale publish output | User may need to wait before publish |
-| Local publish UI state | Simple and contained | Not reusable outside editor shell |
-| Error-code mapping | Predictable UX + tests | Additional mapping maintenance |
+| Decision                    | Upside                                        | Downside                             |
+| --------------------------- | --------------------------------------------- | ------------------------------------ |
+| API bridge (`/api/publish`) | Stable app-router integration, clear boundary | Extra network hop in same app        |
+| Strict save/dirty gating    | Prevents stale publish output                 | User may need to wait before publish |
+| Local publish UI state      | Simple and contained                          | Not reusable outside editor shell    |
+| Error-code mapping          | Predictable UX + tests                        | Additional mapping maintenance       |
 
 ## Consequences
 
 - Step 7 ships publish UX without changing core publish orchestration contracts.
 - Editor module stays domain-agnostic regarding publishing internals.
 - Step 8 can harden tests/docs around this bridge without reopening core publish flow.
-

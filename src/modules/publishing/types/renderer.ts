@@ -1,9 +1,6 @@
 import { type Section, type PageDocument } from '@/shared/types'
 
-export const RENDER_PUBLISH_ERROR_CODES = [
-  'INVALID_DOCUMENT',
-  'VARIANT_NOT_FOUND',
-] as const
+export const RENDER_PUBLISH_ERROR_CODES = ['INVALID_DOCUMENT', 'VARIANT_NOT_FOUND'] as const
 
 export type RenderPublishErrorCode = (typeof RENDER_PUBLISH_ERROR_CODES)[number]
 
@@ -44,9 +41,7 @@ export interface RenderPublishedPageError {
   message: string
 }
 
-export type RenderPublishedPageResult =
-  | RenderPublishedPageSuccess
-  | RenderPublishedPageError
+export type RenderPublishedPageResult = RenderPublishedPageSuccess | RenderPublishedPageError
 
 export interface BuildSeoMetadataInput {
   pageName: string

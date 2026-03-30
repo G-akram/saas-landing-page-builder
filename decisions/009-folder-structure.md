@@ -12,13 +12,13 @@
 
 Both approaches group files by domain. The difference is boundary enforcement:
 
-| Factor | Feature-based | Module-based |
-|---|---|---|
-| **Cross-feature imports** | Any file can import any file | Only through `index.ts` barrel |
-| **Enforcement** | Developer discipline | ESLint import boundaries |
-| **Coupling risk** | High — easy to create spaghetti | Low — public API forces conscious decisions |
-| **Refactoring cost** | High — imports scattered | Low — change internals, keep API stable |
-| **API design skill** | Not exercised | Exercised on every module |
+| Factor                    | Feature-based                   | Module-based                                |
+| ------------------------- | ------------------------------- | ------------------------------------------- |
+| **Cross-feature imports** | Any file can import any file    | Only through `index.ts` barrel              |
+| **Enforcement**           | Developer discipline            | ESLint import boundaries                    |
+| **Coupling risk**         | High — easy to create spaghetti | Low — public API forces conscious decisions |
+| **Refactoring cost**      | High — imports scattered        | Low — change internals, keep API stable     |
+| **API design skill**      | Not exercised                   | Exercised on every module                   |
 
 Module-based is feature-based with guardrails. Same organization, stricter contracts.
 
@@ -104,12 +104,12 @@ shared           (imports from nothing — base layer)
 
 ### Preventing Circular Dependencies
 
-| Scenario | Wrong approach | Correct approach |
-|---|---|---|
-| Editor needs "is published?" status | Editor imports from publishing | Move `PublishStatus` type to `shared/types/` |
-| Publishing needs block data | Publishing imports editor types | Publishing imports `Block` type from `shared/types/` |
-| Dashboard needs editor + publishing | Dashboard imports both | Allowed — dashboard is above both in the hierarchy |
-| Two modules need to trigger each other | Circular import | App route layer passes callbacks as props |
+| Scenario                               | Wrong approach                  | Correct approach                                     |
+| -------------------------------------- | ------------------------------- | ---------------------------------------------------- |
+| Editor needs "is published?" status    | Editor imports from publishing  | Move `PublishStatus` type to `shared/types/`         |
+| Publishing needs block data            | Publishing imports editor types | Publishing imports `Block` type from `shared/types/` |
+| Dashboard needs editor + publishing    | Dashboard imports both          | Allowed — dashboard is above both in the hierarchy   |
+| Two modules need to trigger each other | Circular import                 | App route layer passes callbacks as props            |
 
 **Enforcement:** `eslint-plugin-boundaries` or `eslint-plugin-import` with custom rules. Configured when we scaffold the project.
 

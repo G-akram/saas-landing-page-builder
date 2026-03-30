@@ -24,7 +24,7 @@ useDocumentStore (document selector)
 
 **Why not subscribe in the store:** Zustand stores must stay pure (no async side effects inside `set`). `documentStore.subscribe()` exists but wires async logic to imperative store internals — bypassing React's lifecycle and making testing harder. The hook approach keeps the store thin and makes the auto-save observable/testable as a standard hook.
 
-**Why not useEffect on isDirty:** `isDirty` is `true` after every mutation and stays `true` until `initializeDocument`. Watching it doesn't tell you *when* to debounce — it would fire once per page load and never reset mid-session without adding `markClean()`. Watching `document` directly is more precise: each mutation produces a new object reference, which the effect dependency array detects correctly.
+**Why not useEffect on isDirty:** `isDirty` is `true` after every mutation and stays `true` until `initializeDocument`. Watching it doesn't tell you _when_ to debounce — it would fire once per page load and never reset mid-session without adding `markClean()`. Watching `document` directly is more precise: each mutation produces a new object reference, which the effect dependency array detects correctly.
 
 ## Decision 3: Hydration Skip via Baseline Ref
 
@@ -53,6 +53,7 @@ useDocumentStore (document selector)
 ## Decision 6: Race Condition Strategy — Debounce + Idempotent Writes
 
 If a save is in-flight when the user makes another change, both complete:
+
 1. In-flight mutation completes, writing the older snapshot.
 2. New debounce fires (2s after last change), writing the newer snapshot.
 

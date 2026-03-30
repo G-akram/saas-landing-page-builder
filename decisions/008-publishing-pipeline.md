@@ -12,13 +12,13 @@ The page data is JSON in a database (ADR-005 schema, ADR-007 storage). The publi
 
 ### What publishing must do
 
-| Step | What happens |
-|---|---|
-| **Convert** | Page JSON → static HTML + CSS |
-| **Store** | Save the generated HTML somewhere retrievable |
-| **Serve** | Visitor hits a URL → gets the HTML |
-| **Update** | Creator re-publishes → visitor sees the new version |
-| **SEO** | Google can crawl and index the page, social previews work |
+| Step        | What happens                                              |
+| ----------- | --------------------------------------------------------- |
+| **Convert** | Page JSON → static HTML + CSS                             |
+| **Store**   | Save the generated HTML somewhere retrievable             |
+| **Serve**   | Visitor hits a URL → gets the HTML                        |
+| **Update**  | Creator re-publishes → visitor sees the new version       |
+| **SEO**     | Google can crawl and index the page, social previews work |
 
 ## How JSON Becomes HTML — Three Approaches
 
@@ -71,17 +71,18 @@ Next visitors → Get the cached version instantly
 
 ### Why Approach 2 — explicit build-on-publish
 
-| Factor | SSR (every visit) | Static (pre-build) | ISR (cache) |
-|---|---|---|---|
-| **Visitor speed** | Slowest (~200-500ms) | Fastest (~50ms) | Fast after first visit |
-| **DB load from visitors** | Every visit | Zero | Rare (cache miss only) |
-| **Creator feedback** | N/A | Immediate — "Published!" means it's built | Delayed — cache rebuilds lazily |
-| **Predictability** | Consistent (always slow) | Consistent (always fast) | Inconsistent (first visit slow) |
-| **Complexity** | Simplest code | Store HTML somewhere | Invisible caching layer |
-| **Debugging** | Read DB → render | Read stored HTML | Where is the cached version? When did it rebuild? |
-| **Scales to 10k visitors** | 10k DB reads | Zero DB reads | ~1 DB read |
+| Factor                     | SSR (every visit)        | Static (pre-build)                        | ISR (cache)                                       |
+| -------------------------- | ------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| **Visitor speed**          | Slowest (~200-500ms)     | Fastest (~50ms)                           | Fast after first visit                            |
+| **DB load from visitors**  | Every visit              | Zero                                      | Rare (cache miss only)                            |
+| **Creator feedback**       | N/A                      | Immediate — "Published!" means it's built | Delayed — cache rebuilds lazily                   |
+| **Predictability**         | Consistent (always slow) | Consistent (always fast)                  | Inconsistent (first visit slow)                   |
+| **Complexity**             | Simplest code            | Store HTML somewhere                      | Invisible caching layer                           |
+| **Debugging**              | Read DB → render         | Read stored HTML                          | Where is the cached version? When did it rebuild? |
+| **Scales to 10k visitors** | 10k DB reads             | Zero DB reads                             | ~1 DB read                                        |
 
 **Landing pages are the textbook case for static pre-building:**
+
 - Content changes rarely (only on explicit re-publish)
 - Gets read many times between changes (every visitor)
 - The build is cheap — one page, milliseconds of rendering
@@ -195,18 +196,18 @@ A landing page that Google can't index or that shows a blank preview on LinkedIn
 
 ### What we generate
 
-| Element | Purpose | Source |
-|---|---|---|
-| `<title>` | Browser tab, search result headline | Creator-defined SEO title, or fallback to `page.name` |
-| `<meta name="description">` | Search result snippet text | Creator-defined, or auto-extract from first text element |
-| `<meta name="viewport">` | Correct mobile rendering | Hardcoded — always `width=device-width, initial-scale=1` |
-| `<meta property="og:title">` | Social preview title (Twitter, LinkedIn, Slack) | Same as `<title>` |
-| `<meta property="og:description">` | Social preview description | Same as meta description |
-| `<meta property="og:image">` | Social preview image | Creator-defined, or first image element in hero section |
-| `<meta property="og:url">` | Canonical URL for social shares | Published page URL |
-| `<link rel="canonical">` | Tells Google the "real" URL (prevents duplicate content) | Published page URL |
-| Semantic HTML | Helps Google understand page structure | `<h1>` for headings, `<section>` for sections, `<nav>` for footer, `<img alt>` for images |
-| Fast load time | Google ranking signal | Pre-built HTML, no JS needed to see content — as fast as it gets |
+| Element                            | Purpose                                                  | Source                                                                                    |
+| ---------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `<title>`                          | Browser tab, search result headline                      | Creator-defined SEO title, or fallback to `page.name`                                     |
+| `<meta name="description">`        | Search result snippet text                               | Creator-defined, or auto-extract from first text element                                  |
+| `<meta name="viewport">`           | Correct mobile rendering                                 | Hardcoded — always `width=device-width, initial-scale=1`                                  |
+| `<meta property="og:title">`       | Social preview title (Twitter, LinkedIn, Slack)          | Same as `<title>`                                                                         |
+| `<meta property="og:description">` | Social preview description                               | Same as meta description                                                                  |
+| `<meta property="og:image">`       | Social preview image                                     | Creator-defined, or first image element in hero section                                   |
+| `<meta property="og:url">`         | Canonical URL for social shares                          | Published page URL                                                                        |
+| `<link rel="canonical">`           | Tells Google the "real" URL (prevents duplicate content) | Published page URL                                                                        |
+| Semantic HTML                      | Helps Google understand page structure                   | `<h1>` for headings, `<section>` for sections, `<nav>` for footer, `<img alt>` for images |
+| Fast load time                     | Google ranking signal                                    | Pre-built HTML, no JS needed to see content — as fast as it gets                          |
 
 ### Schema addition — SEO metadata
 
@@ -214,9 +215,9 @@ The Page schema (ADR-005) needs a small extension for creator-controlled SEO fie
 
 ```typescript
 interface PageSEO {
-  title?: string          // <title> — defaults to page.name
-  description?: string    // meta description — defaults to first text element
-  ogImage?: string        // social preview image — defaults to first image in hero
+  title?: string // <title> — defaults to page.name
+  description?: string // meta description — defaults to first text element
+  ogImage?: string // social preview image — defaults to first image in hero
 }
 ```
 
@@ -225,7 +226,7 @@ This lives on the Page object (not per-variant — SEO metadata is the same rega
 ```typescript
 interface Page {
   // ... existing fields from ADR-005
-  seo?: PageSEO           // optional — sensible defaults if not set
+  seo?: PageSEO // optional — sensible defaults if not set
 }
 ```
 
@@ -234,32 +235,33 @@ interface Page {
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Startup — Build Landing Pages Fast</title>
-  <meta name="description" content="No code required. Just drag, drop, and publish." />
-  <meta property="og:title" content="My Startup — Build Landing Pages Fast" />
-  <meta property="og:description" content="No code required. Just drag, drop, and publish." />
-  <meta property="og:image" content="https://ourapp.com/images/hero-preview.jpg" />
-  <meta property="og:url" content="https://my-startup.ourapp.com" />
-  <link rel="canonical" href="https://my-startup.ourapp.com" />
-  <style>
-    /* Reset + section/element styles inlined from schema */
-  </style>
-</head>
-<body>
-  <section style="...">
-    <h1 style="...">Build landing pages fast</h1>
-    <p style="...">No code required. Just drag, drop, and publish.</p>
-    <a href="#pricing" style="...">Get Started</a>
-  </section>
-  <!-- ... more sections -->
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Startup — Build Landing Pages Fast</title>
+    <meta name="description" content="No code required. Just drag, drop, and publish." />
+    <meta property="og:title" content="My Startup — Build Landing Pages Fast" />
+    <meta property="og:description" content="No code required. Just drag, drop, and publish." />
+    <meta property="og:image" content="https://ourapp.com/images/hero-preview.jpg" />
+    <meta property="og:url" content="https://my-startup.ourapp.com" />
+    <link rel="canonical" href="https://my-startup.ourapp.com" />
+    <style>
+      /* Reset + section/element styles inlined from schema */
+    </style>
+  </head>
+  <body>
+    <section style="...">
+      <h1 style="...">Build landing pages fast</h1>
+      <p style="...">No code required. Just drag, drop, and publish.</p>
+      <a href="#pricing" style="...">Get Started</a>
+    </section>
+    <!-- ... more sections -->
+  </body>
 </html>
 ```
 
 **Key properties:**
+
 - Zero JavaScript — pure HTML + CSS. Nothing to parse, nothing to execute.
 - Semantic tags — `<h1>`, `<section>`, `<p>`, `<a>`, `<img>` with `alt` text.
 - Inline styles from the schema's `ElementStyles` — no external stylesheet to fetch.
@@ -310,18 +312,18 @@ The pre-built HTML in the database approach works well within specific bounds. H
 
 ### Trigger 1: Published pages need dynamic content
 
-| Situation | Example | Why pre-built breaks |
-|---|---|---|
-| **Personalization** | "Hello {visitor_name}" in the hero | Can't bake dynamic values into static HTML |
-| **Live data** | Pricing that changes based on API, countdown timers | Stale the moment it's built |
-| **CMS content** | Blog-style dynamic content in sections | Changes independently of publish action |
+| Situation           | Example                                             | Why pre-built breaks                       |
+| ------------------- | --------------------------------------------------- | ------------------------------------------ |
+| **Personalization** | "Hello {visitor_name}" in the hero                  | Can't bake dynamic values into static HTML |
+| **Live data**       | Pricing that changes based on API, countdown timers | Stale the moment it's built                |
+| **CMS content**     | Blog-style dynamic content in sections              | Changes independently of publish action    |
 
 **What to do:** Add a thin JS runtime to published pages — hydrate specific "dynamic slots" with client-side fetches. The rest stays static HTML.
 
 ### Trigger 2: Thousands of pages, DB reads become a bottleneck
 
-| Situation | Why it matters |
-|---|---|
+| Situation                                    | Why it matters                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------ |
 | 10,000+ published pages, all getting traffic | Reading HTML from Postgres on every visit adds latency and DB load |
 
 **What to do:** Move published HTML to object storage (Vercel Blob, S3) or a CDN. The publish action uploads the HTML file; the serving route redirects to the CDN URL. The `publishedPages` table stores the CDN URL instead of the HTML itself.
@@ -333,16 +335,16 @@ Upgraded: visitor → CDN edge → return HTML (DB is never touched)
 
 ### Trigger 3: Build time becomes slow
 
-| Situation | Why it matters |
-|---|---|
+| Situation                                          | Why it matters                                           |
+| -------------------------------------------------- | -------------------------------------------------------- |
 | Pages with hundreds of sections, complex rendering | `renderToString()` takes seconds instead of milliseconds |
 
 **What to do:** Move rendering to a background job. Publish action enqueues a build task, creator sees "Publishing..." status, build worker renders and stores, creator gets notified when done. This is the "publish worker" extraction from ADR-003's migration path.
 
 ### Trigger 4: Need to serve pages without our app running
 
-| Situation | Why it matters |
-|---|---|
+| Situation                                                     | Why it matters                                            |
+| ------------------------------------------------------------- | --------------------------------------------------------- |
 | Full isolation — published pages must survive editor downtime | Same Next.js app means one deployment, one failure domain |
 
 **What to do:** Publish HTML files to a separate static host (Vercel Blob + CDN, or a separate Vercel project). Published pages become truly independent — no shared infrastructure with the editor.
@@ -350,6 +352,7 @@ Upgraded: visitor → CDN edge → return HTML (DB is never touched)
 ### None of these apply at MVP scale
 
 A single user publishing a 6-section landing page:
+
 - Render time: <50ms
 - HTML size: 5-20 KB
 - DB read on visit: <5ms
@@ -396,16 +399,16 @@ A published page with only static elements (heading, text, button, image, icon) 
 
 ### What needs JS and what doesn't
 
-| Element | Needs JS? | Rendering strategy |
-|---|---|---|
-| Heading, Text, Icon | No | Pure HTML |
-| Button | No | `<a>` tag — links are native HTML |
-| Image | No | `<img>` tag |
-| Video | No | `<iframe>` embed (YouTube/Vimeo) — the third-party player handles everything |
-| Email form | Yes | Vanilla JS for validation, async submit, success/error message without page reload |
-| Carousel / Slider | Yes | Vanilla JS for slide transitions, navigation, auto-play |
-| Scroll animations | Yes | Vanilla JS using Intersection Observer API |
-| Countdown timer | Yes | Vanilla JS updating the DOM on interval |
+| Element             | Needs JS? | Rendering strategy                                                                 |
+| ------------------- | --------- | ---------------------------------------------------------------------------------- |
+| Heading, Text, Icon | No        | Pure HTML                                                                          |
+| Button              | No        | `<a>` tag — links are native HTML                                                  |
+| Image               | No        | `<img>` tag                                                                        |
+| Video               | No        | `<iframe>` embed (YouTube/Vimeo) — the third-party player handles everything       |
+| Email form          | Yes       | Vanilla JS for validation, async submit, success/error message without page reload |
+| Carousel / Slider   | Yes       | Vanilla JS for slide transitions, navigation, auto-play                            |
+| Scroll animations   | Yes       | Vanilla JS using Intersection Observer API                                         |
+| Countdown timer     | Yes       | Vanilla JS updating the DOM on interval                                            |
 
 ### The approach: inline vanilla `<script>` blocks
 
@@ -414,29 +417,30 @@ When the renderer encounters an interactive element type, it appends a small sel
 ```html
 <!-- Only present if the page contains a carousel -->
 <script>
-  (function() {
-    document.querySelectorAll('[data-carousel]').forEach(function(el) {
+  ;(function () {
+    document.querySelectorAll('[data-carousel]').forEach(function (el) {
       // ~30 lines of vanilla slide logic
-    });
-  })();
+    })
+  })()
 </script>
 ```
 
 **Why vanilla JS, not React hydration:**
 
-| Factor | Inline vanilla JS | React partial hydration |
-|---|---|---|
-| **Baseline cost** | 0 KB (no framework) | ~40 KB gzipped (React runtime) |
-| **Per-element cost** | 1-3 KB per interactive type | Similar component size + hydration overhead |
-| **Complexity** | Script runs immediately, no build step | Needs bundler, code splitting, hydration boundaries |
-| **Independence** | Published page is fully self-contained | Published page depends on a JS bundle |
-| **Debugging** | View source → read the script | React DevTools, source maps, etc. |
+| Factor               | Inline vanilla JS                      | React partial hydration                             |
+| -------------------- | -------------------------------------- | --------------------------------------------------- |
+| **Baseline cost**    | 0 KB (no framework)                    | ~40 KB gzipped (React runtime)                      |
+| **Per-element cost** | 1-3 KB per interactive type            | Similar component size + hydration overhead         |
+| **Complexity**       | Script runs immediately, no build step | Needs bundler, code splitting, hydration boundaries |
+| **Independence**     | Published page is fully self-contained | Published page depends on a JS bundle               |
+| **Debugging**        | View source → read the script          | React DevTools, source maps, etc.                   |
 
 For a landing page with 1-2 interactive elements, shipping 40 KB of React to run 30 lines of carousel logic is unjustifiable.
 
 **Why not third-party embeds for everything:**
 
 Embeds (like Formspree `<iframe>` for forms) seem simpler but have real downsides:
+
 - Can't style to match the page — the embed has its own CSS
 - User depends on a third-party service's availability and pricing
 - Data (form submissions) lives outside our system — harder to build analytics on
@@ -464,14 +468,20 @@ New interactive element types are additions to ADR-005's `ElementType` union and
 ```typescript
 // Post-MVP additions
 type ElementType =
-  | 'heading' | 'text' | 'button' | 'image' | 'icon'  // MVP
-  | 'video' | 'form' | 'carousel'                       // post-MVP
+  | 'heading'
+  | 'text'
+  | 'button'
+  | 'image'
+  | 'icon' // MVP
+  | 'video'
+  | 'form'
+  | 'carousel' // post-MVP
 
 type ElementContent =
   | { type: 'video'; provider: 'youtube' | 'vimeo'; videoId: string }
   | { type: 'form'; fields: FormField[]; submitUrl: string; successMessage: string }
   | { type: 'carousel'; slides: CarouselSlide[] }
-  // ... existing types
+// ... existing types
 ```
 
 The schema extension pattern is the same as adding any new element type — no structural change to the 2-level hierarchy (ADR-005).

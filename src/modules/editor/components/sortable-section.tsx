@@ -39,14 +39,9 @@ export function SortableSection({
   onInlineSave,
   onDelete,
 }: SortableSectionProps): React.JSX.Element {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: section.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: section.id,
+  })
 
   return (
     <div
@@ -72,7 +67,7 @@ export function SortableSection({
         type="button"
         onClick={onDelete}
         aria-label="Delete section"
-        className="absolute top-2 right-2 z-10 rounded p-1 opacity-0 transition-opacity group-hover/sortable:opacity-100 hover:bg-red-500/20 hover:text-red-400 text-gray-500"
+        className="absolute top-2 right-2 z-10 rounded p-1 text-gray-500 opacity-0 transition-opacity group-hover/sortable:opacity-100 hover:bg-red-500/20 hover:text-red-400"
       >
         <Trash2 className="h-4 w-4" />
       </button>

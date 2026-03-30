@@ -10,11 +10,11 @@
 
 **Use case:** Reordering blocks in the page editor (vertical sortable list).
 
-| Considered | Verdict | Why |
-|---|---|---|
-| **dnd-kit v6** | **Chosen** | Dedicated `useSortable()` hook for our exact use case. Built-in keyboard a11y + screen reader announcements. Nested sorting support for future block groups. Low boilerplate. |
-| Pragmatic DnD (Atlassian) | Rejected | Headless approach = significantly more code for sortable lists. Accessibility is DIY. Smaller bundle (~4.7kB vs ~14kB) but not worth the extra effort for our use case. |
-| react-beautiful-dnd | Eliminated | Deprecated and archived (Aug 2025). No React 19 support. |
+| Considered                | Verdict    | Why                                                                                                                                                                           |
+| ------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **dnd-kit v6**            | **Chosen** | Dedicated `useSortable()` hook for our exact use case. Built-in keyboard a11y + screen reader announcements. Nested sorting support for future block groups. Low boilerplate. |
+| Pragmatic DnD (Atlassian) | Rejected   | Headless approach = significantly more code for sortable lists. Accessibility is DIY. Smaller bundle (~4.7kB vs ~14kB) but not worth the extra effort for our use case.       |
+| react-beautiful-dnd       | Eliminated | Deprecated and archived (Aug 2025). No React 19 support.                                                                                                                      |
 
 **Migration note:** `@dnd-kit/react` (new rewrite) is in 0.x pre-release. Start with the stable v6 packages. Migrate when the new API hits v1.
 
@@ -22,54 +22,54 @@
 
 **Use case:** Form validation, API request/response validation, env var validation.
 
-| Considered | Verdict | Why |
-|---|---|---|
-| **Zod** | **Chosen** | shadcn/ui Form component uses `zodResolver` by default. Massive ecosystem (tRPC, Next.js, Drizzle adapters). Zod v4 reduced bundle size ~57%. |
-| Valibot | Rejected | Better tree-shaking (~1-2kB vs ~12kB) but would fight shadcn/ui's defaults for minimal gain. |
+| Considered | Verdict    | Why                                                                                                                                           |
+| ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Zod**    | **Chosen** | shadcn/ui Form component uses `zodResolver` by default. Massive ecosystem (tRPC, Next.js, Drizzle adapters). Zod v4 reduced bundle size ~57%. |
+| Valibot    | Rejected   | Better tree-shaking (~1-2kB vs ~12kB) but would fight shadcn/ui's defaults for minimal gain.                                                  |
 
 ### Forms — React Hook Form
 
 **Use case:** Auth forms (login, register), page settings, block property editors.
 
-| Considered | Verdict | Why |
-|---|---|---|
+| Considered          | Verdict    | Why                                                                                                                             |
+| ------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **React Hook Form** | **Chosen** | shadcn/ui `<Form>` component wraps RHF directly. First-class Zod integration via `@hookform/resolvers`. Mature, huge ecosystem. |
-| Conform | Rejected | Better Server Actions story (progressive enhancement, no JS required) but loses shadcn/ui form integration. Smaller community. |
+| Conform             | Rejected   | Better Server Actions story (progressive enhancement, no JS required) but loses shadcn/ui form integration. Smaller community.  |
 
 ### Icons — Lucide React
 
 **Use case:** UI icons throughout the app.
 
-| Considered | Verdict | Why |
-|---|---|---|
+| Considered       | Verdict    | Why                                                                                                         |
+| ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
 | **Lucide React** | **Chosen** | shadcn/ui default. 1500+ icons, tree-shakeable (~1kB per icon). Every shadcn component already uses Lucide. |
-| Heroicons | Rejected | Only ~300 icons. Would require swapping icons in every shadcn component installed. |
+| Heroicons        | Rejected   | Only ~300 icons. Would require swapping icons in every shadcn component installed.                          |
 
 ### Server State — TanStack Query v5
 
 **Use case:** Client-side data fetching, mutations (save page, publish, reorder blocks), cache invalidation.
 
-| Considered | Verdict | Why |
-|---|---|---|
+| Considered            | Verdict    | Why                                                                                                                                                   |
+| --------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **TanStack Query v5** | **Chosen** | Built-in mutations, optimistic updates, DevTools. Editor needs complex cache invalidation (save → publish → refetch). Excellent TypeScript inference. |
-| SWR | Rejected | Simpler but lacks mutation primitives and DevTools. Not enough for editor complexity. |
+| SWR                   | Rejected   | Simpler but lacks mutation primitives and DevTools. Not enough for editor complexity.                                                                 |
 
 **Boundary:** TanStack Query handles client-side server state only. Read-heavy pages (dashboard, published pages) use Server Components with no client fetching.
 
 ## Full Library Stack
 
-| Layer | Library | Version |
-|---|---|---|
-| Framework | Next.js (App Router) | 15.x |
-| Styling | Tailwind CSS + shadcn/ui | 4.x / latest |
-| State (client) | Zustand | 5.x |
-| State (server) | TanStack Query | 5.x |
-| Database | Drizzle ORM + Neon (PostgreSQL) | latest |
-| Auth | NextAuth.js | 5.x |
-| Drag & drop | dnd-kit | 6.x |
-| Validation | Zod | 4.x |
-| Forms | React Hook Form | 7.x |
-| Icons | Lucide React | latest |
+| Layer          | Library                         | Version      |
+| -------------- | ------------------------------- | ------------ |
+| Framework      | Next.js (App Router)            | 15.x         |
+| Styling        | Tailwind CSS + shadcn/ui        | 4.x / latest |
+| State (client) | Zustand                         | 5.x          |
+| State (server) | TanStack Query                  | 5.x          |
+| Database       | Drizzle ORM + Neon (PostgreSQL) | latest       |
+| Auth           | NextAuth.js                     | 5.x          |
+| Drag & drop    | dnd-kit                         | 6.x          |
+| Validation     | Zod                             | 4.x          |
+| Forms          | React Hook Form                 | 7.x          |
+| Icons          | Lucide React                    | latest       |
 
 ## Consequences
 

@@ -1,11 +1,4 @@
-const RESERVED_SUBDOMAINS = new Set([
-  'www',
-  'app',
-  'api',
-  'dashboard',
-  'editor',
-  'p',
-])
+const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'dashboard', 'editor', 'p'])
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 

@@ -9,14 +9,30 @@ export const TESTIMONIALS_TEMPLATES: BlockTemplate[] = [
     background: { type: 'color', value: '#f9fafb' },
     padding: { top: 80, bottom: 80, left: 24, right: 24 },
     createElements: () => [
-      text(0, '"This platform completely transformed how we build landing pages. We ship 10x faster now."', {
-        fontSize: 16, color: '#374151', textAlign: 'left',
+      text(
+        0,
+        '"This platform completely transformed how we build landing pages. We ship 10x faster now."',
+        {
+          fontSize: 16,
+          color: '#374151',
+          textAlign: 'left',
+        },
+      ),
+      text(0, '- Sarah Chen, Head of Growth at Acme', {
+        fontSize: 14,
+        color: '#6b7280',
+        textAlign: 'left',
       }),
-      text(0, '- Sarah Chen, Head of Growth at Acme', { fontSize: 14, color: '#6b7280', textAlign: 'left' }),
       text(1, '"The A/B testing alone paid for itself in the first month. Incredible tool."', {
-        fontSize: 16, color: '#374151', textAlign: 'left',
+        fontSize: 16,
+        color: '#374151',
+        textAlign: 'left',
       }),
-      text(1, '- Marcus Johnson, Founder of LaunchKit', { fontSize: 14, color: '#6b7280', textAlign: 'left' }),
+      text(1, '- Marcus Johnson, Founder of LaunchKit', {
+        fontSize: 14,
+        color: '#6b7280',
+        textAlign: 'left',
+      }),
     ],
   },
   {
@@ -26,9 +42,15 @@ export const TESTIMONIALS_TEMPLATES: BlockTemplate[] = [
     background: { type: 'color', value: '#ffffff' },
     padding: { top: 80, bottom: 80, left: 48, right: 48 },
     createElements: () => [
-      text(0, '"We tried every page builder out there. This is the one we stuck with. The editor is simply the best."', {
-        fontSize: 20, color: '#111827', maxWidth: '640px',
-      }),
+      text(
+        0,
+        '"We tried every page builder out there. This is the one we stuck with. The editor is simply the best."',
+        {
+          fontSize: 20,
+          color: '#111827',
+          maxWidth: '640px',
+        },
+      ),
       text(1, '- Alex Rivera, CTO at Streamline', { fontSize: 15, color: '#6b7280' }),
       image(2, 'Customer logo', { maxWidth: '120px' }),
     ],

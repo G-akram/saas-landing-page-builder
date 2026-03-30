@@ -19,7 +19,12 @@ function createTestDocument(sectionCount = 3): PageDocument {
           id: `section-${String(i)}`,
           type: 'hero' as const,
           variantStyleId: 'hero-1',
-          layout: { type: 'stack' as const, gap: 24, align: 'center' as const, verticalAlign: 'center' as const },
+          layout: {
+            type: 'stack' as const,
+            gap: 24,
+            align: 'center' as const,
+            verticalAlign: 'center' as const,
+          },
           background: { type: 'color' as const, value: '#ffffff' },
           padding: { top: 80, bottom: 80, left: 24, right: 24 },
           elements: [],

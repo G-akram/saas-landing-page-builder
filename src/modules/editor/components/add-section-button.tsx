@@ -22,9 +22,7 @@ interface AddSectionButtonProps {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function AddSectionButton({
-  onAdd,
-}: AddSectionButtonProps): React.JSX.Element {
+export function AddSectionButton({ onAdd }: AddSectionButtonProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
 
   function handleSelect(type: SectionType, variantStyleId: string): void {
@@ -42,7 +40,7 @@ export function AddSectionButton({
         Add section
       </DialogTrigger>
 
-      <DialogContent className="max-h-[80vh] sm:max-w-6xl overflow-y-auto bg-gray-900 text-white ring-white/10">
+      <DialogContent className="max-h-[80vh] overflow-y-auto bg-gray-900 text-white ring-white/10 sm:max-w-6xl">
         <DialogHeader>
           <DialogTitle className="text-white">Add section</DialogTitle>
         </DialogHeader>

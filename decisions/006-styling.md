@@ -8,13 +8,13 @@
 
 The editor UI is component-heavy: resizable panels, dropdowns, modals, popovers, drag handles, color pickers, property inspectors, keyboard-navigable menus. We need a styling approach that:
 
-| Requirement | Why |
-| --- | --- |
-| **Handles complex components** | Editor has dozens of interactive components with accessibility needs |
-| **Supports theming** | Dark by default + light toggle (ADR-001) via design tokens |
-| **Doesn't leak into preview** | User's landing page must render exactly as published, not inherit editor styles |
-| **Customizable** | Editor-specific components (section toolbar, layer list) need custom interaction patterns |
-| **Fast to build** | Portfolio project — time on infrastructure is time not on features |
+| Requirement                    | Why                                                                                       |
+| ------------------------------ | ----------------------------------------------------------------------------------------- |
+| **Handles complex components** | Editor has dozens of interactive components with accessibility needs                      |
+| **Supports theming**           | Dark by default + light toggle (ADR-001) via design tokens                                |
+| **Doesn't leak into preview**  | User's landing page must render exactly as published, not inherit editor styles           |
+| **Customizable**               | Editor-specific components (section toolbar, layer list) need custom interaction patterns |
+| **Fast to build**              | Portfolio project — time on infrastructure is time not on features                        |
 
 ## Options Considered
 
@@ -32,15 +32,15 @@ Pre-built, pre-styled component library with Tailwind for custom pieces.
 
 ## Comparison
 
-| Factor | A: Tailwind + shadcn | B: Tailwind + Radix | C: Tailwind + full library |
-| --- | --- | --- | --- |
-| **Setup speed** | Fast — `npx shadcn add button` | Slower — wire each component | Fastest — import and use |
-| **Customizability** | Full — you own every file | Full — you write every file | Limited — fighting library styles |
-| **Accessibility** | Radix handles it | Radix handles it | Library handles it |
-| **Bundle size** | Small — only what you use | Small | Large — ships entire component set |
-| **Dark mode** | Built-in via CSS variables | Manual | Varies by library |
-| **Editor-specific components** | Build custom on same Radix + Tailwind stack | Same | Mismatch between library patterns and custom code |
-| **Portfolio signal** | Modern, industry-standard | Shows deeper understanding | Seen as shortcut |
+| Factor                         | A: Tailwind + shadcn                        | B: Tailwind + Radix          | C: Tailwind + full library                        |
+| ------------------------------ | ------------------------------------------- | ---------------------------- | ------------------------------------------------- |
+| **Setup speed**                | Fast — `npx shadcn add button`              | Slower — wire each component | Fastest — import and use                          |
+| **Customizability**            | Full — you own every file                   | Full — you write every file  | Limited — fighting library styles                 |
+| **Accessibility**              | Radix handles it                            | Radix handles it             | Library handles it                                |
+| **Bundle size**                | Small — only what you use                   | Small                        | Large — ships entire component set                |
+| **Dark mode**                  | Built-in via CSS variables                  | Manual                       | Varies by library                                 |
+| **Editor-specific components** | Build custom on same Radix + Tailwind stack | Same                         | Mismatch between library patterns and custom code |
+| **Portfolio signal**           | Modern, industry-standard                   | Shows deeper understanding   | Seen as shortcut                                  |
 
 ## Decision
 
@@ -56,11 +56,11 @@ Section toolbar, element selection overlay, layer/section list with drag handles
 
 ### What micro-libs fill (specialized gaps)
 
-| Gap | Library | Size | Why not build it |
-| --- | --- | --- | --- |
-| **Color picker** | `react-colorful` | ~2 KB | Color space math, accessibility, gradient support |
-| **Resizable panels** | `react-resizable-panels` | ~5 KB | Keyboard accessible, persist sizes, nested splits |
-| **Drag-and-drop** | `@dnd-kit` | ~10 KB | Touch support, collision detection, accessibility |
+| Gap                  | Library                  | Size   | Why not build it                                  |
+| -------------------- | ------------------------ | ------ | ------------------------------------------------- |
+| **Color picker**     | `react-colorful`         | ~2 KB  | Color space math, accessibility, gradient support |
+| **Resizable panels** | `react-resizable-panels` | ~5 KB  | Keyboard accessible, persist sizes, nested splits |
+| **Drag-and-drop**    | `@dnd-kit`               | ~10 KB | Touch support, collision detection, accessibility |
 
 **Rule: one micro-lib per gap.** No Swiss-army-knife UI libraries. Each must be <10 KB and do one thing well.
 
@@ -99,6 +99,7 @@ This is how Framer, Webflow, and every serious page builder handles it. Without 
 An editor panel can accumulate 10+ utilities per element.
 
 **Mitigation:**
+
 - `cn()` utility (included with shadcn) for conditional class merging
 - Extract components after 2-3 duplications — `<PanelContainer>`, `<ToolbarButton>`
 - Don't extract prematurely — duplicate is better than wrong abstraction
@@ -108,6 +109,7 @@ An editor panel can accumulate 10+ utilities per element.
 Standard dialog/dropdown patterns don't cover inline editing, drag handles, or live preview property panels.
 
 **Mitigation:**
+
 - Use shadcn for standard UI (dialogs, dropdowns, tooltips, tabs, toasts)
 - Build editor-specific components from Radix primitives + Tailwind
 - **Rule: never fork a shadcn component.** Either use it as-is, or build your own. Forked components lose the upgrade path and become maintenance debt.
@@ -117,6 +119,7 @@ Standard dialog/dropdown patterns don't cover inline editing, drag handles, or l
 No color picker, resizable panels, or rich property editors in shadcn.
 
 **Mitigation:**
+
 - One micro-lib per gap (see table above)
 - Each under 10 KB, single-purpose, framework-agnostic
 
@@ -125,6 +128,7 @@ No color picker, resizable panels, or rich property editors in shadcn.
 Doubles visual testing surface.
 
 **Mitigation:**
+
 - shadcn components already include dark mode variants — no per-component work
 - CSS custom properties mean one token change flips every color
 - Test dark first (default), verify light before shipping
