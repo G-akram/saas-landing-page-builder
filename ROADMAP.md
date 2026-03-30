@@ -327,40 +327,68 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 7 - Wow Factor
 
-**Status: proposed**
+**Status: in progress**
 
-**Why next:** Once the MVP is properly closed, the highest-leverage move is not broad SaaS expansion. It is making the product feel more premium, more visually impressive, and more instantly memorable to visitors. This phase focuses on polish and showcase value.
+**Why next:** MVP is functional but visually basic. The highest-leverage move is making the product look and feel premium — Creative Tim-level visual quality in block design, richer templates, and a polished first impression. AI assists the creative process rather than replacing it.
+
+**Design references:** Creative Tim UI kits and premium template galleries for composition, color, and polish quality. Adapt the visual language, don't copy layouts directly.
 
 **What we build:**
 
-- Stronger visual identity and a more polished free/premium template and component library
-- Better first impression on the marketing/home experience
-- More polished editor outputs without changing the product thesis
-- One or two high-impact new content capabilities
+- Design tokens system for cohesive theming across all blocks and templates
+- Creative Tim-quality block library with gradients, glassmorphism, depth, and transitions
+- Full-page templates gallery so users start from beauty, not a blank canvas
+- Form / lead-capture block type (highest-value new content capability)
+- Marketing page that sells the product convincingly
+- Scoped AI assistant for copy generation and variant suggestions
+- Editor UX micro-polish (animations, shortcuts, empty states)
 
 **Steps:**
 
-- [ ] Upgrade the public home/marketing experience so the product looks as polished as the editor ambition
-- [ ] Enhance existing block variants and tighten visual quality across the 6 core block types
-- [ ] Add high-quality page templates with an explicit `free | premium` tier model from day one, while keeping premium templates accessible until billing exists
-- [ ] Expand the editor with a small set of high-impact components using the same `free | premium` content model, starting with forms / lead capture
-- [ ] Improve publish/demo storytelling: better sample pages, stronger empty states, stronger template previews
-- [ ] Use high-end references such as Creative Tim UI and Creative Tim premium template galleries as inspiration for composition, polish, and presentation quality without copying their products directly
-- [ ] Tighten editor UX polish (microcopy, affordances, selection clarity, property-panel ergonomics)
-- [ ] Decide whether AI belongs here as a narrow assistive feature (template generation, copy suggestions, variant ideas) rather than a broad platform pivot
+1. [x] **Design tokens system** — global color palettes, font pairings, spacing scale, with preset themes (e.g., "Startup", "Agency", "SaaS Dark"). Tokens feed into block rendering and published output. Done when: switching a theme re-skins all blocks on a page. See `decisions/039-design-tokens-system.md`.
+2. [ ] **Redesign block library to Creative Tim quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, fix published icon rendering (currently degrades to monograms). Done when: blocks are visually competitive with commercial page builders.
+3. [ ] **Page templates gallery** — 4-6 full-page templates (SaaS, Agency, Portfolio, etc.) assembled from the redesigned blocks, selectable at page creation. Done when: "Create page" offers template selection and the result looks polished out of the box.
+4. [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants, with a simple submission handler (store to DB or webhook). Done when: users can add a working contact form to a published page.
+5. [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots. Done when: the home page looks like a real SaaS product page.
+6. [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel. Done when: user can generate/refine copy for any text element from within the editor.
+7. [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy. Done when: editor interactions feel smooth and discoverable.
+
+**Execution strategy:**
+
+Steps are not strictly sequential — some can be parallelized. Here are the dependency groups:
+
+- **Group A (foundation, do first):** Step 1 (design tokens). Everything else looks better when theming exists.
+- **Group B (parallel, after Group A):** Steps 2 + 4. Block redesign and form block are independent of each other, both consume design tokens.
+- **Group C (parallel, after Step 2):** Steps 3 + 5. Templates and marketing page both depend on the redesigned blocks being done.
+- **Group D (independent, anytime after Group A):** Step 6 (AI assistant). Only needs the property panel and Claude API — no dependency on block redesign.
+- **Group E (last):** Step 7 (editor micro-polish). Final pass after all new surface area is built.
+
+```
+Group A:  [1 Design Tokens]
+               |
+         ┌─────┴─────┐
+Group B:  [2 Blocks]  [4 Forms]     Group D: [6 AI] (anytime after A)
+               |
+         ┌─────┴─────┐
+Group C:  [3 Templates] [5 Marketing]
+               |
+Group E:  [7 Editor Polish]
+```
 
 **Deliverables:**
 
-- The product looks materially more premium at first glance
-- New users can start from better-looking free and premium-tier templates instead of only assembling blocks from scratch
-- The editor produces pages that feel closer to a polished commercial tool than a strong prototype
+- Block library looks commercially competitive, not prototype-grade
+- New users can start from polished full-page templates
+- Published pages have transitions, gradients, depth — not flat inline styles
+- AI helps generate copy and suggest variants without leaving the editor
+- Marketing page sells the product convincingly
 
-**You have:** A more impressive, portfolio-worthy product with stronger "wow" appeal and clearer differentiation.
+**You have:** A portfolio-worthy product with Creative Tim-level visual quality, AI-assisted content creation, and stronger "wow" appeal.
 
 ---
 
 ## Later
 
-Custom domains, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), payments/subscriptions, broader component system, editor i18n.
+Custom domains, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), payments/subscriptions, free/premium content tiers (needs billing first), broader component system, editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
