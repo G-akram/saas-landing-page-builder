@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 import { type PageDocument } from '@/shared/types'
+import { applyThemeFonts, resolveDocumentTheme } from '@/shared/lib/theme-resolver'
 
 import {
   createSection,
@@ -67,6 +68,16 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
       undoStack: [],
       redoStack: [],
     })
+  },
+
+  applyTheme: (themeId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) => {
+        const withColors = resolveDocumentTheme(document, themeId)
+        const withFonts = applyThemeFonts(withColors, themeId)
+        return withFonts === document ? null : withFonts
+      }),
+    )
   },
 
   createVariant: (options) => {

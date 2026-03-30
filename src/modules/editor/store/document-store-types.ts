@@ -15,6 +15,7 @@ export interface DocumentState {
 
 export interface DocumentActions {
   initializeDocument: (doc: PageDocument) => void
+  applyTheme: (themeId: string) => void
   createVariant: (options?: { name?: string; sourceVariantId?: string }) => void
   duplicateVariant: (sourceVariantId: string) => void
   deleteVariant: (variantId: string) => void
