@@ -21,7 +21,14 @@ export function text(slot: number, value: string, styles: PageElement['styles'] 
     type: 'text',
     slot,
     content: { type: 'text', text: value },
-    styles: { textAlign: 'center', color: '#6b7280', fontSize: 18, lineHeight: 1.6, ...styles },
+    styles: {
+      textAlign: 'center',
+      color: '#6b7280',
+      colorToken: 'text-muted',
+      fontSize: 18,
+      lineHeight: 1.6,
+      ...styles,
+    },
   }
 }
 
@@ -37,7 +44,9 @@ export function button(
     content: { type: 'button', text: label },
     styles: {
       backgroundColor: '#2563eb',
+      backgroundColorToken: 'primary',
       color: '#ffffff',
+      colorToken: 'primary-foreground',
       fontSize: 16,
       fontWeight: 600,
       borderRadius: 8,
@@ -63,6 +72,6 @@ export function icon(slot: number, name: string, styles: PageElement['styles'] =
     type: 'icon',
     slot,
     content: { type: 'icon', name },
-    styles: { fontSize: 32, color: '#2563eb', ...styles },
+    styles: { fontSize: 32, color: '#2563eb', colorToken: 'primary', ...styles },
   }
 }

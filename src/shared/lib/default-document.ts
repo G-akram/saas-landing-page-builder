@@ -1,5 +1,7 @@
 import { type PageDocument } from '@/shared/types'
 
+import { DEFAULT_THEME_ID } from './design-tokens'
+
 /**
  * Creates a default PageDocument for new pages.
  * Five sections covering the standard landing page structure —
@@ -9,6 +11,7 @@ export function createDefaultDocument(): PageDocument {
   const variantId = crypto.randomUUID()
 
   return {
+    themeId: DEFAULT_THEME_ID,
     activeVariantId: variantId,
     variants: [
       {
@@ -22,7 +25,7 @@ export function createDefaultDocument(): PageDocument {
             type: 'hero',
             variantStyleId: 'hero-1',
             layout: { type: 'stack', gap: 24, align: 'center', verticalAlign: 'center' },
-            background: { type: 'color', value: '#ffffff' },
+            background: { type: 'color', value: '#ffffff', valueToken: 'background' },
             padding: { top: 80, bottom: 80, left: 24, right: 24 },
             elements: [
               {
@@ -34,6 +37,7 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 48,
                   fontWeight: 700,
                   color: '#111827',
+                  colorToken: 'text-primary',
                   textAlign: 'center',
                   lineHeight: 1.2,
                 },
@@ -50,6 +54,7 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 18,
                   fontWeight: 400,
                   color: '#6b7280',
+                  colorToken: 'text-muted',
                   textAlign: 'center',
                   lineHeight: 1.6,
                   maxWidth: '640px',
@@ -64,7 +69,9 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 16,
                   fontWeight: 600,
                   color: '#ffffff',
+                  colorToken: 'primary-foreground',
                   backgroundColor: '#2563eb',
+                  backgroundColorToken: 'primary',
                   borderRadius: 8,
                   padding: { top: 12, bottom: 12, left: 32, right: 32 },
                 },
@@ -76,7 +83,7 @@ export function createDefaultDocument(): PageDocument {
             type: 'features',
             variantStyleId: 'features-1',
             layout: { type: 'grid', columns: 3, gap: 32, align: 'center', verticalAlign: 'top' },
-            background: { type: 'color', value: '#f9fafb' },
+            background: { type: 'color', value: '#f9fafb', valueToken: 'surface' },
             padding: { top: 64, bottom: 64, left: 24, right: 24 },
             elements: [
               {
@@ -84,7 +91,13 @@ export function createDefaultDocument(): PageDocument {
                 type: 'heading',
                 slot: 0,
                 content: { type: 'heading', text: 'Everything you need', level: 2 },
-                styles: { fontSize: 32, fontWeight: 700, color: '#111827', textAlign: 'center' },
+                styles: {
+                  fontSize: 32,
+                  fontWeight: 700,
+                  color: '#111827',
+                  colorToken: 'text-primary',
+                  textAlign: 'center',
+                },
               },
               {
                 id: crypto.randomUUID(),
@@ -95,6 +108,7 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 16,
                   fontWeight: 400,
                   color: '#6b7280',
+                  colorToken: 'text-muted',
                   textAlign: 'center',
                   lineHeight: 1.6,
                 },
@@ -106,7 +120,7 @@ export function createDefaultDocument(): PageDocument {
             type: 'pricing',
             variantStyleId: 'pricing-1',
             layout: { type: 'grid', columns: 3, gap: 24, align: 'center', verticalAlign: 'top' },
-            background: { type: 'color', value: '#ffffff' },
+            background: { type: 'color', value: '#ffffff', valueToken: 'background' },
             padding: { top: 64, bottom: 64, left: 24, right: 24 },
             elements: [
               {
@@ -114,7 +128,13 @@ export function createDefaultDocument(): PageDocument {
                 type: 'heading',
                 slot: 0,
                 content: { type: 'heading', text: 'Simple pricing', level: 2 },
-                styles: { fontSize: 32, fontWeight: 700, color: '#111827', textAlign: 'center' },
+                styles: {
+                  fontSize: 32,
+                  fontWeight: 700,
+                  color: '#111827',
+                  colorToken: 'text-primary',
+                  textAlign: 'center',
+                },
               },
               {
                 id: crypto.randomUUID(),
@@ -125,6 +145,7 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 16,
                   fontWeight: 400,
                   color: '#6b7280',
+                  colorToken: 'text-muted',
                   textAlign: 'center',
                   lineHeight: 1.6,
                 },
@@ -136,7 +157,7 @@ export function createDefaultDocument(): PageDocument {
             type: 'cta',
             variantStyleId: 'cta-1',
             layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
-            background: { type: 'color', value: '#2563eb' },
+            background: { type: 'color', value: '#2563eb', valueToken: 'primary' },
             padding: { top: 64, bottom: 64, left: 24, right: 24 },
             elements: [
               {
@@ -144,7 +165,13 @@ export function createDefaultDocument(): PageDocument {
                 type: 'heading',
                 slot: 0,
                 content: { type: 'heading', text: 'Ready to launch?', level: 2 },
-                styles: { fontSize: 36, fontWeight: 700, color: '#ffffff', textAlign: 'center' },
+                styles: {
+                  fontSize: 36,
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  colorToken: 'text-on-primary',
+                  textAlign: 'center',
+                },
               },
               {
                 id: crypto.randomUUID(),
@@ -155,7 +182,9 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 16,
                   fontWeight: 600,
                   color: '#2563eb',
+                  colorToken: 'primary',
                   backgroundColor: '#ffffff',
+                  backgroundColorToken: 'background',
                   borderRadius: 8,
                   padding: { top: 12, bottom: 12, left: 32, right: 32 },
                 },
@@ -167,7 +196,7 @@ export function createDefaultDocument(): PageDocument {
             type: 'footer',
             variantStyleId: 'footer-1',
             layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
-            background: { type: 'color', value: '#111827' },
+            background: { type: 'color', value: '#111827', valueToken: 'secondary' },
             padding: { top: 48, bottom: 48, left: 24, right: 24 },
             elements: [
               {
@@ -179,6 +208,7 @@ export function createDefaultDocument(): PageDocument {
                   fontSize: 14,
                   fontWeight: 400,
                   color: '#9ca3af',
+                  colorToken: 'text-muted',
                   textAlign: 'center',
                   lineHeight: 1.5,
                 },
