@@ -61,8 +61,9 @@ function createDocument() {
 }
 
 function mockPageRows(rows: unknown[]): void {
-  const orderByMock = vi.fn().mockResolvedValue(rows)
-  const whereMock = vi.fn().mockReturnValue({ orderBy: orderByMock })
+  const limitMock = vi.fn().mockResolvedValue(rows)
+  const orderByMock = vi.fn().mockReturnValue({ limit: limitMock })
+  const whereMock = vi.fn().mockReturnValue({ orderBy: orderByMock, limit: limitMock })
   const fromMock = vi.fn().mockReturnValue({ where: whereMock })
 
   mocked.select.mockReturnValueOnce({ from: fromMock })
@@ -71,8 +72,7 @@ function mockPageRows(rows: unknown[]): void {
 function mockAnalyticsRows(rows: unknown[]): void {
   const groupByMock = vi.fn().mockResolvedValue(rows)
   const whereMock = vi.fn().mockReturnValue({ groupBy: groupByMock })
-  const innerJoinMock = vi.fn().mockReturnValue({ where: whereMock })
-  const fromMock = vi.fn().mockReturnValue({ innerJoin: innerJoinMock })
+  const fromMock = vi.fn().mockReturnValue({ where: whereMock })
 
   mocked.select.mockReturnValueOnce({ from: fromMock })
 }

@@ -1,34 +1,38 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
-
-import { db, pages, publishedPageEvents } from '@/shared/db'
+import { and, desc, eq, inArray, lt, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { type PageDocument, PageDocumentSchema } from '@/shared/types'
+import { db, pages, publishedPageEvents } from '@/shared/db'
+import { PageDocumentSchema } from '@/shared/types'
 import { logger } from '@/shared/lib/logger'
 
-export interface PageVariantAnalyticsSummary {
-  variantId: string
-  variantName: string
-  views: number
-  conversions: number
-  conversionRate: number
-}
+import { buildAnalyticsByPageId } from './page-analytics'
+import { decodePageCursor, encodePageCursor } from './page-pagination'
+import {
+  type PageAnalyticsRow,
+  type PageSummary,
+  type PageWithDocument,
+  type PaginatedPageSummaries,
+} from './page-query-types'
 
-interface PageSummary {
-  id: string
-  name: string
-  slug: string
-  status: 'draft' | 'published'
-  createdAt: Date
-  updatedAt: Date
-  analytics: PageVariantAnalyticsSummary[]
-}
-
-interface PageWithDocument extends PageSummary {
-  document: PageDocument
-}
+const DEFAULT_PAGE_SIZE = 12
+const MAX_PAGE_SIZE = 24
 
 export async function getPagesByUser(userId: string): Promise<PageSummary[]> {
+  const result = await getPaginatedPagesByUser(userId, { pageSize: MAX_PAGE_SIZE })
+  return result.pages
+}
+
+export async function getPaginatedPagesByUser(
+  userId: string,
+  options: {
+    cursor?: string | null
+    pageSize?: number
+  } = {},
+): Promise<PaginatedPageSummaries> {
+  const pageSize = normalizePageSize(options.pageSize)
+  const decodedCursor = decodePageCursor(options.cursor)
+  const cursorDate = decodedCursor ? new Date(decodedCursor.updatedAt) : null
+
   const pageRows = await db
     .select({
       id: pages.id,
@@ -40,39 +44,52 @@ export async function getPagesByUser(userId: string): Promise<PageSummary[]> {
       updatedAt: pages.updatedAt,
     })
     .from(pages)
-    .where(eq(pages.userId, userId))
-    .orderBy(desc(pages.updatedAt))
-
-  const analyticsRows = await db
-    .select({
-      pageId: publishedPageEvents.pageId,
-      variantId: publishedPageEvents.variantId,
-      eventType: publishedPageEvents.eventType,
-      eventCount: sql<number>`count(*)`,
-    })
-    .from(publishedPageEvents)
-    .innerJoin(pages, eq(publishedPageEvents.pageId, pages.id))
-    .where(eq(pages.userId, userId))
-    .groupBy(
-      publishedPageEvents.pageId,
-      publishedPageEvents.variantId,
-      publishedPageEvents.eventType,
+    .where(
+      decodedCursor && cursorDate
+        ? and(
+            eq(pages.userId, userId),
+            or(
+              lt(pages.updatedAt, cursorDate),
+              and(eq(pages.updatedAt, cursorDate), lt(pages.id, decodedCursor.id)),
+            ),
+          )
+        : eq(pages.userId, userId),
     )
+    .orderBy(desc(pages.updatedAt), desc(pages.id))
+    .limit(pageSize + 1)
 
-  const analyticsByPageId = buildAnalyticsByPageId(pageRows, analyticsRows)
+  const hasNextPage = pageRows.length > pageSize
+  const visiblePages = hasNextPage ? pageRows.slice(0, pageSize) : pageRows
 
-  return pageRows.map((page) => ({
-    id: page.id,
-    name: page.name,
-    slug: page.slug,
-    status: page.status,
-    createdAt: page.createdAt,
-    updatedAt: page.updatedAt,
-    analytics: analyticsByPageId.get(page.id) ?? [],
-  }))
+  if (visiblePages.length === 0) {
+    return {
+      pages: [],
+      nextCursor: null,
+    }
+  }
+
+  const analyticsRows = await getAnalyticsRowsByPageIds(visiblePages.map((page) => page.id))
+  const analyticsByPageId = buildAnalyticsByPageId(visiblePages, analyticsRows)
+  const lastPage = visiblePages[visiblePages.length - 1]
+
+  return {
+    pages: visiblePages.map((page) => ({
+      id: page.id,
+      name: page.name,
+      slug: page.slug,
+      status: page.status,
+      createdAt: page.createdAt,
+      updatedAt: page.updatedAt,
+      analytics: analyticsByPageId.get(page.id) ?? [],
+    })),
+    nextCursor: hasNextPage && lastPage ? encodePageCursor(lastPage.updatedAt, lastPage.id) : null,
+  }
 }
 
-export async function getPageById(pageId: string, userId: string): Promise<PageWithDocument | null> {
+export async function getPageById(
+  pageId: string,
+  userId: string,
+): Promise<PageWithDocument | null> {
   const rows = await db
     .select()
     .from(pages)
@@ -103,156 +120,31 @@ export async function getPageById(pageId: string, userId: string): Promise<PageW
   }
 }
 
-interface PageSummaryRow {
-  id: string
-  name: string
-  slug: string
-  status: 'draft' | 'published'
-  document: PageDocument
-  createdAt: Date
-  updatedAt: Date
-}
-
-interface PageAnalyticsRow {
-  pageId: string
-  variantId: string
-  eventType: 'view' | 'conversion'
-  eventCount: number
-}
-
-function buildAnalyticsByPageId(
-  pagesByUser: PageSummaryRow[],
-  analyticsRows: PageAnalyticsRow[],
-): Map<string, PageVariantAnalyticsSummary[]> {
-  const variantNameMaps = new Map(
-    pagesByUser.map((page) => [page.id, createVariantNameMap(page.document, page.id)]),
-  )
-  const analyticsMap = new Map<
-    string,
-    Map<string, { variantId: string; views: number; conversions: number }>
-  >()
-
-  for (const analyticsRow of analyticsRows) {
-    const pageAnalytics = ensurePageAnalyticsMap(analyticsMap, analyticsRow.pageId)
-    const variantAnalytics = ensureVariantAnalytics(pageAnalytics, analyticsRow.variantId)
-    const eventCount = Number(analyticsRow.eventCount)
-
-    if (analyticsRow.eventType === 'view') {
-      variantAnalytics.views = eventCount
-      continue
-    }
-
-    variantAnalytics.conversions = eventCount
+async function getAnalyticsRowsByPageIds(pageIds: string[]): Promise<PageAnalyticsRow[]> {
+  if (pageIds.length === 0) {
+    return []
   }
 
-  return new Map(
-    pagesByUser.map((page) => {
-      const variantOrder = variantNameMaps.get(page.id) ?? new Map()
-      const pageAnalytics = analyticsMap.get(page.id)
-
-      const summaries = pageAnalytics
-        ? Array.from(pageAnalytics.values())
-            .map((variantAnalytics) => ({
-              variantId: variantAnalytics.variantId,
-              variantName:
-                variantOrder.get(variantAnalytics.variantId) ?? variantAnalytics.variantId,
-              views: variantAnalytics.views,
-              conversions: variantAnalytics.conversions,
-              conversionRate: calculateConversionRate(
-                variantAnalytics.views,
-                variantAnalytics.conversions,
-              ),
-            }))
-            .sort((left, right) =>
-              compareVariantAnalytics(
-                left,
-                right,
-                Array.from(variantOrder.keys()),
-              ),
-            )
-        : []
-
-      return [page.id, summaries]
-    }),
-  )
-}
-
-function ensurePageAnalyticsMap(
-  analyticsMap: Map<string, Map<string, { variantId: string; views: number; conversions: number }>>,
-  pageId: string,
-): Map<string, { variantId: string; views: number; conversions: number }> {
-  const existing = analyticsMap.get(pageId)
-  if (existing) {
-    return existing
-  }
-
-  const created = new Map<string, { variantId: string; views: number; conversions: number }>()
-  analyticsMap.set(pageId, created)
-  return created
-}
-
-function ensureVariantAnalytics(
-  pageAnalytics: Map<string, { variantId: string; views: number; conversions: number }>,
-  variantId: string,
-): { variantId: string; views: number; conversions: number } {
-  const existing = pageAnalytics.get(variantId)
-  if (existing) {
-    return existing
-  }
-
-  const created = {
-    variantId,
-    views: 0,
-    conversions: 0,
-  }
-  pageAnalytics.set(variantId, created)
-  return created
-}
-
-function createVariantNameMap(
-  document: PageDocument,
-  pageId: string,
-): Map<string, string> {
-  const parsed = PageDocumentSchema.safeParse(document)
-  if (!parsed.success) {
-    logger.warn('Invalid page document while building dashboard analytics labels', {
-      pageId,
-      errors: z.treeifyError(parsed.error),
+  return db
+    .select({
+      pageId: publishedPageEvents.pageId,
+      variantId: publishedPageEvents.variantId,
+      eventType: publishedPageEvents.eventType,
+      eventCount: sql<number>`count(*)`,
     })
-
-    return new Map()
-  }
-
-  return new Map(parsed.data.variants.map((variant) => [variant.id, variant.name]))
+    .from(publishedPageEvents)
+    .where(inArray(publishedPageEvents.pageId, pageIds))
+    .groupBy(
+      publishedPageEvents.pageId,
+      publishedPageEvents.variantId,
+      publishedPageEvents.eventType,
+    )
 }
 
-function calculateConversionRate(views: number, conversions: number): number {
-  if (views <= 0 || conversions <= 0) {
-    return 0
+function normalizePageSize(pageSize: number | undefined): number {
+  if (!pageSize || pageSize < 1) {
+    return DEFAULT_PAGE_SIZE
   }
 
-  return Number(((conversions / views) * 100).toFixed(1))
-}
-
-function compareVariantAnalytics(
-  left: PageVariantAnalyticsSummary,
-  right: PageVariantAnalyticsSummary,
-  variantOrder: string[],
-): number {
-  const leftIndex = variantOrder.indexOf(left.variantId)
-  const rightIndex = variantOrder.indexOf(right.variantId)
-
-  if (leftIndex !== -1 || rightIndex !== -1) {
-    if (leftIndex === -1) {
-      return 1
-    }
-
-    if (rightIndex === -1) {
-      return -1
-    }
-
-    return leftIndex - rightIndex
-  }
-
-  return left.variantId.localeCompare(right.variantId)
+  return Math.min(pageSize, MAX_PAGE_SIZE)
 }

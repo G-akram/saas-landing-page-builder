@@ -33,26 +33,37 @@ Keeps credentials isolated. If prod secrets leak, dev is unaffected and vice ver
 
 Current minimum set for production auth + database:
 
-| Variable | Where to get it |
-|---|---|
-| `AUTH_SECRET` | Run `npx auth secret` to generate |
-| `AUTH_GITHUB_ID` | GitHub OAuth app → Client ID |
-| `AUTH_GITHUB_SECRET` | GitHub OAuth app → Client Secret |
-| `AUTH_GOOGLE_ID` | Google Cloud Console → OAuth client ID |
-| `AUTH_GOOGLE_SECRET` | Google Cloud Console → OAuth client secret |
-| `DATABASE_URL` | Neon dashboard → Connection string |
-| `PUBLISH_ROOT_DOMAIN` | App root domain for subdomain rewrites (e.g. `app.com`) |
-| `PUBLISH_BASE_URL` | Canonical base URL used in publish responses |
+| Variable                   | Where to get it                                                         |
+| -------------------------- | ----------------------------------------------------------------------- |
+| `AUTH_SECRET`              | Run `npx auth secret` to generate                                       |
+| `AUTH_GITHUB_ID`           | GitHub OAuth app → Client ID                                            |
+| `AUTH_GITHUB_SECRET`       | GitHub OAuth app → Client Secret                                        |
+| `AUTH_GOOGLE_ID`           | Google Cloud Console → OAuth client ID                                  |
+| `AUTH_GOOGLE_SECRET`       | Google Cloud Console → OAuth client secret                              |
+| `DATABASE_URL`             | Neon dashboard → Connection string                                      |
+| `PUBLISH_ROOT_DOMAIN`      | App root domain for subdomain rewrites (e.g. `app.com`)                 |
+| `PUBLISH_BASE_URL`         | Canonical base URL used in publish responses                            |
+| `PUBLISH_STORAGE_PROVIDER` | Artifact storage provider (`local` by default in the current app state) |
+| `RATE_LIMIT_STORAGE`       | Rate-limit backend (`database` enables shared-instance throttling)      |
 
 ---
 
 ## Publishing notes
 
 - Current storage adapter defaults to local artifact storage in this project state.
+- `PUBLISH_STORAGE_PROVIDER=local` is the only fully supported provider today. Use it for single-instance or filesystem-persistent deployments.
+- `RATE_LIMIT_STORAGE=database` enables distributed throttling across app instances by using the shared Neon database.
 - Current Neon serverless/http path does not provide transaction support; publish persistence is implemented as sequential idempotent operations.
 - Keep `PUBLISH_ROOT_DOMAIN` aligned with your DNS/certificate setup or subdomain rewrite behavior will not apply as expected.
 - Phase 5 serving is session-dynamic, so published HTML responses intentionally use `private, no-store, max-age=0`.
 - Production HTTPS matters for A/B testing because sticky assignment cookies are marked `Secure` when `NODE_ENV=production`.
+
+---
+
+## MVP scope note
+
+- The editor ships in dark mode for MVP.
+- The earlier light-theme toggle idea is officially descoped from MVP and is no longer a required deployment expectation.
 
 ---
 

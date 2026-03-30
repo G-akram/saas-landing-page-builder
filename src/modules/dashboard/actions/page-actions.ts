@@ -9,8 +9,16 @@ import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { logger } from '@/shared/lib/logger'
 import { db, pages } from '@/shared/db'
 
-const createLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
-const deleteLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
+const createLimiter = createRateLimiter({
+  name: 'dashboard-create-page',
+  maxRequests: 10,
+  windowMs: 60_000,
+})
+const deleteLimiter = createRateLimiter({
+  name: 'dashboard-delete-page',
+  maxRequests: 10,
+  windowMs: 60_000,
+})
 
 const SLUG_MAX_LENGTH = 80
 
@@ -45,37 +53,40 @@ async function generateUniqueSlug(baseName: string): Promise<string> {
 }
 
 function isUniqueConstraintError(err: unknown): boolean {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    err.code === '23505'
-  )
+  return typeof err === 'object' && err !== null && 'code' in err && err.code === '23505'
 }
 
-interface ActionResult {
-  error?: string
+interface ActionSuccessResult {
+  success: true
+  message?: string
 }
+
+interface ActionErrorResult {
+  success: false
+  error: string
+}
+
+type ActionResult = ActionSuccessResult | ActionErrorResult
 
 export async function createPage(formData: FormData): Promise<ActionResult> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Not authenticated' }
+    return { success: false, error: 'Not authenticated' }
   }
 
-  const { isAllowed } = createLimiter.check(session.user.id)
+  const { isAllowed } = await createLimiter.check(session.user.id)
   if (!isAllowed) {
-    return { error: 'Too many requests. Please wait a moment.' }
+    return { success: false, error: 'Too many requests. Please wait a moment.' }
   }
 
   const name = formData.get('name')
   if (typeof name !== 'string' || name.trim().length === 0) {
-    return { error: 'Page name is required' }
+    return { success: false, error: 'Page name is required' }
   }
 
   const trimmedName = name.trim()
   if (trimmedName.length > 100) {
-    return { error: 'Page name must be 100 characters or less' }
+    return { success: false, error: 'Page name must be 100 characters or less' }
   }
 
   const document = createDefaultDocument()
@@ -96,33 +107,33 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
       })
 
       revalidatePath('/dashboard')
-      return {}
+      return { success: true }
     } catch (err) {
       if (isUniqueConstraintError(err) && attempt < maxInsertRetries - 1) {
         continue
       }
       logger.error('Failed to create page', { error: String(err), userId: session.user.id })
-      return { error: 'Failed to create page. Please try again.' }
+      return { success: false, error: 'Failed to create page. Please try again.' }
     }
   }
 
-  return { error: 'Failed to create a unique slug. Please try again.' }
+  return { success: false, error: 'Failed to create a unique slug. Please try again.' }
 }
 
 export async function deletePage(formData: FormData): Promise<ActionResult> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Not authenticated' }
+    return { success: false, error: 'Not authenticated' }
   }
 
-  const { isAllowed } = deleteLimiter.check(session.user.id)
+  const { isAllowed } = await deleteLimiter.check(session.user.id)
   if (!isAllowed) {
-    return { error: 'Too many requests. Please wait a moment.' }
+    return { success: false, error: 'Too many requests. Please wait a moment.' }
   }
 
   const pageId = formData.get('pageId')
   if (typeof pageId !== 'string') {
-    return { error: 'Page ID is required' }
+    return { success: false, error: 'Page ID is required' }
   }
 
   // Ownership check: only delete if page belongs to the user
@@ -131,9 +142,9 @@ export async function deletePage(formData: FormData): Promise<ActionResult> {
     .where(and(eq(pages.id, pageId), eq(pages.userId, session.user.id)))
 
   if (result.rowCount === 0) {
-    return { error: 'Page not found or already deleted' }
+    return { success: false, error: 'Page not found or already deleted' }
   }
 
   revalidatePath('/dashboard')
-  return {}
+  return { success: true, message: 'Page deleted.' }
 }

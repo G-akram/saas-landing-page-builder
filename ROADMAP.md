@@ -307,12 +307,12 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 - [ ] Fix current ESLint failures and restore `npm run lint` to green
 - [ ] Restore `npm run format:check` to green across code + docs
-- [ ] Update stale copy/docs (`src/app/page.tsx`, getting-started/deployment env vars, roadmap alignment)
-- [ ] Decide the fate of the editor light-theme toggle: ship it or officially descoped it from MVP docs
-- [ ] Add the missing direct hook/component integration tests called out in the debt list
-- [ ] Clean obvious duplication and split oversized hot-spot files where it improves maintainability
-- [ ] Add dashboard pagination and improve `deletePage` success feedback
-- [ ] Implement the production publish-storage path and distributed rate limiting if we want the MVP to be deployable beyond local/demo use
+- [x] Update stale copy/docs (`src/app/page.tsx`, getting-started/deployment env vars, roadmap alignment)
+- [x] Decide the fate of the editor light-theme toggle: officially descoped from MVP docs; editor remains dark-first for MVP
+- [x] Add the missing direct hook/component integration tests called out in the debt list
+- [x] Clean obvious duplication and split oversized hot-spot files where it improves maintainability
+- [x] Add dashboard pagination and improve `deletePage` success feedback
+- [x] Follow through on practical deployability hardening: added shared database-backed distributed rate limiting; publish storage remains explicitly documented as local-only in the current MVP state
 
 **Deliverables:**
 

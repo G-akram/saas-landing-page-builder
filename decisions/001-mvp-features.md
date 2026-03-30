@@ -9,6 +9,7 @@
 ### MVP Features
 
 **Editor**
+
 - Section-based editor (page = vertical stack of sections) — see ADR-002
 - Drag-to-reorder sections
 - Pre-built block library: Hero, Features, CTA, Pricing, Testimonials, Footer (6 types)
@@ -19,24 +20,29 @@
 - Light theme toggle (design tokens / CSS custom properties enable swapping)
 
 **Customization**
+
 - Per-element styles (colors, fonts, spacing, backgrounds)
 - Image upload/selection
 
 **Responsive**
+
 - Desktop-first with auto-stack (2 breakpoints: desktop + mobile)
 - Mobile preview toggle in editor
 
 **A/B Testing**
+
 - Variant-aware schema from day 1 (page → variants[] → sections[] → elements[])
 - Variant creation UI (create/duplicate/delete variants)
 - Traffic splitting + basic analytics (views, conversions per variant)
 
 **Publishing**
+
 - One-click publish
 - Subdomain hosting (yoursite.app.com)
 - Static HTML generation + CDN serving
 
 **Auth & Persistence**
+
 - User accounts (signup/login)
 - Save/load pages
 - Dashboard (list my pages)

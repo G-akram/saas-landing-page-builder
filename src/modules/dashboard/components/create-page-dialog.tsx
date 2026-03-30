@@ -28,7 +28,7 @@ export function CreatePageDialog(): React.JSX.Element {
   const [state, formAction, isPending] = useActionState(
     async (_prev: FormState, formData: FormData): Promise<FormState> => {
       const result = await createPage(formData)
-      if (result.error) return { error: result.error }
+      if (!result.success) return { error: result.error }
       setIsOpen(false)
       formRef.current?.reset()
       return {}
@@ -38,9 +38,7 @@ export function CreatePageDialog(): React.JSX.Element {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger render={<Button />}>
-        Create page
-      </DialogTrigger>
+      <DialogTrigger render={<Button />}>Create page</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create a new page</DialogTitle>
@@ -68,7 +66,9 @@ export function CreatePageDialog(): React.JSX.Element {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { setIsOpen(false) }}
+              onClick={() => {
+                setIsOpen(false)
+              }}
               disabled={isPending}
             >
               Cancel

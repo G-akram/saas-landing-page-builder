@@ -4,17 +4,11 @@ import Link from 'next/link'
 import { useActionState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { deletePage } from '@/modules/dashboard/actions/page-actions'
 
-import { type PageVariantAnalyticsSummary } from '../queries/page-queries'
+import { type PageVariantAnalyticsSummary } from '../queries/page-query-types'
 
 interface PageCardProps {
   id: string
@@ -47,16 +41,25 @@ export function PageCard({
   updatedAt,
   analytics,
 }: PageCardProps): React.JSX.Element {
-  const [, formAction, isPending] = useActionState(
-    async (_prev: Record<string, never>, formData: FormData): Promise<Record<string, never>> => {
-      await deletePage(formData)
-      return {}
+  interface DeletePageFormState {
+    error?: string
+    success?: string
+  }
+
+  const [state, formAction, isPending] = useActionState(
+    async (_prev: DeletePageFormState, formData: FormData): Promise<DeletePageFormState> => {
+      const result = await deletePage(formData)
+      if (!result.success) {
+        return { error: result.error }
+      }
+
+      return result.message ? { success: result.message } : {}
     },
     {},
   )
 
   return (
-    <Card className={isPending ? 'opacity-50 pointer-events-none' : undefined}>
+    <Card className={isPending ? 'pointer-events-none opacity-50' : undefined}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -72,14 +75,14 @@ export function PageCard({
       </CardHeader>
       {analytics.length > 0 ? (
         <div className="border-t px-6 py-4">
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <div className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             A/B performance
           </div>
           <div className="space-y-2">
             {analytics.map((variant) => (
               <div
                 key={variant.variantId}
-                className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm"
+                className="bg-muted/40 flex items-center justify-between rounded-md px-3 py-2 text-sm"
               >
                 <span className="font-medium">{variant.variantName}</span>
                 <span className="text-muted-foreground">
@@ -91,9 +94,13 @@ export function PageCard({
         </div>
       ) : null}
       <CardFooter className="flex items-center justify-between">
-        <span className="text-muted-foreground text-xs">
-          Updated {formatRelativeDate(updatedAt)}
-        </span>
+        <div className="space-y-1">
+          <span className="text-muted-foreground block text-xs">
+            Updated {formatRelativeDate(updatedAt)}
+          </span>
+          {state.error ? <p className="text-xs text-red-500">{state.error}</p> : null}
+          {state.success ? <p className="text-xs text-green-600">{state.success}</p> : null}
+        </div>
         <form action={formAction}>
           <input type="hidden" name="pageId" value={id} />
           <Button
@@ -101,7 +108,7 @@ export function PageCard({
             variant="ghost"
             size="sm"
             disabled={isPending}
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="text-red-500 hover:bg-red-50 hover:text-red-600"
           >
             {isPending ? (
               <>
