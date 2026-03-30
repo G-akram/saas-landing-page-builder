@@ -48,15 +48,19 @@ Error shape:
 {
   "success": true,
   "liveUrl": "https://<app-domain>/p/<slug>",
-  "artifact": {
-    "pageId": "<page-id>",
-    "slug": "<slug>",
-    "variantId": "<variant-id>",
-    "storageProvider": "local",
-    "storageKey": "pages/<page-id>/<content-hash>.html",
-    "contentHash": "<sha256>",
-    "publishedAt": "<ISO date>"
-  }
+  "artifacts": [
+    {
+      "pageId": "<page-id>",
+      "slug": "<slug>",
+      "variantId": "<variant-id>",
+      "storageProvider": "local",
+      "storageKey": "pages/<page-id>/<content-hash>.html",
+      "contentHash": "<sha256>",
+      "trafficWeight": 50,
+      "primaryGoalElementId": "<element-id|null>",
+      "publishedAt": "<ISO date>"
+    }
+  ]
 }
 ```
 
@@ -102,3 +106,32 @@ Error shape:
 - `savePage(pageId, document, expectedUpdatedAt?)`
 
 These actions enforce auth and server-side validation before database writes.
+
+## Public published routes
+
+### `GET /p/[slug]`
+
+- Public published-page route.
+- Loads all published variants for the slug, reuses or creates a sticky assignment cookie, and serves the assigned prebuilt HTML artifact.
+- Successful HTML responses use:
+  - `Content-Type: text/html; charset=utf-8`
+  - `X-Content-Type-Options: nosniff`
+  - `Cache-Control: private, no-store, max-age=0`
+- Not-found or unavailable artifacts return `404` with `Cache-Control: no-store`.
+- New assignments set a session-scoped `pb-assignment-<slug>` cookie with `HttpOnly` and `SameSite=Lax` (`Secure` in production).
+
+### `POST /p/[slug]/conversion`
+
+- Public conversion beacon endpoint for published pages.
+- Request body:
+
+```json
+{
+  "goalElementId": "<element-id>"
+}
+```
+
+- Uses the sticky assignment cookie plus published metadata validation to dedupe one conversion per assignment.
+- Returns `204` on accepted beacon requests.
+- Returns `400` for invalid JSON or invalid payload shape.
+- Returns `404` when the slug is empty after trimming.

@@ -10,9 +10,9 @@ This is a Next.js monolith for a SaaS landing-page builder. It currently support
 - Block variants and inline editing
 - Debounced autosave to PostgreSQL
 - Local image upload for editor usage
-- Publish pipeline (server render + storage + public route + subdomain rewrite + editor publish UX)
+- Publish pipeline (server render + storage + sticky public route + subdomain rewrite + editor publish UX + published analytics)
 
-Phase 4 is complete. Phase 5 is in progress: editor variant UX and multi-variant publish fan-out are complete, while sticky serving and analytics are still pending.
+Phase 5 is complete: published pages now support sticky weighted variant serving, raw view/conversion capture, and server-rendered dashboard analytics.
 
 ## Module structure
 

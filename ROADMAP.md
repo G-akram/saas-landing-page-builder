@@ -206,7 +206,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 5 — A/B Testing
 
-**Status: in progress**
+**Status: complete**
 
 **Why last in MVP:** The schema supports variants from day 1 (Phase 1), but the UI is built last because it requires the editor (to create/edit variants) and the publishing pipeline (to serve split traffic) to already exist.
 
@@ -229,10 +229,37 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] Add variant store actions and invariants (create, duplicate, delete, switch, traffic-weight normalization, goal invariants)
 - [x] Ship editor variant UX (variant tabs, management flows, traffic split controls, link + primary goal UI)
 - [x] Extend publishing to publish all variants (render/persist every variant artifact, one `publishedPages` row per variant)
-- [ ] Add weighted serving with sticky assignment (`/p/[slug]` loads all variants, reuses or creates assignment cookie, serves assigned artifact, private/no-store cache policy)
-- [ ] Add analytics capture (`view` on first assignment, `conversion` via small POST beacon on primary goal click)
-- [ ] Add dashboard analytics (server-rendered aggregates by `pageId` + `variantId`)
-- [ ] Hardening: tests + docs updates
+- [x] Add weighted serving with sticky assignment (`/p/[slug]` loads all variants, reuses or creates assignment cookie, serves assigned artifact, private/no-store cache policy)
+- [x] Add analytics capture (`view` on first assignment, `conversion` via small POST beacon on primary goal click)
+- [x] Add dashboard analytics (server-rendered aggregates by `pageId` + `variantId`)
+- [x] Hardening: tests + docs updates
+
+**Execution plan for remaining work:** See `decisions/038-serving-analytics-runtime.md`
+
+1. **Add the missing published runtime metadata**
+   - Scope: extend `publishedPages` so publish persists the live `trafficWeight` and live `primaryGoalElementId` snapshot for each published variant.
+   - Why first: weighted serving and conversion validation cannot stay inside the published domain without these fields.
+   - Done when: `/p/[slug]` can make assignment decisions and validate conversions without reading `pages.document`.
+
+2. **Implement sticky weighted serving**
+   - Scope: replace the current "latest artifact by slug" public read path with "load all published variants -> validate/reuse/create assignment cookie -> read assigned artifact".
+   - Key considerations: cookie contract, stale assignment recovery, zero-weight behavior, deterministic fallback, and the cache-policy switch from shared revalidation to private/no-store.
+   - Done when: incognito traffic lands on different variants by weight, refresh stays sticky, and stale cookies are safely reassigned.
+
+3. **Add analytics capture on top of assignment**
+   - Scope: write `view` on first assignment and `conversion` through a tiny primary-goal beacon with DB-level dedupe.
+   - Key considerations: one view max per assignment, one conversion max per assignment, sendBeacon navigation timing, and validating goal clicks against published metadata rather than draft state.
+   - Done when: new assignments create one `view`, repeated refreshes do not inflate views, and repeated goal clicks do not double-count conversions.
+
+4. **Build dashboard analytics**
+   - Scope: add aggregate query helpers plus a dashboard panel that shows per-variant views, conversions, and conversion rate.
+   - Key considerations: owner scoping, empty states, zero-division handling, and fallback labels when a draft variant was later removed.
+   - Done when: a published A/B page shows stable per-variant stats in the dashboard with no client-side analytics dependency.
+
+5. **Harden and close the phase**
+   - Scope: route tests, cookie/assignment tests, analytics capture tests, dashboard aggregate tests, and docs updates.
+   - Key considerations: malformed cookies, republish content-hash drift, zero-weight variants, duplicate beacons, and roadmap/docs alignment.
+   - Done when: Phase 5 behavior is covered by targeted tests and the project docs match the shipped runtime.
 
 **Deliverables:**
 - Create two variants → publish → open in incognito → land on variant A or B per traffic split

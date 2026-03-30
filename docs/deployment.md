@@ -51,14 +51,16 @@ Current minimum set for production auth + database:
 - Current storage adapter defaults to local artifact storage in this project state.
 - Current Neon serverless/http path does not provide transaction support; publish persistence is implemented as sequential idempotent operations.
 - Keep `PUBLISH_ROOT_DOMAIN` aligned with your DNS/certificate setup or subdomain rewrite behavior will not apply as expected.
+- Phase 5 serving is session-dynamic, so published HTML responses intentionally use `private, no-store, max-age=0`.
+- Production HTTPS matters for A/B testing because sticky assignment cookies are marked `Secure` when `NODE_ENV=production`.
 
 ---
 
-## Phase 4 hardening checks
+## Phase 5 hardening checks
 
-Run these before shipping publish-related changes:
+Run these before shipping publish/A-B testing changes:
 
 - `npm run typecheck`
 - `npm run lint`
-- `npx vitest run src/app/api/publish/__tests__/route.test.ts src/app/p/[slug]/__tests__/route.test.ts src/modules/publishing/queries/__tests__/published-page-queries.test.ts src/modules/publishing/actions/__tests__/publish-page-action.test.ts src/modules/publishing/storage/__tests__/publish-storage-adapter.test.ts src/modules/publishing/utils/__tests__/render-published-page.test.ts`
+- `npx vitest run src/app/api/publish/__tests__/route.test.ts src/app/p/[slug]/__tests__/route.test.ts "src/app/p/[slug]/conversion/__tests__/route.test.ts" src/modules/publishing/__tests__/serve-published-page.test.ts src/modules/publishing/__tests__/published-page-events.test.ts src/modules/publishing/queries/__tests__/published-page-queries.test.ts src/modules/publishing/actions/__tests__/publish-page-action.test.ts src/modules/dashboard/queries/__tests__/page-queries.test.ts src/modules/publishing/storage/__tests__/publish-storage-adapter.test.ts src/modules/publishing/utils/__tests__/render-published-page.test.ts`
 - `npm run build`
