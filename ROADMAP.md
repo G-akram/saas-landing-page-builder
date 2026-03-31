@@ -349,9 +349,9 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] **Container element system (compound components)** — `container` element type holding atomic children (1 level of nesting). Schema: `ContainerElement` with `children: AtomicElement[]`, `containerStyle`, `containerLayout`. Store gains deep lookup. Editor renders styled card wrappers with selectable children and in-container element picker. Published output renders compound cards. Templates rewritten: feature cards, pricing tiers, testimonials use real containers. See `decisions/040-container-element-type.md`.
 - [x] **Redo page templates gallery with containers** — 5 full-page templates (SaaS, Agency, Startup, Minimal, SaaS Dark) fully rewritten with container-based card sections. Moved from `shared/lib` to `dashboard/lib` to allow factory imports. Testimonials block template card variants (testimonials-1, testimonials-3) upgraded from `slotStyle` to real container elements.
 - [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants with a simple submission handler (store to DB or webhook).
-- [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots.
+- [ ] **Upgrade marketing/home page** — showcase the product using its own
+- [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy.blocks, real copy, social proof section, live demo embed or screenshots.
 - [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel.
-- [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy.
 
 **Deliverables:**
 
