@@ -15,7 +15,9 @@ import {
   TypographyControls,
   AppearanceControls,
   SectionBackgroundControls,
+  SectionSizeControls,
   LinkControls,
+  SpacingControls,
 } from './controls'
 
 // ── Element type labels ─────────────────────────────────────────────────────
@@ -106,6 +108,22 @@ export function PropertyPanel(): React.JSX.Element {
                   background={section.background}
                   onUpdate={(background) => {
                     updateSectionStyles(activeVariant.id, section.id, { background })
+                  }}
+                />
+              </div>
+            </details>
+            <details className="border-b border-white/10">
+              <summary className="cursor-pointer px-3 py-2 text-xs font-semibold tracking-wider text-gray-400 uppercase select-none hover:text-gray-300">
+                Size &amp; Spacing
+              </summary>
+              <div className="flex flex-col gap-2 px-3 pb-3">
+                <SectionSizeControls
+                  section={section}
+                  onUpdateMinHeight={(minHeight) => {
+                    updateSectionStyles(activeVariant.id, section.id, { minHeight })
+                  }}
+                  onUpdatePadding={(padding) => {
+                    updateSectionStyles(activeVariant.id, section.id, { padding })
                   }}
                 />
               </div>
@@ -252,6 +270,10 @@ export function PropertyPanel(): React.JSX.Element {
             <AppearanceControls element={element} onUpdateStyles={handleUpdateStyles} />
           </PanelSection>
         )}
+
+        <PanelSection title="Size & Spacing" defaultOpen={false}>
+          <SpacingControls element={element} onUpdateStyles={handleUpdateStyles} />
+        </PanelSection>
 
         <PanelSection title="Conversion Goal" defaultOpen={false}>
           <div className="flex flex-col gap-2">

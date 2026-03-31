@@ -50,6 +50,7 @@ function buildBaseStyles(styles: AtomicElement['styles']): React.CSSProperties {
     lineHeight: styles.lineHeight ?? undefined,
     maxWidth: styles.maxWidth ?? undefined,
     width: styles.width ?? undefined,
+    height: styles.height ?? undefined,
     marginTop: pxOrUndefined(styles.marginTop),
     marginBottom: pxOrUndefined(styles.marginBottom),
     opacity: styles.opacity ?? undefined,

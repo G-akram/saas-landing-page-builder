@@ -82,6 +82,7 @@ export function buildSectionStyle(section: Section): CSSProperties {
     paddingBottom: `${String(section.padding.bottom)}px`,
     paddingLeft: `${String(section.padding.left)}px`,
     paddingRight: `${String(section.padding.right)}px`,
+    minHeight: section.minHeight !== undefined ? `${String(section.minHeight)}px` : undefined,
   }
 }
 
@@ -120,6 +121,7 @@ export function buildBaseElementStyle(styles: PageElement['styles']): CSSPropert
     textAlign: styles.textAlign ?? undefined,
     lineHeight: styles.lineHeight ?? undefined,
     width: styles.width ?? undefined,
+    height: styles.height ?? undefined,
     maxWidth: styles.maxWidth ?? undefined,
     marginTop: toPx(styles.marginTop),
     marginBottom: toPx(styles.marginBottom),
@@ -198,6 +200,7 @@ export function buildContainerPublishedStyle(container: ContainerElement): CSSPr
     marginTop: toPx(container.styles.marginTop),
     marginBottom: toPx(container.styles.marginBottom),
     width: container.styles.width ?? undefined,
+    height: container.styles.height ?? undefined,
     maxWidth: container.styles.maxWidth ?? undefined,
   }
 }
