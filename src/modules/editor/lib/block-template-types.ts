@@ -13,7 +13,8 @@ export interface BlockTemplate {
   layout: SectionLayout
   background: BackgroundConfig
   padding: SpacingConfig
-  slotStyle?: SlotStyle // visual card style applied to each grid slot
+  /** @deprecated Use container elements instead. Kept for legacy templates. */
+  slotStyle?: SlotStyle
   createElements: () => PageElement[]
 }
 

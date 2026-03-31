@@ -1,11 +1,16 @@
-import { type Element as PageElement } from '@/shared/types'
+import {
+  type AtomicElement,
+  type ContainerElement,
+  type ContainerStyle,
+  type ContainerLayout,
+} from '@/shared/types'
 
 export function heading(
   slot: number,
   text: string,
   level: 1 | 2 | 3 | 4,
-  styles: PageElement['styles'] = {},
-): PageElement {
+  styles: AtomicElement['styles'] = {},
+): AtomicElement {
   return {
     id: crypto.randomUUID(),
     type: 'heading',
@@ -15,7 +20,7 @@ export function heading(
   }
 }
 
-export function text(slot: number, value: string, styles: PageElement['styles'] = {}): PageElement {
+export function text(slot: number, value: string, styles: AtomicElement['styles'] = {}): AtomicElement {
   return {
     id: crypto.randomUUID(),
     type: 'text',
@@ -35,8 +40,8 @@ export function text(slot: number, value: string, styles: PageElement['styles'] 
 export function button(
   slot: number,
   label: string,
-  styles: PageElement['styles'] = {},
-): PageElement {
+  styles: AtomicElement['styles'] = {},
+): AtomicElement {
   return {
     id: crypto.randomUUID(),
     type: 'button',
@@ -56,7 +61,7 @@ export function button(
   }
 }
 
-export function image(slot: number, alt: string, styles: PageElement['styles'] = {}): PageElement {
+export function image(slot: number, alt: string, styles: AtomicElement['styles'] = {}): AtomicElement {
   return {
     id: crypto.randomUUID(),
     type: 'image',
@@ -66,7 +71,7 @@ export function image(slot: number, alt: string, styles: PageElement['styles'] =
   }
 }
 
-export function icon(slot: number, name: string, styles: PageElement['styles'] = {}): PageElement {
+export function icon(slot: number, name: string, styles: AtomicElement['styles'] = {}): AtomicElement {
   return {
     id: crypto.randomUUID(),
     type: 'icon',
@@ -76,8 +81,31 @@ export function icon(slot: number, name: string, styles: PageElement['styles'] =
   }
 }
 
+/**
+ * Container element — groups atomic children as a visual card unit.
+ * Children receive slot:0 since layout is controlled by containerLayout, not slot numbers.
+ */
+export function container(
+  slot: number,
+  children: AtomicElement[],
+  containerStyle: ContainerStyle,
+  containerLayout: ContainerLayout = { direction: 'column', gap: 16 },
+  styles: ContainerElement['styles'] = {},
+): ContainerElement {
+  return {
+    id: crypto.randomUUID(),
+    type: 'container',
+    slot,
+    content: { type: 'container' },
+    styles,
+    containerStyle,
+    containerLayout,
+    children: children.map((child) => ({ ...child, slot: 0 })),
+  }
+}
+
 /** Eyebrow label — small uppercase tracking text used above headings. */
-export function badge(slot: number, value: string, styles: PageElement['styles'] = {}): PageElement {
+export function badge(slot: number, value: string, styles: AtomicElement['styles'] = {}): AtomicElement {
   return {
     id: crypto.randomUUID(),
     type: 'text',
