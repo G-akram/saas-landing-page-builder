@@ -52,6 +52,9 @@ function buildBaseStyles(styles: PageElement['styles']): React.CSSProperties {
     width: styles.width ?? undefined,
     marginTop: pxOrUndefined(styles.marginTop),
     marginBottom: pxOrUndefined(styles.marginBottom),
+    opacity: styles.opacity ?? undefined,
+    letterSpacing: styles.letterSpacing ?? undefined,
+    textTransform: styles.textTransform ?? undefined,
   }
 }
 
@@ -173,12 +176,15 @@ function ButtonElement({
       className={`inline-block cursor-default @max-sm:block @max-sm:w-full @max-sm:text-center ${isEditing ? 'outline-none' : ''}`}
       style={{
         ...buildBaseStyles(styles),
-        backgroundColor: styles.backgroundColor ?? undefined,
+        background: styles.backgroundGradient ?? styles.backgroundColor ?? undefined,
         borderRadius: pxOrUndefined(styles.borderRadius),
         paddingTop: styles.padding ? `${String(styles.padding.top)}px` : undefined,
         paddingBottom: styles.padding ? `${String(styles.padding.bottom)}px` : undefined,
         paddingLeft: styles.padding ? `${String(styles.padding.left)}px` : undefined,
         paddingRight: styles.padding ? `${String(styles.padding.right)}px` : undefined,
+        boxShadow: styles.boxShadow ?? undefined,
+        border: styles.border ?? undefined,
+        backdropFilter: styles.backdropFilter ?? undefined,
       }}
       {...(isEditing ? { onBlur, onKeyDown, onPaste } : {})}
     >
@@ -213,20 +219,27 @@ function ImageElement({ element }: ElementRendererProps): React.JSX.Element {
     )
   }
 
+  // Use square aspect ratio when maxWidth is small (avatar/icon context) so
+  // borderRadius: 9999 produces circles rather than squashed ovals.
+  const maxW = styles.maxWidth
+  const isSmall = maxW !== undefined && /^\d+px$/.test(maxW) && parseInt(maxW) <= 80
+  const aspectRatio = isSmall ? '1/1' : '16/9'
+
   return (
     <div
-      className="flex flex-col items-center justify-center gap-2 bg-gray-200 text-gray-400"
+      className="flex flex-col items-center justify-center gap-1 bg-gray-200 text-gray-400"
       style={{
         maxWidth: styles.maxWidth ?? '100%',
-        width: styles.width ?? '100%',
-        aspectRatio: '16/9',
+        width: styles.width ?? (isSmall ? styles.maxWidth : '100%'),
+        aspectRatio,
         borderRadius: pxOrUndefined(styles.borderRadius),
         marginTop: pxOrUndefined(styles.marginTop),
         marginBottom: pxOrUndefined(styles.marginBottom),
+        overflow: 'hidden',
       }}
     >
-      <ImageIcon className="h-8 w-8" />
-      <span className="text-xs">{alt || 'Image'}</span>
+      <ImageIcon className={isSmall ? 'h-4 w-4' : 'h-8 w-8'} />
+      {!isSmall && <span className="text-xs">{alt || 'Image'}</span>}
     </div>
   )
 }

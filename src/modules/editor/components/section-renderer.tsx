@@ -116,6 +116,7 @@ export function SectionRenderer({
           layout.type === 'grid' && layout.columns ? (
             <GridLayout
               layout={layout}
+              slotStyle={section.slotStyle}
               isMobile={isMobile}
               slotGroups={slotGroups}
               textColorClass={textColorClass}
@@ -129,6 +130,7 @@ export function SectionRenderer({
           ) : (
             <StackLayout
               layout={layout}
+              slotStyle={section.slotStyle}
               isMobile={isMobile}
               slotGroups={slotGroups}
               textColorClass={textColorClass}
@@ -152,6 +154,7 @@ export function SectionRenderer({
 
 interface LayoutProps {
   layout: Section['layout']
+  slotStyle: Section['slotStyle']
   isMobile: boolean
   slotGroups: Map<number, PageElement[]>
   textColorClass: string
@@ -163,8 +166,24 @@ interface LayoutProps {
   onInlineSave: ((elementId: string, text: string) => void) | undefined
 }
 
+function buildEditorSlotStyle(slotStyle: Section['slotStyle']): React.CSSProperties {
+  if (!slotStyle) return {}
+  return {
+    backgroundColor: slotStyle.backgroundColor ?? undefined,
+    borderRadius: slotStyle.borderRadius !== undefined ? `${String(slotStyle.borderRadius)}px` : undefined,
+    boxShadow: slotStyle.boxShadow ?? undefined,
+    border: slotStyle.border ?? undefined,
+    backdropFilter: slotStyle.backdropFilter ?? undefined,
+    paddingTop: slotStyle.padding ? `${String(slotStyle.padding.top)}px` : undefined,
+    paddingBottom: slotStyle.padding ? `${String(slotStyle.padding.bottom)}px` : undefined,
+    paddingLeft: slotStyle.padding ? `${String(slotStyle.padding.left)}px` : undefined,
+    paddingRight: slotStyle.padding ? `${String(slotStyle.padding.right)}px` : undefined,
+  }
+}
+
 function GridLayout({
   layout,
+  slotStyle,
   isMobile,
   slotGroups,
   textColorClass,
@@ -208,7 +227,7 @@ function GridLayout({
           <div
             key={colIndex}
             className={`flex flex-col ${alignClass} ${vAlignClass}`}
-            style={{ gap: `${String(Math.min(effectiveGap, 16))}px` }}
+            style={{ gap: `${String(Math.min(effectiveGap, 16))}px`, ...buildEditorSlotStyle(slotStyle) }}
           >
             {elements.map((element) => (
               <SelectableElement
