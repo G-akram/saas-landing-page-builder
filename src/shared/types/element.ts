@@ -55,6 +55,15 @@ export const ElementStylesSchema = z.object({
   marginTop: z.number().optional(),
   marginBottom: z.number().optional(),
 
+  // Visual effects
+  boxShadow: z.string().optional(),
+  border: z.string().optional(),
+  opacity: z.number().min(0).max(1).optional(),
+  letterSpacing: z.string().optional(),
+  textTransform: z.enum(['none', 'uppercase', 'lowercase', 'capitalize']).optional(),
+  backgroundGradient: z.string().optional(), // CSS gradient string, overrides backgroundColor
+  backdropFilter: z.string().optional(), // e.g. 'blur(16px)' for glassmorphism
+
   // Design token keys (hybrid approach — store token key + resolved value)
   colorToken: z.string().optional(),
   backgroundColorToken: z.string().optional(),

@@ -2,6 +2,20 @@ import { z } from 'zod'
 
 import { ElementSchema } from './element'
 
+// ── Slot style ─────────────────────────────────────────────────────────────
+// Optional visual card/container style applied to each grid slot.
+
+export const SlotStyleSchema = z.object({
+  backgroundColor: z.string().optional(),
+  borderRadius: z.number().optional(),
+  boxShadow: z.string().optional(),
+  border: z.string().optional(),
+  backdropFilter: z.string().optional(),
+  padding: z
+    .object({ top: z.number(), bottom: z.number(), left: z.number(), right: z.number() })
+    .optional(),
+})
+
 // ── Layout ─────────────────────────────────────────────────────────────────
 
 export const SectionLayoutSchema = z.object({
@@ -44,11 +58,13 @@ export const SectionSchema = z.object({
     left: z.number(),
     right: z.number(),
   }),
+  slotStyle: SlotStyleSchema.optional(), // visual card style applied to each grid slot
   elements: z.array(ElementSchema),
 })
 
 // ── Derived TypeScript types ───────────────────────────────────────────────
 
+export type SlotStyle = z.infer<typeof SlotStyleSchema>
 export type SectionLayout = z.infer<typeof SectionLayoutSchema>
 export type BackgroundConfig = z.infer<typeof BackgroundConfigSchema>
 export type SectionType = z.infer<typeof SectionTypeSchema>
