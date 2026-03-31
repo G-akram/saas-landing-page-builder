@@ -8,7 +8,7 @@ import {
   buildImageStyle,
   resolvePublishedHref,
 } from '../utils/publish-renderer-utils'
-import { getIconSvgPaths } from '../utils/publish-icon-utils'
+import { getLucideIconSvg } from '../utils/publish-lucide-icon-renderer'
 
 interface PublishedPageElementProps {
   element: PageElement
@@ -147,11 +147,10 @@ function renderIcon(
   const iconSize = element.styles.fontSize ?? 28
   const iconColor = element.styles.color ?? defaultTextColor
 
-  // Use curated inline SVG paths rather than React components from lucide-react.
-  // The publishing pipeline uses require('react-dom/server.node') which creates a
-  // separate CJS React instance — invoking ESM React components from external packages
-  // inside that context causes "invalid hook call" / mismatched React errors.
-  const svgPaths = getIconSvgPaths(element.content.name)
+  // Extract SVG paths from lucide-react's icon data (not React component rendering).
+  // This avoids the CJS/ESM dual-React-instance issue in the publishing pipeline.
+  // Falls back to a simple circle if the icon name is not found in lucide-react
+  const svgPaths = getLucideIconSvg(element.content.name) ?? '<circle cx="12" cy="12" r="9"/>'
 
   const iconNode = createElement('svg', {
     xmlns: 'http://www.w3.org/2000/svg',
