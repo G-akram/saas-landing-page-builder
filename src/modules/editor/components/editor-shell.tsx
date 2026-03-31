@@ -9,6 +9,7 @@ import { useAutoSave } from '../hooks/use-auto-save'
 import { useLayoutConfig } from '../hooks/use-layout-config'
 import { usePublish, type EditorPublishResult } from '../hooks/use-publish'
 import { useDocumentStore, useUIStore } from '../store'
+import { findParentContainer } from '../store/document-store-helpers'
 import { EditorCanvas } from './editor-canvas'
 import { EditorTopBar } from './editor-top-bar'
 import { PropertyPanel } from './property-panel'
@@ -49,6 +50,10 @@ function EditorLayout({
   const [isHydrated, setIsHydrated] = useState(false)
   const initializeDocument = useDocumentStore((state) => state.initializeDocument)
   const resetUI = useUIStore((state) => state.resetUI)
+  const undo = useDocumentStore((state) => state.undo)
+  const redo = useDocumentStore((state) => state.redo)
+  const moveElement = useDocumentStore((state) => state.moveElement)
+  const deleteElement = useDocumentStore((state) => state.deleteElement)
   const initializedPageIdRef = useRef<string | null>(null)
   const isAutoSaveEnabled = initializedPageIdRef.current === pageId
 
@@ -69,6 +74,73 @@ function EditorLayout({
   useEffect(() => {
     setIsHydrated(true)
   }, [])
+
+  // Global keyboard shortcuts — operates on the XState-selected element so it
+  // works regardless of which DOM element currently has focus (e.g. property panel).
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent): void {
+      const target = e.target as HTMLElement
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return
+      }
+
+      // Undo / redo
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+        e.preventDefault()
+        undo()
+        return
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+        e.preventDefault()
+        redo()
+        return
+      }
+
+      // Element-level shortcuts — read selection from XState, not DOM focus
+      const snapshot = actor.getSnapshot()
+      const { selectedElementId, selectedSectionId } = snapshot.context
+      if (!selectedElementId || !selectedSectionId) return
+
+      // Don't fire while inline-editing text
+      if (snapshot.matches('editing')) return
+
+      const { document } = useDocumentStore.getState()
+      if (!document) return
+      const activeVariant = document.variants.find((v) => v.id === document.activeVariantId)
+      if (!activeVariant) return
+      const section = activeVariant.sections.find((s) => s.id === selectedSectionId)
+      if (!section) return
+
+      const parentContainer = findParentContainer(section.elements, selectedElementId)
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault()
+        deleteElement(activeVariant.id, selectedSectionId, selectedElementId)
+        return
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault()
+          moveElement(activeVariant.id, selectedSectionId, selectedElementId, 'up', parentContainer?.id)
+          return
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault()
+          moveElement(activeVariant.id, selectedSectionId, selectedElementId, 'down', parentContainer?.id)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [undo, redo, moveElement, deleteElement, actor])
 
   useEffect(() => {
     initializedPageIdRef.current = pageId
