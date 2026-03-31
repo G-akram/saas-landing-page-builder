@@ -75,3 +75,23 @@ export function icon(slot: number, name: string, styles: PageElement['styles'] =
     styles: { fontSize: 32, color: '#2563eb', colorToken: 'primary', ...styles },
   }
 }
+
+/** Eyebrow label — small uppercase tracking text used above headings. */
+export function badge(slot: number, value: string, styles: PageElement['styles'] = {}): PageElement {
+  return {
+    id: crypto.randomUUID(),
+    type: 'text',
+    slot,
+    content: { type: 'text', text: value, mode: 'inline' },
+    styles: {
+      textAlign: 'center',
+      fontSize: 13,
+      fontWeight: 600,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      color: '#2563eb',
+      colorToken: 'primary',
+      ...styles,
+    },
+  }
+}

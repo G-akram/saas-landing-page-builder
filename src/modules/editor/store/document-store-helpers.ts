@@ -21,6 +21,7 @@ export function createSection(type: SectionType, variantStyleId?: string): Secti
     layout: { ...template.layout },
     background: { ...template.background },
     padding: { ...template.padding },
+    slotStyle: template.slotStyle ? { ...template.slotStyle } : undefined,
     elements: template.createElements(),
   }
 }
