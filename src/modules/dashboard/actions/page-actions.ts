@@ -5,7 +5,7 @@ import { and, eq, like } from 'drizzle-orm'
 
 import { auth } from '@/shared/lib/auth'
 import { createDefaultDocument } from '@/shared/lib/default-document'
-import { createDocumentFromTemplate } from '@/shared/lib/page-templates'
+import { createDocumentFromTemplate } from '@/modules/dashboard/lib/page-templates'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { logger } from '@/shared/lib/logger'
 import { db, pages } from '@/shared/db'

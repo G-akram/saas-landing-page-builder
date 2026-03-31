@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import { createPage } from '@/modules/dashboard/actions/page-actions'
-import { PAGE_TEMPLATES } from '@/shared/lib/page-templates'
+import { PAGE_TEMPLATES } from '@/modules/dashboard/lib/page-templates'
 
 import { TemplateCard } from './template-card'
 
