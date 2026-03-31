@@ -244,6 +244,75 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     )
   },
 
+  moveElement: (variantId, sectionId, elementId, direction, parentContainerId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) => {
+        // Needed to pick the correct grouping strategy (grid vs stack).
+        const activeVariant = document.variants.find((v) => v.id === variantId)
+        const section = activeVariant?.sections.find((s) => s.id === sectionId)
+        const isGrid = section?.layout.type === 'grid'
+
+        return mapSectionElements(document, variantId, sectionId, (elements) => {
+          if (parentContainerId) {
+            const containerIdx = elements.findIndex(
+              (el) => el.id === parentContainerId && isContainerElement(el),
+            )
+            if (containerIdx === -1) return elements
+            const container = elements[containerIdx]
+            if (!container || !isContainerElement(container)) return elements
+
+            const childIdx = container.children.findIndex((c) => c.id === elementId)
+            if (childIdx === -1) return elements
+            const targetIdx = direction === 'up' ? childIdx - 1 : childIdx + 1
+            if (targetIdx < 0 || targetIdx >= container.children.length) return elements
+
+            const nextChildren = [...container.children]
+            const moved = nextChildren.splice(childIdx, 1)[0]
+            if (!moved) return elements
+            nextChildren.splice(targetIdx, 0, moved)
+
+            const nextElements = [...elements]
+            nextElements[containerIdx] = { ...container, children: nextChildren }
+            return nextElements
+          }
+
+          const currentEl = elements.find((el) => el.id === elementId)
+          if (!currentEl) return elements
+
+          // Grid: only swap within the same slot (column) — prevents cross-column moves.
+          // Stack: swap across the full slot-sorted visual sequence so elements with
+          // different slot values (common in templates) can be reordered freely.
+          const group: typeof elements = isGrid
+            ? elements.filter((el) => el.slot === currentEl.slot)
+            : [...elements].sort((a, b) => a.slot - b.slot)
+
+          const groupIdx = group.findIndex((el) => el.id === elementId)
+          if (groupIdx === -1) return elements
+
+          const targetGroupIdx = direction === 'up' ? groupIdx - 1 : groupIdx + 1
+          if (targetGroupIdx < 0 || targetGroupIdx >= group.length) return elements
+
+          const neighbor = group[targetGroupIdx]
+          if (!neighbor) return elements
+
+          const idxA = elements.findIndex((el) => el.id === elementId)
+          const idxB = elements.findIndex((el) => el.id === neighbor.id)
+          if (idxA === -1 || idxB === -1) return elements
+
+          // Swap both positions AND slot values. Without swapping slots, elements
+          // with different slot values would snap back to the same visual order
+          // after the slot-based sort in groupElementsBySlot.
+          const result = [...elements]
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+          result[idxA] = { ...neighbor, slot: currentEl.slot } as typeof elements[0]
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+          result[idxB] = { ...currentEl, slot: neighbor.slot } as typeof elements[0]
+          return result
+        })
+      }),
+    )
+  },
+
   updateSectionStyles: (variantId, sectionId, updates, options) => {
     set((state) =>
       applyDocumentMutation(

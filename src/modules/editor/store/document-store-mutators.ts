@@ -22,7 +22,7 @@ interface ElementUpdateInput {
 interface SectionStyleUpdateInput {
   variantId: string
   sectionId: string
-  updates: Partial<Pick<Section, 'layout' | 'background' | 'padding'>>
+  updates: Partial<Pick<Section, 'layout' | 'background' | 'padding' | 'minHeight'>>
 }
 
 export function updateElementInDocument(
@@ -153,8 +153,11 @@ export function updateSectionStylesInDocument(
   const paddingChanged =
     input.updates.padding !== undefined &&
     hasPatchChanges(currentSection.padding, input.updates.padding)
+  const minHeightChanged =
+    input.updates.minHeight !== undefined &&
+    input.updates.minHeight !== currentSection.minHeight
 
-  if (!layoutChanged && !backgroundChanged && !paddingChanged) {
+  if (!layoutChanged && !backgroundChanged && !paddingChanged && !minHeightChanged) {
     return null
   }
 
@@ -165,6 +168,7 @@ export function updateSectionStylesInDocument(
       background: { ...currentSection.background, ...input.updates.background },
     }),
     ...(paddingChanged && { padding: { ...currentSection.padding, ...input.updates.padding } }),
+    ...(minHeightChanged && { minHeight: input.updates.minHeight }),
   }
 
   const nextSections = [...variant.sections]

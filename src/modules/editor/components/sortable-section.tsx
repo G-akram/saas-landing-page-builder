@@ -24,6 +24,8 @@ interface SortableSectionProps {
   onAddElement: (element: PageElement) => void
   onAddChildElement: (parentId: string, element: PageElement) => void
   onDelete: () => void
+  onDeleteElement: (elementId: string) => void
+  onMoveElement: (elementId: string, direction: 'up' | 'down', parentContainerId?: string) => void
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -42,6 +44,8 @@ export function SortableSection({
   onAddElement,
   onAddChildElement,
   onDelete,
+  onDeleteElement,
+  onMoveElement,
 }: SortableSectionProps): React.JSX.Element {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.id,
@@ -105,6 +109,8 @@ export function SortableSection({
           onInlineSave={onInlineSave}
           onAddElement={onAddElement}
           onAddChildElement={onAddChildElement}
+          onDeleteElement={onDeleteElement}
+          onMoveElement={onMoveElement}
         />
       )}
     </div>

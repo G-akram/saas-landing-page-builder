@@ -60,6 +60,7 @@ export const SectionSchema = z.object({
     right: z.number(),
   }),
   slotStyle: SlotStyleSchema.optional(), // visual card style applied to each grid slot
+  minHeight: z.number().optional(), // minimum height in pixels
   elements: z.array(ElementSchema),
 })
 

@@ -26,6 +26,8 @@ interface SectionRendererProps {
   onInlineSave?: (elementId: string, text: string) => void
   onAddElement?: (element: PageElement) => void
   onAddChildElement?: (parentId: string, element: PageElement) => void
+  onDeleteElement?: ((elementId: string) => void) | undefined
+  onMoveElement?: ((elementId: string, direction: 'up' | 'down', parentContainerId?: string) => void) | undefined
 }
 
 // ── Section type display config ─────────────────────────────────────────────
@@ -55,6 +57,8 @@ export function SectionRenderer({
   onInlineSave,
   onAddElement,
   onAddChildElement,
+  onDeleteElement,
+  onMoveElement,
 }: SectionRendererProps): React.JSX.Element {
   const isDarkBg = isDarkBackground(section.background)
   const textColorClass = isDarkBg ? 'text-white' : 'text-gray-900'
@@ -78,6 +82,7 @@ export function SectionRenderer({
         paddingBottom: `${String(isMobile ? Math.round(section.padding.bottom * 0.6) : section.padding.bottom)}px`,
         paddingLeft: `${String(isMobile ? Math.round(section.padding.left * 0.5) : section.padding.left)}px`,
         paddingRight: `${String(isMobile ? Math.round(section.padding.right * 0.5) : section.padding.right)}px`,
+        minHeight: section.minHeight !== undefined ? `${String(section.minHeight)}px` : undefined,
         position: 'relative',
       }}
       onClick={() => {
@@ -131,6 +136,8 @@ export function SectionRenderer({
               onInlineSave={onInlineSave}
               onAddElement={onAddElement}
               onAddChildElement={onAddChildElement}
+              onDeleteElement={onDeleteElement}
+              onMoveElement={onMoveElement}
             />
           ) : (
             <StackLayout
@@ -148,6 +155,8 @@ export function SectionRenderer({
               onInlineSave={onInlineSave}
               onAddElement={onAddElement}
               onAddChildElement={onAddChildElement}
+              onDeleteElement={onDeleteElement}
+              onMoveElement={onMoveElement}
             />
           )
         ) : (

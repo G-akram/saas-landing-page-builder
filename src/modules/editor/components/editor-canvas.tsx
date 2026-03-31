@@ -34,6 +34,8 @@ export function EditorCanvas(): React.JSX.Element {
   const reorderSections = useDocumentStore((s) => s.reorderSections)
   const addSection = useDocumentStore((s) => s.addSection)
   const deleteSection = useDocumentStore((s) => s.deleteSection)
+  const deleteElement = useDocumentStore((s) => s.deleteElement)
+  const moveElement = useDocumentStore((s) => s.moveElement)
   const addElement = useDocumentStore((s) => s.addElement)
   const updateElement = useDocumentStore((s) => s.updateElement)
   const isMobile = useUIStore((s) => s.previewViewport === 'mobile')
@@ -185,6 +187,12 @@ export function EditorCanvas(): React.JSX.Element {
                     }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)
+                    }}
+                    onDeleteElement={(elementId) => {
+                      deleteElement(activeVariant.id, section.id, elementId)
+                    }}
+                    onMoveElement={(elementId, direction, parentContainerId) => {
+                      moveElement(activeVariant.id, section.id, elementId, direction, parentContainerId)
                     }}
                   />
                 </div>

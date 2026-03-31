@@ -32,6 +32,8 @@ export interface LayoutProps {
   onInlineSave: ((elementId: string, text: string) => void) | undefined
   onAddElement: ((element: PageElement) => void) | undefined
   onAddChildElement: ((parentId: string, element: PageElement) => void) | undefined
+  onDeleteElement?: ((elementId: string) => void) | undefined
+  onMoveElement?: ((elementId: string, direction: 'up' | 'down', parentContainerId?: string) => void) | undefined
 }
 
 function buildEditorSlotStyle(slotStyle: Section['slotStyle']): React.CSSProperties {
@@ -49,21 +51,34 @@ function buildEditorSlotStyle(slotStyle: Section['slotStyle']): React.CSSPropert
   }
 }
 
+// ── Shared display props type ─────────────────────────────────────────────
+
+type ElementDisplayProps = Pick<
+  LayoutProps,
+  | 'textColorClass'
+  | 'selectedElementId'
+  | 'editingElementId'
+  | 'onSelectElement'
+  | 'onEditStart'
+  | 'onEditEnd'
+  | 'onInlineSave'
+  | 'onAddChildElement'
+>
+
+interface ElementActions {
+  onDelete?: (() => void) | undefined
+  onMoveUp?: (() => void) | undefined
+  onMoveDown?: (() => void) | undefined
+  onDeleteChild?: ((childId: string) => void) | undefined
+  onMoveChild?: ((childId: string, direction: 'up' | 'down') => void) | undefined
+}
+
 // ── Element or container renderer ──────────────────────────────────────────
 
 function renderElement(
   element: PageElement,
-  props: Pick<
-    LayoutProps,
-    | 'textColorClass'
-    | 'selectedElementId'
-    | 'editingElementId'
-    | 'onSelectElement'
-    | 'onEditStart'
-    | 'onEditEnd'
-    | 'onInlineSave'
-    | 'onAddChildElement'
-  >,
+  props: ElementDisplayProps,
+  actions: ElementActions,
 ): React.JSX.Element {
   if (isContainerElement(element)) {
     return (
@@ -80,6 +95,11 @@ function renderElement(
         onEditEnd={props.onEditEnd}
         onInlineSave={props.onInlineSave}
         onAddChild={props.onAddChildElement}
+        onDeleteContainer={actions.onDelete}
+        onMoveContainerUp={actions.onMoveUp}
+        onMoveContainerDown={actions.onMoveDown}
+        onDeleteChild={actions.onDeleteChild}
+        onMoveChild={actions.onMoveChild}
       />
     )
   }
@@ -92,6 +112,9 @@ function renderElement(
       isEditing={props.editingElementId === element.id}
       onSelect={props.onSelectElement}
       onEditStart={props.onEditStart}
+      onDelete={actions.onDelete}
+      onMoveUp={actions.onMoveUp}
+      onMoveDown={actions.onMoveDown}
       className={element.type === 'image' ? 'w-full' : ''}
     >
       <ElementRenderer
@@ -103,6 +126,34 @@ function renderElement(
       />
     </SelectableElement>
   )
+}
+
+// ── Action builder helpers ─────────────────────────────────────────────────
+
+function buildElementActions(
+  element: PageElement,
+  index: number,
+  total: number,
+  onDeleteElement: LayoutProps['onDeleteElement'],
+  onMoveElement: LayoutProps['onMoveElement'],
+  parentContainerId?: string,
+): ElementActions {
+  return {
+    onDelete: onDeleteElement ? () => onDeleteElement(element.id) : undefined,
+    onMoveUp:
+      onMoveElement && index > 0
+        ? () => onMoveElement(element.id, 'up', parentContainerId)
+        : undefined,
+    onMoveDown:
+      onMoveElement && index < total - 1
+        ? () => onMoveElement(element.id, 'down', parentContainerId)
+        : undefined,
+    // Children inside this element (only applies when it's a container)
+    onDeleteChild: onDeleteElement ? (childId) => onDeleteElement(childId) : undefined,
+    onMoveChild: onMoveElement
+      ? (childId, direction) => onMoveElement(childId, direction, element.id)
+      : undefined,
+  }
 }
 
 // ── Grid layout ────────────────────────────────────────────────────────────
@@ -122,6 +173,8 @@ export function GridLayout({
   onInlineSave,
   onAddElement,
   onAddChildElement,
+  onDeleteElement,
+  onMoveElement,
 }: LayoutProps): React.JSX.Element {
   const columns = layout.columns ?? 1
   const effectiveColumns = isMobile ? 1 : columns
@@ -140,7 +193,7 @@ export function GridLayout({
     return allElements
   }
 
-  const elementProps = {
+  const displayProps: ElementDisplayProps = {
     textColorClass,
     selectedElementId,
     editingElementId,
@@ -161,13 +214,20 @@ export function GridLayout({
     >
       {columnIndices.map((colIndex) => {
         const elements = isMobile ? getMobileElements() : (slotGroups.get(colIndex) ?? [])
+        const total = elements.length
         return (
           <div
             key={colIndex}
             className={`flex flex-col ${alignClass} ${vAlignClass}`}
             style={{ gap: `${String(Math.min(effectiveGap, 16))}px`, ...buildEditorSlotStyle(slotStyle) }}
           >
-            {elements.map((element) => renderElement(element, elementProps))}
+            {elements.map((element, index) =>
+              renderElement(
+                element,
+                displayProps,
+                buildElementActions(element, index, total, onDeleteElement, onMoveElement),
+              ),
+            )}
           </div>
         )
       })}
@@ -196,14 +256,17 @@ export function StackLayout({
   onInlineSave,
   onAddElement,
   onAddChildElement,
+  onDeleteElement,
+  onMoveElement,
 }: LayoutProps): React.JSX.Element {
   const alignClass = ALIGN_CLASS[layout.align]
   const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
   const effectiveGap = isMobile ? Math.round(layout.gap * 0.6) : layout.gap
 
   const allElements = [...slotGroups.values()].flat()
+  const total = allElements.length
 
-  const elementProps = {
+  const displayProps: ElementDisplayProps = {
     textColorClass,
     selectedElementId,
     editingElementId,
@@ -219,7 +282,13 @@ export function StackLayout({
       className={`flex flex-col ${alignClass} ${vAlignClass}`}
       style={{ gap: `${String(effectiveGap)}px` }}
     >
-      {allElements.map((element) => renderElement(element, elementProps))}
+      {allElements.map((element, index) =>
+        renderElement(
+          element,
+          displayProps,
+          buildElementActions(element, index, total, onDeleteElement, onMoveElement),
+        ),
+      )}
       {isSelected && onAddElement ? (
         <div className="mt-2 flex justify-center">
           <ElementPicker slot={0} onAdd={onAddElement} />

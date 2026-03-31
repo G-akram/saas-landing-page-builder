@@ -55,10 +55,17 @@ export interface DocumentActions {
     options?: { pushHistory?: boolean },
   ) => void
   deleteElement: (variantId: string, sectionId: string, elementId: string) => void
+  moveElement: (
+    variantId: string,
+    sectionId: string,
+    elementId: string,
+    direction: 'up' | 'down',
+    parentContainerId?: string,
+  ) => void
   updateSectionStyles: (
     variantId: string,
     sectionId: string,
-    updates: Partial<Pick<Section, 'layout' | 'background' | 'padding'>>,
+    updates: Partial<Pick<Section, 'layout' | 'background' | 'padding' | 'minHeight'>>,
     options?: { pushHistory?: boolean },
   ) => void
   undo: () => void

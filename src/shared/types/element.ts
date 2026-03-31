@@ -52,6 +52,7 @@ export const ElementStylesSchema = z.object({
 
   // Dimensions
   width: z.string().optional(),
+  height: z.string().optional(),
   maxWidth: z.string().optional(),
 
   // Spacing within section
