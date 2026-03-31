@@ -358,35 +358,38 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
    **Problem C — No way to add isolated components (blank section + element picker):**
    Every section must be created from a pre-built template variant. There is no "blank section" option and no UI to add individual elements (heading, text, button, image, icon) to an existing section. The `addElement` store action exists but has no UI surface. Fix: add a `custom` section type with a blank template, add an element picker panel (accessible from the section toolbar or a + button within the section canvas), and add a basic layout type selector (stack vs grid) for custom sections. Done when: a user can create a blank section and build it from scratch by adding individual elements without picking a template variant.
 
-3. [x] **Page templates gallery** — 4-6 full-page templates (SaaS, Agency, Portfolio, etc.) assembled from the redesigned blocks, selectable at page creation. Done when: "Create page" offers template selection and the result looks polished out of the box.
-4. [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants, with a simple submission handler (store to DB or webhook). Done when: users can add a working contact form to a published page.
-5. [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots. Done when: the home page looks like a real SaaS product page.
-6. [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel. Done when: user can generate/refine copy for any text element from within the editor.
-7. [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy. Done when: editor interactions feel smooth and discoverable.
+2c. [ ] **Container element system (compound components)** — adds a `container` element type that holds atomic children (1 level of nesting). Turns loose flat elements into real compound components like cards. Schema: `ContainerElement` with `children: AtomicElement[]`, `containerStyle` (bg, border, shadow, padding, radius, gradient), `containerLayout` (direction, gap, align). Store mutations gain deep lookup for nested children. Editor renders containers as styled card wrappers with selectable children and in-container element picker. Published output renders containers as styled `<div>` wrappers. Templates rewritten: feature cards, pricing tiers, testimonials become real container elements instead of flat elements with shared `slotStyle`. Done when: user can add a Card to any section, add/remove children from it, style the card wrapper independently, and published output renders compound cards correctly.
+2d. [ ] **Redo page templates gallery with containers** — rebuild the 4-6 full-page templates (SaaS, Agency, Portfolio, etc.) using container-based sections for premium card layouts. Done when: "Create page" produces polished compound-component layouts, not flat element stacks.
+3. [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants, with a simple submission handler (store to DB or webhook). Done when: users can add a working contact form to a published page.
+4. [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots. Done when: the home page looks like a real SaaS product page.
+5. [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel. Done when: user can generate/refine copy for any text element from within the editor.
+6. [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy. Done when: editor interactions feel smooth and discoverable.
 
 **Execution strategy:**
 
 Steps are not strictly sequential — some can be parallelized. Here are the dependency groups:
 
 - **Group A (foundation, do first):** Step 1 (design tokens). Everything else looks better when theming exists.
-- **Group B (parallel, after Group A):** Steps 2 + 4. Block redesign and form block are independent of each other, both consume design tokens.
-- **Group B2 (must precede Group C):** Step 2b. Fixes publishing reliability (Problem A), theme coherence (Problem B), and editor flexibility (Problem C). Step 3 depends on all three being solid.
-- **Group C (parallel, after Step 2b):** Steps 3 + 5. Templates and marketing page both depend on the redesigned blocks being done.
-- **Group D (independent, anytime after Group A):** Step 6 (AI assistant). Only needs the property panel and Claude API — no dependency on block redesign.
-- **Group E (last):** Step 7 (editor micro-polish). Final pass after all new surface area is built.
+- **Group B (parallel, after Group A):** Step 2 (block redesign).
+- **Group B2 (after Group B):** Step 2b (block fixes). Step 2c depends on these being solid.
+- **Group B3 (after Group B2):** Step 2c (container system) + 2d (redo templates with containers). Foundational for all remaining steps.
+- **Group C (parallel, after Group B3):** Steps 3 (forms) + 4 (marketing page). Both benefit from container-based blocks.
+- **Group D (independent, anytime after Group A):** Step 5 (AI assistant). Only needs the property panel and Claude API.
+- **Group E (last):** Step 6 (editor micro-polish). Final pass after all new surface area is built.
 
 ```
 Group A:   [1 Design Tokens]
                 |
+Group B:   [2 Blocks]
+                |
+Group B2:  [2b Fixes]
+                |
+Group B3:  [2c Containers] → [2d Templates]
+                |
           ┌─────┴─────┐
-Group B:   [2 Blocks]  [4 Forms]     Group D: [6 AI] (anytime after A)
+Group C:   [3 Forms]  [4 Marketing]     Group D: [5 AI] (anytime after A)
                 |
-Group B2:  [2b Fixes: icons + gradients + blank sections]
-                |
-          ┌─────┴─────┐
-Group C:   [3 Templates] [5 Marketing]
-                |
-Group E:   [7 Editor Polish]
+Group E:   [6 Editor Polish]
 ```
 
 **Deliverables:**
