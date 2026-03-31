@@ -5,6 +5,7 @@ import { applyThemeFonts, resolveDocumentTheme } from '@/shared/lib/theme-resolv
 
 import {
   addChildToContainer,
+  cloneSectionWithNewIds,
   createSection,
   findElementDeep,
   mapSectionElements,
@@ -166,6 +167,23 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
 
         return cleanupVariantPrimaryGoalInDocument(nextDocument, variantId)
       }),
+    )
+  },
+
+  duplicateSection: (variantId, sectionId) => {
+    set((state) =>
+      applyDocumentMutation(state, (document) =>
+        mapVariantSections(document, variantId, (sections) => {
+          const index = sections.findIndex((s) => s.id === sectionId)
+          if (index === -1) return sections
+          const original = sections[index]
+          if (!original) return sections
+          const clone = cloneSectionWithNewIds(original)
+          const result = [...sections]
+          result.splice(index + 1, 0, clone)
+          return result
+        }),
+      ),
     )
   },
 

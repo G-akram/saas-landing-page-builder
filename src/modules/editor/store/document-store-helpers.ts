@@ -183,6 +183,33 @@ export function findParentContainer(
   return null
 }
 
+/** Deep-clone an element, regenerating IDs for the element and any container children. */
+export function cloneElementWithNewIds(element: PageElement): PageElement {
+  const cloned = structuredClone(element)
+  cloned.id = crypto.randomUUID()
+  if (isContainerElement(cloned)) {
+    for (const child of cloned.children) {
+      child.id = crypto.randomUUID()
+    }
+  }
+  return cloned
+}
+
+/** Deep-clone a section, regenerating IDs for the section and all its elements/children. */
+export function cloneSectionWithNewIds(section: Section): Section {
+  const cloned = structuredClone(section)
+  cloned.id = crypto.randomUUID()
+  for (const el of cloned.elements) {
+    el.id = crypto.randomUUID()
+    if (isContainerElement(el)) {
+      for (const child of el.children) {
+        child.id = crypto.randomUUID()
+      }
+    }
+  }
+  return cloned
+}
+
 /** Add a child element to a container, returning the updated elements array. */
 export function addChildToContainer(
   elements: PageElement[],

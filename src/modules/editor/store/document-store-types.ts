@@ -34,6 +34,7 @@ export interface DocumentActions {
     variantStyleId?: string,
   ) => void
   deleteSection: (variantId: string, sectionId: string) => void
+  duplicateSection: (variantId: string, sectionId: string) => void
   /**
    * Add an element to a section. When parentElementId is provided, the element
    * is added as a child of that container (must be an AtomicElement).

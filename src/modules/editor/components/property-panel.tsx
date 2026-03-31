@@ -15,6 +15,7 @@ import {
   TypographyControls,
   AppearanceControls,
   SectionBackgroundControls,
+  SectionLayoutControls,
   SectionSizeControls,
   LinkControls,
   SpacingControls,
@@ -101,35 +102,33 @@ export function PropertyPanel(): React.JSX.Element {
             </span>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <details open className="border-b border-white/10">
-              <summary className="cursor-pointer px-3 py-2 text-xs font-semibold tracking-wider text-gray-400 uppercase select-none hover:text-gray-300">
-                Background
-              </summary>
-              <div className="flex flex-col gap-2 px-3 pb-3">
-                <SectionBackgroundControls
-                  background={section.background}
-                  onUpdate={(background) => {
-                    updateSectionStyles(activeVariant.id, section.id, { background })
-                  }}
-                />
-              </div>
-            </details>
-            <details className="border-b border-white/10">
-              <summary className="cursor-pointer px-3 py-2 text-xs font-semibold tracking-wider text-gray-400 uppercase select-none hover:text-gray-300">
-                Size &amp; Spacing
-              </summary>
-              <div className="flex flex-col gap-2 px-3 pb-3">
-                <SectionSizeControls
-                  section={section}
-                  onUpdateMinHeight={(minHeight) => {
-                    updateSectionStyles(activeVariant.id, section.id, { minHeight })
-                  }}
-                  onUpdatePadding={(padding) => {
-                    updateSectionStyles(activeVariant.id, section.id, { padding })
-                  }}
-                />
-              </div>
-            </details>
+            <PanelSection title="Layout">
+              <SectionLayoutControls
+                layout={section.layout}
+                onUpdate={(layout) => {
+                  updateSectionStyles(activeVariant.id, section.id, { layout })
+                }}
+              />
+            </PanelSection>
+            <PanelSection title="Background">
+              <SectionBackgroundControls
+                background={section.background}
+                onUpdate={(background) => {
+                  updateSectionStyles(activeVariant.id, section.id, { background })
+                }}
+              />
+            </PanelSection>
+            <PanelSection title="Size & Spacing" defaultOpen={false}>
+              <SectionSizeControls
+                section={section}
+                onUpdateMinHeight={(minHeight) => {
+                  updateSectionStyles(activeVariant.id, section.id, { minHeight })
+                }}
+                onUpdatePadding={(padding) => {
+                  updateSectionStyles(activeVariant.id, section.id, { padding })
+                }}
+              />
+            </PanelSection>
           </div>
         </aside>
       )

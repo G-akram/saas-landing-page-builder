@@ -39,12 +39,23 @@ export function SectionBackgroundControls({
       </FieldRow>
 
       {background.type === 'image' ? (
-        <ImageUploadButton
-          {...(background.value ? { currentSrc: background.value } : {})}
-          onUpload={(value) => {
-            onUpdate({ ...background, value })
-          }}
-        />
+        <>
+          <ImageUploadButton
+            {...(background.value ? { currentSrc: background.value } : {})}
+            onUpload={(value) => {
+              onUpdate({ ...background, value })
+            }}
+          />
+          <FieldRow label="Overlay">
+            <BlurInput
+              value={background.overlay ?? ''}
+              placeholder="rgba(0,0,0,0.4)"
+              onCommit={(overlay) => {
+                onUpdate({ ...background, overlay: overlay || undefined })
+              }}
+            />
+          </FieldRow>
+        </>
       ) : (
         <FieldRow label="Value">
           <BlurInput

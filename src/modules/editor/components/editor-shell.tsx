@@ -2,19 +2,22 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { type PageDocument } from '@/shared/types'
+import { type PageDocument, type Element as PageElement } from '@/shared/types'
 
 import { EditorActorProvider, useEditorActor } from '../context'
 import { useAutoSave } from '../hooks/use-auto-save'
 import { useLayoutConfig } from '../hooks/use-layout-config'
 import { usePublish, type EditorPublishResult } from '../hooks/use-publish'
 import { useDocumentStore, useUIStore } from '../store'
-import { findParentContainer } from '../store/document-store-helpers'
+import { cloneElementWithNewIds, findElementDeep, findParentContainer } from '../store/document-store-helpers'
 import { EditorCanvas } from './editor-canvas'
 import { EditorTopBar } from './editor-top-bar'
 import { PropertyPanel } from './property-panel'
 import { SectionListPanel } from './section-list-panel'
+import { ShortcutsHelpOverlay } from './shortcuts-help-overlay'
 import { VariantBar } from './variant-bar'
+
+const INLINE_EDITABLE_TYPES = new Set(['heading', 'text', 'button'])
 
 const SIDEBAR_WIDTH = 240
 const RIGHT_PANEL_WIDTH = 280
@@ -48,12 +51,17 @@ function EditorLayout({
 }: EditorLayoutProps): React.JSX.Element {
   const actor = useEditorActor()
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
+  // Session clipboard — not persisted, no re-render needed on copy
+  const clipboardElementRef = useRef<PageElement | null>(null)
   const initializeDocument = useDocumentStore((state) => state.initializeDocument)
   const resetUI = useUIStore((state) => state.resetUI)
   const undo = useDocumentStore((state) => state.undo)
   const redo = useDocumentStore((state) => state.redo)
   const moveElement = useDocumentStore((state) => state.moveElement)
   const deleteElement = useDocumentStore((state) => state.deleteElement)
+  const duplicateSection = useDocumentStore((state) => state.duplicateSection)
+  const addElement = useDocumentStore((state) => state.addElement)
   const initializedPageIdRef = useRef<string | null>(null)
   const isAutoSaveEnabled = initializedPageIdRef.current === pageId
 
@@ -88,6 +96,20 @@ function EditorLayout({
         return
       }
 
+      // Shortcuts help toggle — always available
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault()
+        setIsShortcutsOpen((open) => !open)
+        return
+      }
+
+      // Manual save — blocks browser's native save-page dialog
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        if (canManualSave) triggerManualSave()
+        return
+      }
+
       // Undo / redo
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
         e.preventDefault()
@@ -100,12 +122,20 @@ function EditorLayout({
         return
       }
 
-      // Element-level shortcuts — read selection from XState, not DOM focus
+      // Read selection state from XState for context-sensitive shortcuts
       const snapshot = actor.getSnapshot()
       const { selectedElementId, selectedSectionId } = snapshot.context
+
+      // Escape → deselect (works for both element and section-only selection)
+      if (e.key === 'Escape' && (selectedSectionId !== null || selectedElementId !== null)) {
+        e.preventDefault()
+        actor.send({ type: 'DESELECT' })
+        return
+      }
+
       if (!selectedElementId || !selectedSectionId) return
 
-      // Don't fire while inline-editing text
+      // Don't fire element-level shortcuts while inline-editing text
       if (snapshot.matches('editing')) return
 
       const { document } = useDocumentStore.getState()
@@ -123,7 +153,48 @@ function EditorLayout({
         return
       }
 
+      // Copy / paste elements
       if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'c') {
+          e.preventDefault()
+          const location = findElementDeep(section.elements, selectedElementId)
+          if (location !== null) {
+            clipboardElementRef.current = structuredClone(location.element)
+          }
+          return
+        }
+
+        if (e.key === 'v' && clipboardElementRef.current !== null) {
+          e.preventDefault()
+          const pasted = cloneElementWithNewIds(clipboardElementRef.current)
+          // Find insertion index: after the currently selected top-level element
+          const location = findElementDeep(section.elements, selectedElementId)
+          const atIndex =
+            location !== null && location.childIndex === undefined
+              ? location.topLevelIndex + 1
+              : undefined
+          addElement(activeVariant.id, selectedSectionId, pasted, atIndex)
+          return
+        }
+      }
+
+      // Enter → start inline editing for text-based elements
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        const location = findElementDeep(section.elements, selectedElementId)
+        if (location !== null && INLINE_EDITABLE_TYPES.has(location.element.content.type)) {
+          actor.send({ type: 'EDIT_START', elementId: selectedElementId, sectionId: selectedSectionId })
+        }
+        return
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        // Duplicate the section that contains the selected element
+        if (e.key === 'd') {
+          e.preventDefault()
+          duplicateSection(activeVariant.id, selectedSectionId)
+          return
+        }
         if (e.key === 'ArrowUp') {
           e.preventDefault()
           moveElement(activeVariant.id, selectedSectionId, selectedElementId, 'up', parentContainer?.id)
@@ -140,7 +211,7 @@ function EditorLayout({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [undo, redo, moveElement, deleteElement, actor])
+  }, [undo, redo, moveElement, deleteElement, duplicateSection, addElement, actor, canManualSave, triggerManualSave])
 
   useEffect(() => {
     initializedPageIdRef.current = pageId
@@ -211,6 +282,11 @@ function EditorLayout({
       <div className="overflow-hidden" style={{ gridArea: 'properties' }}>
         {showRightPanel && <PropertyPanel />}
       </div>
+
+      <ShortcutsHelpOverlay
+        isOpen={isShortcutsOpen}
+        onClose={() => { setIsShortcutsOpen(false) }}
+      />
     </div>
   )
 }
