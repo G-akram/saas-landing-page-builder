@@ -19,7 +19,7 @@ export const TextModeSchema = z.enum(['inline', 'multiline'])
 
 // ── Element content — discriminated union keyed on `type` ──────────────────
 
-export const ElementContentSchema = z.discriminatedUnion('type', [
+export const AtomicElementContentSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('heading'),
     text: z.string(),
@@ -30,6 +30,9 @@ export const ElementContentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('image'), src: z.string(), alt: z.string() }),
   z.object({ type: z.literal('icon'), name: z.string() }),
 ])
+
+/** @deprecated Use AtomicElementContentSchema. Kept as alias for existing imports. */
+export const ElementContentSchema = AtomicElementContentSchema
 
 // ── Element styles ─────────────────────────────────────────────────────────
 
@@ -70,25 +73,74 @@ export const ElementStylesSchema = z.object({
   gradientToken: z.string().optional(), // maps to theme gradients (primary, accent, dark)
 })
 
-// ── Element ────────────────────────────────────────────────────────────────
+// ── Container-specific schemas ─────────────────────────────────────────────
 
-export const ElementTypeSchema = z.enum(['heading', 'text', 'button', 'image', 'icon'])
+export const ContainerLayoutSchema = z.object({
+  direction: z.enum(['column', 'row']),
+  gap: z.number().nonnegative(),
+  align: z.enum(['left', 'center', 'right']).optional(),
+  verticalAlign: z.enum(['top', 'center', 'bottom']).optional(),
+})
 
-export const ElementSchema = z.object({
+export const ContainerStyleSchema = z.object({
+  backgroundColor: z.string().optional(),
+  backgroundGradient: z.string().optional(),
+  gradientToken: z.string().optional(),
+  backgroundColorToken: z.string().optional(),
+  borderRadius: z.number().optional(),
+  boxShadow: z.string().optional(),
+  border: z.string().optional(),
+  backdropFilter: z.string().optional(),
+  padding: SpacingConfigSchema.optional(),
+})
+
+// ── Atomic element — leaf node, no children ────────────────────────────────
+
+export const AtomicElementSchema = z.object({
   id: z.string(),
-  type: ElementTypeSchema,
+  type: z.enum(['heading', 'text', 'button', 'image', 'icon']),
   slot: z.number().int().nonnegative(),
-  content: ElementContentSchema,
+  content: AtomicElementContentSchema,
   styles: ElementStylesSchema,
   link: LinkConfigSchema.optional(),
 })
+
+// ── Container element — holds atomic children, 1-level nesting only ────────
+
+export const ContainerElementSchema = z.object({
+  id: z.string(),
+  type: z.literal('container'),
+  slot: z.number().int().nonnegative(),
+  content: z.object({ type: z.literal('container') }),
+  styles: ElementStylesSchema, // outer spacing: marginTop, marginBottom, width, maxWidth
+  containerStyle: ContainerStyleSchema,
+  containerLayout: ContainerLayoutSchema,
+  children: z.array(AtomicElementSchema),
+  link: LinkConfigSchema.optional(),
+})
+
+// ── Element — union of atomic and container ────────────────────────────────
+
+export const ElementTypeSchema = z.enum(['heading', 'text', 'button', 'image', 'icon', 'container'])
+
+export const ElementSchema = z.union([AtomicElementSchema, ContainerElementSchema])
+
+// ── Type guard ─────────────────────────────────────────────────────────────
+
+export function isContainerElement(element: Element): element is ContainerElement {
+  return element.type === 'container'
+}
 
 // ── Derived TypeScript types ───────────────────────────────────────────────
 
 export type SpacingConfig = z.infer<typeof SpacingConfigSchema>
 export type LinkConfig = z.infer<typeof LinkConfigSchema>
 export type TextMode = z.infer<typeof TextModeSchema>
-export type ElementContent = z.infer<typeof ElementContentSchema>
+export type ElementContent = z.infer<typeof AtomicElementContentSchema>
 export type ElementStyles = z.infer<typeof ElementStylesSchema>
 export type ElementType = z.infer<typeof ElementTypeSchema>
+export type ContainerLayout = z.infer<typeof ContainerLayoutSchema>
+export type ContainerStyle = z.infer<typeof ContainerStyleSchema>
+export type AtomicElement = z.infer<typeof AtomicElementSchema>
+export type ContainerElement = z.infer<typeof ContainerElementSchema>
 export type Element = z.infer<typeof ElementSchema>
