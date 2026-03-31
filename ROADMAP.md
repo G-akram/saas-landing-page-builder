@@ -329,9 +329,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 **Status: in progress**
 
-**Why next:** MVP is functional but visually basic. The highest-leverage move is making the product look and feel premium — Creative Tim-level visual quality in block design, richer templates, and a polished first impression. AI assists the creative process rather than replacing it.
-
-**Design references:** Creative Tim UI kits and premium template galleries for composition, color, and polish quality. Adapt the visual language, don't copy layouts directly.
+**Why now:** MVP is functional but visually basic. The highest-leverage move is making the product look and feel premium — Creative Tim-level visual quality in block design, richer templates, and a polished first impression. AI assists the creative process rather than replacing it.
 
 **What we build:**
 
@@ -345,52 +343,15 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 **Steps:**
 
-1. [x] **Design tokens system** — global color palettes, font pairings, spacing scale, with preset themes (e.g., "Startup", "Agency", "SaaS Dark"). Tokens feed into block rendering and published output. Done when: switching a theme re-skins all blocks on a page. See `decisions/039-design-tokens-system.md`.
-2. [x] **Redesign block library to Creative Tim quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, `SlotStyle` for card grids, `badge()` eyebrow factory, new style fields (boxShadow, border, backdropFilter, letterSpacing, textTransform, backgroundGradient, opacity). Published icons now render as inline SVGs via a curated path map.
-2b. [x] **Block library follow-up fixes** — three known issues discovered during manual testing of Step 2. Must be resolved before Step 3 because they affect publishing reliability and theme coherence:
-
-   **Problem A — Published icon rendering (regression):**
-   The current fix uses a curated 15-icon SVG path map. Any icon a user enters manually that is not in this map degrades to a gray circle in the published page. Root cause: `published-page-element.ts` added an `import { icons } from 'lucide-react'` (ESM), but the publishing pipeline renders via `require('react-dom/server.node')` (CJS). Two separate React instances cause `renderToStaticMarkup` to throw when invoking the ESM Lucide component. The correct fix is a `publish-lucide-icon-renderer.ts` module that uses `createRequire(import.meta.url)` + `require('react-dom/server.node').renderToStaticMarkup` to render each Lucide icon component via the **same CJS React instance** as the page renderer, then injects the resulting SVG string via `dangerouslySetInnerHTML`. This makes all ~1400 lucide icons work in published output without a curated map. Delete `publish-icon-utils.ts` once this is working. Done when: any valid Lucide icon name added via the property panel renders correctly in the published page.
-
-   **Problem B — Theme switching destroys gradient-based designs:**
-   The hybrid token system resolves `colorToken` → `color` and `backgroundColorToken` → `backgroundColor` on theme switch, but has no concept of a gradient token. Template elements that use `backgroundGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)'` keep their original blue gradient after switching to e.g. the "Startup" (indigo/purple) or "Agency" (orange) theme, while text colors and solid backgrounds update. This creates mismatched palettes. Fix: add `gradientToken: z.string().optional()` to `ElementStylesSchema`. Add `gradients` record to `ThemeDefinition` with keys like `primary-gradient`, `accent-gradient`, `dark-gradient`. Each preset theme defines its gradient values. The `resolveDocumentTheme` theme resolver handles `gradientToken` → `backgroundGradient` the same way it handles `colorToken`. Update all templates that use `backgroundGradient` to also carry a `gradientToken`. Done when: switching any preset theme produces a visually coherent page — gradients, text, and backgrounds all update together.
-
-   **Problem C — No way to add isolated components (blank section + element picker):**
-   Every section must be created from a pre-built template variant. There is no "blank section" option and no UI to add individual elements (heading, text, button, image, icon) to an existing section. The `addElement` store action exists but has no UI surface. Fix: add a `custom` section type with a blank template, add an element picker panel (accessible from the section toolbar or a + button within the section canvas), and add a basic layout type selector (stack vs grid) for custom sections. Done when: a user can create a blank section and build it from scratch by adding individual elements without picking a template variant.
-
-2c. [ ] **Container element system (compound components)** — adds a `container` element type that holds atomic children (1 level of nesting). Turns loose flat elements into real compound components like cards. Schema: `ContainerElement` with `children: AtomicElement[]`, `containerStyle` (bg, border, shadow, padding, radius, gradient), `containerLayout` (direction, gap, align). Store mutations gain deep lookup for nested children. Editor renders containers as styled card wrappers with selectable children and in-container element picker. Published output renders containers as styled `<div>` wrappers. Templates rewritten: feature cards, pricing tiers, testimonials become real container elements instead of flat elements with shared `slotStyle`. Done when: user can add a Card to any section, add/remove children from it, style the card wrapper independently, and published output renders compound cards correctly.
-2d. [ ] **Redo page templates gallery with containers** — rebuild the 4-6 full-page templates (SaaS, Agency, Portfolio, etc.) using container-based sections for premium card layouts. Done when: "Create page" produces polished compound-component layouts, not flat element stacks.
-3. [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants, with a simple submission handler (store to DB or webhook). Done when: users can add a working contact form to a published page.
-4. [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots. Done when: the home page looks like a real SaaS product page.
-5. [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel. Done when: user can generate/refine copy for any text element from within the editor.
-6. [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy. Done when: editor interactions feel smooth and discoverable.
-
-**Execution strategy:**
-
-Steps are not strictly sequential — some can be parallelized. Here are the dependency groups:
-
-- **Group A (foundation, do first):** Step 1 (design tokens). Everything else looks better when theming exists.
-- **Group B (parallel, after Group A):** Step 2 (block redesign).
-- **Group B2 (after Group B):** Step 2b (block fixes). Step 2c depends on these being solid.
-- **Group B3 (after Group B2):** Step 2c (container system) + 2d (redo templates with containers). Foundational for all remaining steps.
-- **Group C (parallel, after Group B3):** Steps 3 (forms) + 4 (marketing page). Both benefit from container-based blocks.
-- **Group D (independent, anytime after Group A):** Step 5 (AI assistant). Only needs the property panel and Claude API.
-- **Group E (last):** Step 6 (editor micro-polish). Final pass after all new surface area is built.
-
-```
-Group A:   [1 Design Tokens]
-                |
-Group B:   [2 Blocks]
-                |
-Group B2:  [2b Fixes]
-                |
-Group B3:  [2c Containers] → [2d Templates]
-                |
-          ┌─────┴─────┐
-Group C:   [3 Forms]  [4 Marketing]     Group D: [5 AI] (anytime after A)
-                |
-Group E:   [6 Editor Polish]
-```
+- [x] **Design tokens system** — global color palettes, font pairings, spacing scale, with preset themes ("Startup", "Agency", "SaaS Dark"). Tokens feed into block rendering and published output. See `decisions/039-design-tokens-system.md`.
+- [x] **Redesign block library to Creative Tim quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, `SlotStyle` for card grids, `badge()` eyebrow factory, new style fields (boxShadow, border, backdropFilter, letterSpacing, textTransform, backgroundGradient, opacity). Published icons render as inline SVGs via a curated path map.
+- [x] **Block library follow-up fixes** — published icon rendering (full Lucide icon support via CJS-compatible renderer, replacing the 15-icon curated map), gradient tokens (theme switching updates gradients alongside colors), blank section + element picker (custom section type with in-canvas element add UI).
+- [ ] **Container element system (compound components)** — `container` element type holding atomic children (1 level of nesting). Schema: `ContainerElement` with `children: AtomicElement[]`, `containerStyle`, `containerLayout`. Store gains deep lookup. Editor renders styled card wrappers with selectable children and in-container element picker. Published output renders compound cards. Templates rewritten: feature cards, pricing tiers, testimonials use real containers. See `decisions/040-container-element-type.md`.
+- [ ] **Redo page templates gallery with containers** — rebuild 4-6 full-page templates (SaaS, Agency, Portfolio, etc.) using container-based sections for premium card layouts.
+- [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants with a simple submission handler (store to DB or webhook).
+- [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots.
+- [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel.
+- [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy.
 
 **Deliverables:**
 
