@@ -1,15 +1,21 @@
+import { MarketingAbHighlight } from './_components/marketing-ab-highlight'
+import { MarketingCta } from './_components/marketing-cta'
+import { MarketingFeatures } from './_components/marketing-features'
+import { MarketingFooter } from './_components/marketing-footer'
+import { MarketingHero } from './_components/marketing-hero'
+import { MarketingHowItWorks } from './_components/marketing-how-it-works'
+import { MarketingNav } from './_components/marketing-nav'
+
 export default function HomePage(): React.JSX.Element {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 text-center">
-      <h1 className="text-4xl font-bold tracking-tight">Landing Page Builder</h1>
-      <p className="text-muted-foreground mt-4 max-w-2xl">
-        Build, publish, and A/B test landing pages with a drag-and-drop editor, editable block
-        variants, sticky traffic splits, and per-variant analytics.
-      </p>
-      <p className="text-muted-foreground mt-2 text-sm">
-        Phase 6 is focused on MVP hardening: quality gates, docs alignment, and the final polish
-        needed to close the MVP cleanly.
-      </p>
-    </main>
+    <div className="bg-[#030712]">
+      <MarketingNav />
+      <MarketingHero />
+      <MarketingFeatures />
+      <MarketingHowItWorks />
+      <MarketingAbHighlight />
+      <MarketingCta />
+      <MarketingFooter />
+    </div>
   )
 }
