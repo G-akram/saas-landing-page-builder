@@ -8,6 +8,7 @@ import {
   buildImageStyle,
   resolvePublishedHref,
 } from '../utils/publish-renderer-utils'
+import { getIconSvgPaths } from '../utils/publish-icon-utils'
 
 interface PublishedPageElementProps {
   element: PageElement
@@ -22,21 +23,6 @@ const HEADING_TAG_BY_LEVEL = {
   4: 'h4',
 } as const
 
-function resolveIconMonogram(name: string): string {
-  const normalized = name.trim().toUpperCase()
-  if (normalized.length === 0) {
-    return 'I'
-  }
-
-  const parts = normalized.split('-').filter((part) => part.length > 0)
-  if (parts.length >= 2) {
-    const first = parts[0]?.charAt(0) ?? ''
-    const second = parts[1]?.charAt(0) ?? ''
-    return `${first}${second}` || 'I'
-  }
-
-  return normalized.slice(0, 2)
-}
 
 function wrapWithLinkIfPresent(
   element: PageElement,
@@ -160,29 +146,39 @@ function renderIcon(
 
   const iconSize = element.styles.fontSize ?? 28
   const iconColor = element.styles.color ?? defaultTextColor
-  const iconNode = createElement(
-    'span',
-    {
-      'aria-hidden': true,
-      title: element.content.name,
-      style: {
-        ...buildBaseElementStyle(element.styles),
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: `${String(iconSize)}px`,
-        height: `${String(iconSize)}px`,
-        borderRadius: '9999px',
-        border: `1px solid ${iconColor}`,
-        color: iconColor,
-        fontSize: `${String(Math.max(10, Math.round(iconSize * 0.42)))}px`,
-        fontWeight: 600,
-        lineHeight: 1,
-        textTransform: 'uppercase',
-      },
+
+  // Use curated inline SVG paths rather than React components from lucide-react.
+  // The publishing pipeline uses require('react-dom/server.node') which creates a
+  // separate CJS React instance — invoking ESM React components from external packages
+  // inside that context causes "invalid hook call" / mismatched React errors.
+  const svgPaths = getIconSvgPaths(element.content.name)
+
+  const iconNode = createElement('svg', {
+    xmlns: 'http://www.w3.org/2000/svg',
+    width: iconSize,
+    height: iconSize,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: iconColor,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+    style: {
+      display: 'inline-block',
+      verticalAlign: 'middle',
+      flexShrink: 0,
+      marginTop:
+        element.styles.marginTop !== undefined
+          ? `${String(element.styles.marginTop)}px`
+          : undefined,
+      marginBottom:
+        element.styles.marginBottom !== undefined
+          ? `${String(element.styles.marginBottom)}px`
+          : undefined,
     },
-    resolveIconMonogram(element.content.name),
-  )
+    dangerouslySetInnerHTML: { __html: svgPaths },
+  })
 
   return wrapWithLinkIfPresent(element, iconNode, primaryGoalElementId)
 }

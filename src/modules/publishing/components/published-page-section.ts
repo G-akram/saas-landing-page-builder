@@ -4,6 +4,7 @@ import { type Section } from '@/shared/types'
 
 import {
   buildGridLayoutStyle,
+  buildPublishedSlotStyle,
   buildSectionStyle,
   buildSlotStyle,
   buildStackLayoutStyle,
@@ -41,7 +42,10 @@ function renderGridSection(
         {
           key: slotIndex,
           className: 'pb-slot',
-          style: buildSlotStyle(section.layout),
+          style: {
+            ...buildSlotStyle(section.layout),
+            ...(section.slotStyle ? buildPublishedSlotStyle(section.slotStyle) : {}),
+          },
         },
         ...elements.map((element) =>
           createElement(PublishedPageElement, {

@@ -1,6 +1,6 @@
 import { type CSSProperties } from 'react'
 
-import { type Element as PageElement, type Section } from '@/shared/types'
+import { type Element as PageElement, type Section, type SlotStyle } from '@/shared/types'
 
 const ALIGNMENT_STYLE: Record<
   Section['layout']['align'],
@@ -118,6 +118,9 @@ export function buildBaseElementStyle(styles: PageElement['styles']): CSSPropert
     maxWidth: styles.maxWidth ?? undefined,
     marginTop: toPx(styles.marginTop),
     marginBottom: toPx(styles.marginBottom),
+    opacity: styles.opacity ?? undefined,
+    letterSpacing: styles.letterSpacing ?? undefined,
+    textTransform: styles.textTransform ?? undefined,
   }
 }
 
@@ -126,12 +129,16 @@ export function buildButtonStyle(styles: PageElement['styles']): CSSProperties {
     ...buildBaseElementStyle(styles),
     display: 'inline-block',
     textDecoration: 'none',
-    backgroundColor: styles.backgroundColor ?? undefined,
+    // backgroundGradient overrides backgroundColor for gradient buttons
+    background: styles.backgroundGradient ?? styles.backgroundColor ?? undefined,
     borderRadius: toPx(styles.borderRadius),
     paddingTop: styles.padding ? `${String(styles.padding.top)}px` : undefined,
     paddingBottom: styles.padding ? `${String(styles.padding.bottom)}px` : undefined,
     paddingLeft: styles.padding ? `${String(styles.padding.left)}px` : undefined,
     paddingRight: styles.padding ? `${String(styles.padding.right)}px` : undefined,
+    boxShadow: styles.boxShadow ?? undefined,
+    border: styles.border ?? undefined,
+    backdropFilter: styles.backdropFilter ?? undefined,
   }
 }
 
@@ -142,6 +149,20 @@ export function buildImageStyle(styles: PageElement['styles']): CSSProperties {
     borderRadius: toPx(styles.borderRadius),
     marginTop: toPx(styles.marginTop),
     marginBottom: toPx(styles.marginBottom),
+  }
+}
+
+export function buildPublishedSlotStyle(slotStyle: SlotStyle): CSSProperties {
+  return {
+    backgroundColor: slotStyle.backgroundColor ?? undefined,
+    borderRadius: toPx(slotStyle.borderRadius),
+    boxShadow: slotStyle.boxShadow ?? undefined,
+    border: slotStyle.border ?? undefined,
+    backdropFilter: slotStyle.backdropFilter ?? undefined,
+    paddingTop: slotStyle.padding ? `${String(slotStyle.padding.top)}px` : undefined,
+    paddingBottom: slotStyle.padding ? `${String(slotStyle.padding.bottom)}px` : undefined,
+    paddingLeft: slotStyle.padding ? `${String(slotStyle.padding.left)}px` : undefined,
+    paddingRight: slotStyle.padding ? `${String(slotStyle.padding.right)}px` : undefined,
   }
 }
 
