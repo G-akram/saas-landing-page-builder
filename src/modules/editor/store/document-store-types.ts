@@ -3,6 +3,9 @@ import {
   type Section,
   type SectionType,
   type Element as PageElement,
+  type AtomicElement,
+  type ContainerStyle,
+  type ContainerLayout,
 } from '@/shared/types'
 
 export interface DocumentState {
@@ -30,12 +33,25 @@ export interface DocumentActions {
     variantStyleId?: string,
   ) => void
   deleteSection: (variantId: string, sectionId: string) => void
-  addElement: (variantId: string, sectionId: string, element: PageElement, atIndex?: number) => void
+  /**
+   * Add an element to a section. When parentElementId is provided, the element
+   * is added as a child of that container (must be an AtomicElement).
+   */
+  addElement: (
+    variantId: string,
+    sectionId: string,
+    element: PageElement,
+    atIndex?: number,
+    parentElementId?: string,
+  ) => void
   updateElement: (
     variantId: string,
     sectionId: string,
     elementId: string,
-    updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>>,
+    updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>> & {
+      containerStyle?: Partial<ContainerStyle>
+      containerLayout?: Partial<ContainerLayout>
+    },
     options?: { pushHistory?: boolean },
   ) => void
   deleteElement: (variantId: string, sectionId: string, elementId: string) => void
@@ -50,3 +66,6 @@ export interface DocumentActions {
 }
 
 export type DocumentStore = DocumentState & DocumentActions
+
+// Re-export for convenience in store actions
+export type { AtomicElement }

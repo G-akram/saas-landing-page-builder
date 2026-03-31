@@ -1,4 +1,4 @@
-import { type PageDocument, type Variant, type VariantPrimaryGoal } from '@/shared/types'
+import { type PageDocument, type Variant, type VariantPrimaryGoal, isContainerElement } from '@/shared/types'
 
 const TOTAL_TRAFFIC_WEIGHT = 100
 const VARIANT_NAME_PREFIX = 'Variant'
@@ -156,9 +156,14 @@ export function rebalanceTrafficWeightsForVariant(
 }
 
 export function canAssignPrimaryGoal(variant: Variant, elementId: string): boolean {
-  return variant.sections
-    .flatMap((section) => section.elements)
-    .some((element) => element.id === elementId && element.link !== undefined)
+  return variant.sections.some((section) =>
+    section.elements.some((element) => {
+      if (isContainerElement(element)) {
+        return element.children.some((child) => child.id === elementId && child.link !== undefined)
+      }
+      return element.id === elementId && element.link !== undefined
+    }),
+  )
 }
 
 export function resolveValidActiveVariantId(

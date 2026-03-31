@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 
-import { type PageDocument } from '@/shared/types'
+import { type PageDocument, isContainerElement } from '@/shared/types'
 import { applyThemeFonts, resolveDocumentTheme } from '@/shared/lib/theme-resolver'
 
 import {
+  addChildToContainer,
   createSection,
+  findElementDeep,
   mapSectionElements,
   mapVariantSections,
   pushHistory,
@@ -167,16 +169,28 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     )
   },
 
-  addElement: (variantId, sectionId, element, atIndex) => {
+  addElement: (variantId, sectionId, element, atIndex, parentElementId) => {
     set((state) =>
-      applyDocumentMutation(state, (document) =>
-        mapSectionElements(document, variantId, sectionId, (elements) => {
+      applyDocumentMutation(state, (document) => {
+        if (parentElementId) {
+          // Add as a child inside a container
+          return mapSectionElements(document, variantId, sectionId, (elements) => {
+            // Containers only accept atomic elements as children
+            const atomicElement = element.type !== 'container'
+              ? (element as Parameters<typeof addChildToContainer>[2])
+              : null
+            if (!atomicElement) return elements
+            return addChildToContainer(elements, parentElementId, atomicElement, atIndex) ?? elements
+          })
+        }
+        // Add at top level
+        return mapSectionElements(document, variantId, sectionId, (elements) => {
           const result = [...elements]
           const insertAt = atIndex ?? result.length
           result.splice(insertAt, 0, element)
           return result
-        }),
-      ),
+        })
+      }),
     )
   },
 
@@ -206,14 +220,25 @@ export const useDocumentStore = create<DocumentStore>()((set) => ({
     set((state) =>
       applyDocumentMutation(state, (document) => {
         const nextDocument = mapSectionElements(document, variantId, sectionId, (elements) => {
-          const nextElements = elements.filter((element) => element.id !== elementId)
-          return nextElements.length === elements.length ? elements : nextElements
+          const location = findElementDeep(elements, elementId)
+          if (!location) return elements
+
+          if (location.childIndex !== undefined) {
+            // Remove child from its container
+            const containerEl = elements[location.topLevelIndex]
+            if (!containerEl || !isContainerElement(containerEl)) return elements
+
+            const nextChildren = containerEl.children.filter((c) => c.id !== elementId)
+            const nextElements = [...elements]
+            nextElements[location.topLevelIndex] = { ...containerEl, children: nextChildren }
+            return nextElements
+          }
+
+          // Remove top-level element
+          return elements.filter((el) => el.id !== elementId)
         })
 
-        if (nextDocument === document) {
-          return null
-        }
-
+        if (nextDocument === document) return null
         return cleanupVariantPrimaryGoalInDocument(nextDocument, variantId)
       }),
     )

@@ -1,12 +1,22 @@
-import { type PageDocument, type Element as PageElement, type Section } from '@/shared/types'
+import {
+  type PageDocument,
+  type Element as PageElement,
+  type Section,
+  type ContainerStyle,
+  type ContainerLayout,
+  isContainerElement,
+} from '@/shared/types'
 
-import { deepEqual, hasPatchChanges } from './document-store-helpers'
+import { deepEqual, findElementDeep, hasPatchChanges } from './document-store-helpers'
 
 interface ElementUpdateInput {
   variantId: string
   sectionId: string
   elementId: string
-  updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>>
+  updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>> & {
+    containerStyle?: Partial<ContainerStyle>
+    containerLayout?: Partial<ContainerLayout>
+  }
 }
 
 interface SectionStyleUpdateInput {
@@ -31,11 +41,11 @@ export function updateElementInDocument(
   const section = variant.sections[sectionIndex]
   if (!section) return null
 
-  const elementIndex = section.elements.findIndex((element) => element.id === input.elementId)
-  if (elementIndex === -1) return null
+  // Deep search: finds element at top-level or inside a container
+  const location = findElementDeep(section.elements, input.elementId)
+  if (!location) return null
 
-  const currentElement = section.elements[elementIndex]
-  if (!currentElement) return null
+  const currentElement = location.element
 
   const slotChanged = input.updates.slot !== undefined && input.updates.slot !== currentElement.slot
   const linkChanged = 'link' in input.updates && !deepEqual(currentElement.link, input.updates.link)
@@ -46,20 +56,68 @@ export function updateElementInDocument(
     input.updates.styles !== undefined &&
     hasPatchChanges(currentElement.styles, input.updates.styles)
 
-  if (!slotChanged && !linkChanged && !contentChanged && !stylesChanged) {
+  // Container-specific fields (ignored for atomic elements)
+  const containerStyleChanged =
+    input.updates.containerStyle !== undefined &&
+    isContainerElement(currentElement) &&
+    hasPatchChanges(currentElement.containerStyle, input.updates.containerStyle)
+  const containerLayoutChanged =
+    input.updates.containerLayout !== undefined &&
+    isContainerElement(currentElement) &&
+    hasPatchChanges(currentElement.containerLayout, input.updates.containerLayout)
+
+  if (
+    !slotChanged &&
+    !linkChanged &&
+    !contentChanged &&
+    !stylesChanged &&
+    !containerStyleChanged &&
+    !containerLayoutChanged
+  ) {
     return null
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const updatedElement = {
     ...currentElement,
     ...(slotChanged && { slot: input.updates.slot }),
     ...(linkChanged && { link: input.updates.link }),
     ...(contentChanged && { content: { ...currentElement.content, ...input.updates.content } }),
     ...(stylesChanged && { styles: { ...currentElement.styles, ...input.updates.styles } }),
-  }
+    ...(containerStyleChanged &&
+      isContainerElement(currentElement) && {
+        containerStyle: {
+          ...currentElement.containerStyle,
+          ...input.updates.containerStyle,
+        },
+      }),
+    ...(containerLayoutChanged &&
+      isContainerElement(currentElement) && {
+        containerLayout: {
+          ...currentElement.containerLayout,
+          ...input.updates.containerLayout,
+        },
+      }),
+  } as PageElement
 
-  const nextElements = [...section.elements]
-  nextElements[elementIndex] = updatedElement
+  // Rebuild the elements array — handling both top-level and child updates
+  let nextElements: PageElement[]
+
+  if (location.childIndex !== undefined) {
+    // Element is a child inside a container
+    const containerEl = section.elements[location.topLevelIndex]
+    if (!containerEl || !isContainerElement(containerEl)) return null
+
+    const nextChildren = [...containerEl.children]
+    nextChildren[location.childIndex] = updatedElement as typeof nextChildren[0]
+
+    nextElements = [...section.elements]
+    nextElements[location.topLevelIndex] = { ...containerEl, children: nextChildren }
+  } else {
+    // Top-level element
+    nextElements = [...section.elements]
+    nextElements[location.topLevelIndex] = updatedElement
+  }
 
   const nextSections = [...variant.sections]
   nextSections[sectionIndex] = { ...section, elements: nextElements }

@@ -3,6 +3,9 @@ import {
   type Section,
   type SectionType,
   type Element as PageElement,
+  type AtomicElement,
+  type ContainerElement,
+  isContainerElement,
 } from '@/shared/types'
 
 import { BLOCK_TEMPLATE_BY_STYLE_ID, getDefaultTemplate } from '../lib/block-templates'
@@ -128,4 +131,76 @@ export function hasPatchChanges<T extends object>(current: T, patch: Partial<T>)
     if (nextValue === undefined) return false
     return !deepEqual(current[key], nextValue)
   })
+}
+
+// ── Deep element lookup ─────────────────────────────────────────────────────
+
+export interface ElementLocation {
+  element: PageElement
+  /** Index in section.elements for top-level; index of container for children */
+  topLevelIndex: number
+  /** Set when the element is a child inside a container */
+  childIndex?: number
+}
+
+/** Find an element by ID in a section — searches top-level and inside containers. */
+export function findElementDeep(
+  elements: PageElement[],
+  elementId: string,
+): ElementLocation | null {
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i]
+    if (!el) continue
+
+    if (el.id === elementId) {
+      return { element: el, topLevelIndex: i }
+    }
+
+    if (isContainerElement(el)) {
+      const childIdx = el.children.findIndex((c) => c.id === elementId)
+      if (childIdx !== -1) {
+        const child = el.children[childIdx]
+        if (!child) continue
+        return { element: child, topLevelIndex: i, childIndex: childIdx }
+      }
+    }
+  }
+  return null
+}
+
+/** Find the container that owns a child element. Returns null if element is top-level. */
+export function findParentContainer(
+  elements: PageElement[],
+  elementId: string,
+): ContainerElement | null {
+  for (const el of elements) {
+    if (isContainerElement(el)) {
+      if (el.children.some((c) => c.id === elementId)) {
+        return el
+      }
+    }
+  }
+  return null
+}
+
+/** Add a child element to a container, returning the updated elements array. */
+export function addChildToContainer(
+  elements: PageElement[],
+  parentId: string,
+  child: AtomicElement,
+  atIndex?: number,
+): PageElement[] | null {
+  const containerIdx = elements.findIndex((el) => el.id === parentId && isContainerElement(el))
+  if (containerIdx === -1) return null
+
+  const container = elements[containerIdx]
+  if (!container || !isContainerElement(container)) return null
+
+  const nextChildren = [...container.children]
+  const insertAt = atIndex ?? nextChildren.length
+  nextChildren.splice(insertAt, 0, child)
+
+  const nextElements = [...elements]
+  nextElements[containerIdx] = { ...container, children: nextChildren }
+  return nextElements
 }
