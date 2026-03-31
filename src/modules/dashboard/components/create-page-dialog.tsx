@@ -45,7 +45,13 @@ export function CreatePageDialog(): React.JSX.Element {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger render={<Button />}>Create page</DialogTrigger>
+      <DialogTrigger
+        render={
+          <button className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:opacity-90" />
+        }
+      >
+        + New page
+      </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create a new page</DialogTitle>

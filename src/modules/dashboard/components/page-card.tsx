@@ -3,8 +3,6 @@
 import Link from 'next/link'
 import { useActionState } from 'react'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { deletePage } from '@/modules/dashboard/actions/page-actions'
 
@@ -17,6 +15,21 @@ interface PageCardProps {
   status: string
   updatedAt: Date
   analytics: PageVariantAnalyticsSummary[]
+}
+
+// Deterministic gradient derived from slug — gives each card a unique identity
+const CARD_GRADIENTS = [
+  ['#6366f1', '#8b5cf6'],
+  ['#14b8a6', '#06b6d4'],
+  ['#f97316', '#ec4899'],
+  ['#10b981', '#14b8a6'],
+  ['#8b5cf6', '#6366f1'],
+] as const
+
+const FALLBACK_GRADIENT = CARD_GRADIENTS[0]
+
+function getGradient(slug: string): readonly [string, string] {
+  return CARD_GRADIENTS[slug.charCodeAt(0) % CARD_GRADIENTS.length] ?? FALLBACK_GRADIENT
 }
 
 function formatRelativeDate(date: Date): string {
@@ -41,86 +54,131 @@ export function PageCard({
   updatedAt,
   analytics,
 }: PageCardProps): React.JSX.Element {
-  interface DeletePageFormState {
+  interface DeleteState {
     error?: string
-    success?: string
   }
 
   const [state, formAction, isPending] = useActionState(
-    async (_prev: DeletePageFormState, formData: FormData): Promise<DeletePageFormState> => {
+    async (_prev: DeleteState, formData: FormData): Promise<DeleteState> => {
       const result = await deletePage(formData)
-      if (!result.success) {
-        return { error: result.error }
-      }
-
-      return result.message ? { success: result.message } : {}
+      if (!result.success) return { error: result.error }
+      return {}
     },
     {},
   )
 
+  const [fromColor, toColor] = getGradient(slug)
+  const isPublished = status === 'published'
+
   return (
-    <Card className={isPending ? 'pointer-events-none opacity-50' : undefined}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <Link href={`/editor/${id}`} className="hover:underline">
-              <CardTitle className="text-lg">{name}</CardTitle>
-            </Link>
-            <CardDescription>/{slug}</CardDescription>
-          </div>
-          <span className="bg-secondary text-secondary-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
-            {status}
-          </span>
+    <div
+      className={`group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d1117] transition-all hover:border-white/[0.15] hover:shadow-lg hover:shadow-black/40 ${isPending ? 'pointer-events-none opacity-50' : ''}`}
+    >
+      {/* Preview thumbnail */}
+      <div
+        className="relative h-36 overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${fromColor}, ${toColor})` }}
+      >
+        <PageThumbnail />
+        <div className="absolute top-3 right-3">
+          <StatusBadge isPublished={isPublished} />
         </div>
-      </CardHeader>
-      {analytics.length > 0 ? (
-        <div className="border-t px-6 py-4">
-          <div className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-            A/B performance
-          </div>
-          <div className="space-y-2">
-            {analytics.map((variant) => (
+      </div>
+
+      {/* Card content */}
+      <div className="flex flex-1 flex-col p-4">
+        <Link
+          href={`/editor/${id}`}
+          className="line-clamp-1 text-base font-semibold text-white transition-colors hover:text-indigo-300"
+        >
+          {name}
+        </Link>
+        <p className="mt-0.5 font-mono text-xs text-white/30">/{slug}</p>
+
+        {/* Analytics row */}
+        {analytics.length > 0 ? (
+          <div className="mt-3 space-y-1 border-t border-white/[0.06] pt-3">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/20">
+              A/B Performance
+            </p>
+            {analytics.map((v) => (
               <div
-                key={variant.variantId}
-                className="bg-muted/40 flex items-center justify-between rounded-md px-3 py-2 text-sm"
+                key={v.variantId}
+                className="flex items-center justify-between rounded-lg bg-white/[0.03] px-2.5 py-1.5"
               >
-                <span className="font-medium">{variant.variantName}</span>
-                <span className="text-muted-foreground">
-                  {variant.views} views · {variant.conversions} conv · {variant.conversionRate}%
+                <span className="truncate text-xs text-white/50">{v.variantName}</span>
+                <span className="ml-2 shrink-0 font-mono text-xs text-white/25">
+                  {v.views}v · {v.conversionRate}%
                 </span>
               </div>
             ))}
           </div>
+        ) : null}
+
+        <div className="flex-1" />
+
+        {/* Footer: timestamp + actions */}
+        <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3">
+          <span className="text-[11px] text-white/25">{formatRelativeDate(updatedAt)}</span>
+          <div className="flex items-center gap-1.5">
+            {state.error ? (
+              <p className="mr-1 text-[11px] text-red-400">{state.error}</p>
+            ) : null}
+            <Link
+              href={`/editor/${id}`}
+              className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-white/70 transition-all hover:border-white/15 hover:text-white"
+            >
+              Edit
+            </Link>
+            <form action={formAction}>
+              <input type="hidden" name="pageId" value={id} />
+              <button
+                type="submit"
+                disabled={isPending}
+                className="flex items-center justify-center rounded-lg px-2.5 py-1.5 text-xs text-white/25 transition-all hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
+              >
+                {isPending ? <Spinner className="size-3 text-red-400" /> : 'Delete'}
+              </button>
+            </form>
+          </div>
         </div>
-      ) : null}
-      <CardFooter className="flex items-center justify-between">
-        <div className="space-y-1">
-          <span className="text-muted-foreground block text-xs">
-            Updated {formatRelativeDate(updatedAt)}
-          </span>
-          {state.error ? <p className="text-xs text-red-500">{state.error}</p> : null}
-          {state.success ? <p className="text-xs text-green-600">{state.success}</p> : null}
-        </div>
-        <form action={formAction}>
-          <input type="hidden" name="pageId" value={id} />
-          <Button
-            type="submit"
-            variant="ghost"
-            size="sm"
-            disabled={isPending}
-            className="text-red-500 hover:bg-red-50 hover:text-red-600"
-          >
-            {isPending ? (
-              <>
-                <Spinner className="text-red-500" />
-                Deleting…
-              </>
-            ) : (
-              'Delete'
-            )}
-          </Button>
-        </form>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
+  )
+}
+
+function PageThumbnail(): React.JSX.Element {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6">
+      <div className="h-2 w-3/4 rounded-full bg-white/40" />
+      <div className="h-1.5 w-1/2 rounded-full bg-white/25" />
+      <div className="mt-1.5 flex gap-1.5">
+        <div className="h-5 w-16 rounded-md bg-white/25" />
+        <div className="h-5 w-12 rounded-md bg-white/15" />
+      </div>
+      {/* Feature row */}
+      <div className="mt-1 flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-6 w-10 rounded bg-white/10" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function StatusBadge({ isPublished }: { isPublished: boolean }): React.JSX.Element {
+  if (isPublished) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-full border border-green-500/40 bg-green-500/20 px-2.5 py-1 backdrop-blur-sm">
+        <div className="size-1.5 rounded-full bg-green-400" />
+        <span className="text-[10px] font-semibold text-green-300">Published</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 backdrop-blur-sm">
+      <div className="size-1.5 rounded-full bg-white/50" />
+      <span className="text-[10px] font-semibold text-white/60">Draft</span>
+    </div>
   )
 }
