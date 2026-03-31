@@ -64,6 +64,15 @@ function resolveSection(section: Section, theme: ThemeDefinition): Section {
 // ── Document-level resolution ─────────────────────────────────────────────
 
 /**
+ * Resolves token keys in a single newly-created section against the given theme.
+ * Used when adding a section so its colors match the active page theme immediately.
+ */
+export function resolveNewSection(section: Section, themeId: string): Section {
+  const theme = getTheme(themeId)
+  return resolveSection(section, theme)
+}
+
+/**
  * Resolves all token keys in a document to concrete values using the given theme.
  * Returns a new document if anything changed, or the same reference if nothing to resolve.
  */
