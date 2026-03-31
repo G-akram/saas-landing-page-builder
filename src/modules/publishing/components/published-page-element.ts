@@ -1,10 +1,11 @@
 import { createElement } from 'react'
 
-import { type Element as PageElement } from '@/shared/types'
+import { type Element as PageElement, type ContainerElement, isContainerElement } from '@/shared/types'
 
 import {
   buildBaseElementStyle,
   buildButtonStyle,
+  buildContainerPublishedStyle,
   buildImageStyle,
   resolvePublishedHref,
 } from '../utils/publish-renderer-utils'
@@ -182,11 +183,34 @@ function renderIcon(
   return wrapWithLinkIfPresent(element, iconNode, primaryGoalElementId)
 }
 
+function renderContainer(
+  container: ContainerElement,
+  defaultTextColor: string,
+  primaryGoalElementId: string | null,
+): React.JSX.Element {
+  return createElement(
+    'div',
+    { className: 'pb-container', style: buildContainerPublishedStyle(container) },
+    ...container.children.map((child) =>
+      createElement(PublishedPageElement, {
+        key: child.id,
+        element: child,
+        defaultTextColor,
+        primaryGoalElementId,
+      }),
+    ),
+  )
+}
+
 export function PublishedPageElement({
   element,
   defaultTextColor,
   primaryGoalElementId,
 }: PublishedPageElementProps): React.JSX.Element {
+  if (isContainerElement(element)) {
+    return renderContainer(element, defaultTextColor, primaryGoalElementId)
+  }
+
   switch (element.content.type) {
     case 'heading':
       return renderHeading(element, defaultTextColor)

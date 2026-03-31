@@ -1,6 +1,11 @@
 import { type CSSProperties } from 'react'
 
-import { type Element as PageElement, type Section, type SlotStyle } from '@/shared/types'
+import {
+  type Element as PageElement,
+  type Section,
+  type SlotStyle,
+  type ContainerElement,
+} from '@/shared/types'
 
 const ALIGNMENT_STYLE: Record<
   Section['layout']['align'],
@@ -163,6 +168,37 @@ export function buildPublishedSlotStyle(slotStyle: SlotStyle): CSSProperties {
     paddingBottom: slotStyle.padding ? `${String(slotStyle.padding.bottom)}px` : undefined,
     paddingLeft: slotStyle.padding ? `${String(slotStyle.padding.left)}px` : undefined,
     paddingRight: slotStyle.padding ? `${String(slotStyle.padding.right)}px` : undefined,
+  }
+}
+
+export function buildContainerPublishedStyle(container: ContainerElement): CSSProperties {
+  const { containerStyle, containerLayout } = container
+
+  const alignItems =
+    containerLayout.align === 'center'
+      ? 'center'
+      : containerLayout.align === 'right'
+        ? 'flex-end'
+        : 'flex-start'
+
+  return {
+    display: 'flex',
+    flexDirection: containerLayout.direction === 'row' ? 'row' : 'column',
+    gap: `${String(containerLayout.gap)}px`,
+    alignItems: containerLayout.direction === 'column' ? alignItems : undefined,
+    background: containerStyle.backgroundGradient ?? containerStyle.backgroundColor ?? undefined,
+    borderRadius: toPx(containerStyle.borderRadius),
+    boxShadow: containerStyle.boxShadow ?? undefined,
+    border: containerStyle.border ?? undefined,
+    backdropFilter: containerStyle.backdropFilter ?? undefined,
+    paddingTop: containerStyle.padding ? `${String(containerStyle.padding.top)}px` : undefined,
+    paddingBottom: containerStyle.padding ? `${String(containerStyle.padding.bottom)}px` : undefined,
+    paddingLeft: containerStyle.padding ? `${String(containerStyle.padding.left)}px` : undefined,
+    paddingRight: containerStyle.padding ? `${String(containerStyle.padding.right)}px` : undefined,
+    marginTop: toPx(container.styles.marginTop),
+    marginBottom: toPx(container.styles.marginBottom),
+    width: container.styles.width ?? undefined,
+    maxWidth: container.styles.maxWidth ?? undefined,
   }
 }
 

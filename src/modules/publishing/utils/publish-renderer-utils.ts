@@ -46,6 +46,9 @@ img { display: block; max-width: 100%; height: auto; }
   display: flex;
   flex-direction: column;
 }
+.pb-container {
+  box-sizing: border-box;
+}
 .pb-image-placeholder {
   display: flex;
   align-items: center;
