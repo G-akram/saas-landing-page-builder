@@ -1,4 +1,10 @@
-import { type PageDocument, type Section, type Element as PageElement } from '@/shared/types'
+import {
+  type PageDocument,
+  type Section,
+  type Element as PageElement,
+  type ContainerElement,
+  isContainerElement,
+} from '@/shared/types'
 
 import {
   type ColorToken,
@@ -71,11 +77,50 @@ function resolveSectionBackground(section: Section, theme: ThemeDefinition): Sec
   }
 }
 
+function resolveContainerTokens(
+  container: ContainerElement,
+  theme: ThemeDefinition,
+): ContainerElement {
+  const { containerStyle } = container
+  const hasBgToken = containerStyle.backgroundColorToken !== undefined
+  const hasGradientToken = containerStyle.gradientToken !== undefined
+
+  const resolvedBg = hasBgToken ? resolveColorToken(containerStyle.backgroundColorToken, theme) : undefined
+  const resolvedGradient = hasGradientToken
+    ? resolveGradientToken(containerStyle.gradientToken, theme)
+    : undefined
+
+  const styleChanged =
+    (hasBgToken && resolvedBg !== undefined) || (hasGradientToken && resolvedGradient !== undefined)
+
+  const resolvedChildren = container.children.map((child) =>
+    resolveElementStyles(child, theme),
+  ) as typeof container.children
+  const childrenChanged = resolvedChildren.some((c, i) => c !== container.children[i])
+
+  if (!styleChanged && !childrenChanged) return container
+
+  return {
+    ...container,
+    ...(styleChanged && {
+      containerStyle: {
+        ...containerStyle,
+        ...(hasBgToken && resolvedBg !== undefined ? { backgroundColor: resolvedBg } : {}),
+        ...(hasGradientToken && resolvedGradient !== undefined
+          ? { backgroundGradient: resolvedGradient }
+          : {}),
+      },
+    }),
+    children: childrenChanged ? resolvedChildren : container.children,
+  }
+}
+
 function resolveSection(section: Section, theme: ThemeDefinition): Section {
   const withBackground = resolveSectionBackground(section, theme)
-  const resolvedElements = withBackground.elements.map((el) =>
-    resolveElementStyles(el, theme),
-  )
+  const resolvedElements = withBackground.elements.map((el) => {
+    if (isContainerElement(el)) return resolveContainerTokens(el, theme)
+    return resolveElementStyles(el, theme)
+  })
 
   const elementsChanged = resolvedElements.some(
     (el, i) => el !== withBackground.elements[i],
@@ -135,6 +180,18 @@ export function applyThemeFonts(
   const variants = document.variants.map((variant) => {
     const sections = variant.sections.map((section) => {
       const elements = section.elements.map((element) => {
+        if (isContainerElement(element)) {
+          const resolvedChildren = element.children.map((child) => {
+            if (child.type === 'image' || child.type === 'icon') return child
+            const isHeading = child.type === 'heading'
+            const targetFont = isHeading ? theme.fonts.heading : theme.fonts.body
+            if (child.styles.fontFamily === targetFont) return child
+            return { ...child, styles: { ...child.styles, fontFamily: targetFont } }
+          })
+          const childrenChanged = resolvedChildren.some((c, i) => c !== element.children[i])
+          return childrenChanged ? { ...element, children: resolvedChildren } : element
+        }
+
         // Only apply fonts to text-bearing elements
         if (element.type === 'image' || element.type === 'icon') return element
 
