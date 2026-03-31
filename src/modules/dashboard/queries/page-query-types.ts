@@ -1,4 +1,4 @@
-import { type PageDocument } from '@/shared/types'
+import { type BackgroundConfig, type PageDocument, type SectionType } from '@/shared/types'
 
 export interface PageVariantAnalyticsSummary {
   variantId: string
@@ -6,6 +6,11 @@ export interface PageVariantAnalyticsSummary {
   views: number
   conversions: number
   conversionRate: number
+}
+
+export interface PreviewSection {
+  type: SectionType
+  background: BackgroundConfig
 }
 
 export interface PageSummary {
@@ -16,6 +21,7 @@ export interface PageSummary {
   createdAt: Date
   updatedAt: Date
   analytics: PageVariantAnalyticsSummary[]
+  previewSections: PreviewSection[]
 }
 
 export interface PageWithDocument extends PageSummary {

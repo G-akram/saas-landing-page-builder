@@ -12,6 +12,7 @@ import {
   type PageSummary,
   type PageWithDocument,
   type PaginatedPageSummaries,
+  type PreviewSection,
 } from './page-query-types'
 
 const DEFAULT_PAGE_SIZE = 12
@@ -81,9 +82,19 @@ export async function getPaginatedPagesByUser(
       createdAt: page.createdAt,
       updatedAt: page.updatedAt,
       analytics: analyticsByPageId.get(page.id) ?? [],
+      previewSections: extractPreviewSections(page.document),
     })),
     nextCursor: hasNextPage && lastPage ? encodePageCursor(lastPage.updatedAt, lastPage.id) : null,
   }
+}
+
+function extractPreviewSections(rawDocument: unknown): PreviewSection[] {
+  const parsed = PageDocumentSchema.safeParse(rawDocument)
+  if (!parsed.success) return []
+  const activeVariant = parsed.data.variants.find((v) => v.id === parsed.data.activeVariantId)
+  return (
+    activeVariant?.sections.map((s) => ({ type: s.type, background: s.background })) ?? []
+  )
 }
 
 export async function getPageById(
@@ -117,6 +128,7 @@ export async function getPageById(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     analytics: [],
+    previewSections: extractPreviewSections(row.document),
   }
 }
 

@@ -17,21 +17,6 @@ interface PageCardProps {
   analytics: PageVariantAnalyticsSummary[]
 }
 
-// Deterministic gradient derived from slug — gives each card a unique identity
-const CARD_GRADIENTS = [
-  ['#6366f1', '#8b5cf6'],
-  ['#14b8a6', '#06b6d4'],
-  ['#f97316', '#ec4899'],
-  ['#10b981', '#14b8a6'],
-  ['#8b5cf6', '#6366f1'],
-] as const
-
-const FALLBACK_GRADIENT = CARD_GRADIENTS[0]
-
-function getGradient(slug: string): readonly [string, string] {
-  return CARD_GRADIENTS[slug.charCodeAt(0) % CARD_GRADIENTS.length] ?? FALLBACK_GRADIENT
-}
-
 function formatRelativeDate(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -67,7 +52,6 @@ export function PageCard({
     {},
   )
 
-  const [fromColor, toColor] = getGradient(slug)
   const isPublished = status === 'published'
 
   return (
@@ -75,12 +59,9 @@ export function PageCard({
       className={`group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d1117] transition-all hover:border-white/[0.15] hover:shadow-lg hover:shadow-black/40 ${isPending ? 'pointer-events-none opacity-50' : ''}`}
     >
       {/* Preview thumbnail */}
-      <div
-        className="relative h-36 overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${fromColor}, ${toColor})` }}
-      >
-        <PageThumbnail />
-        <div className="absolute top-3 right-3">
+      <div className="relative h-36 overflow-hidden bg-[#080c14]">
+        <PagePreview pageId={id} pageName={name} />
+        <div className="absolute top-3 right-3 z-10">
           <StatusBadge isPublished={isPublished} />
         </div>
       </div>
@@ -147,20 +128,51 @@ export function PageCard({
   )
 }
 
-function PageThumbnail(): React.JSX.Element {
+// ── Page preview via scaled iframe ─────────────────────────────────────────
+
+interface PagePreviewProps {
+  pageId: string
+  pageName: string
+}
+
+function PagePreview({ pageId, pageName }: PagePreviewProps): React.JSX.Element {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6">
-      <div className="h-2 w-3/4 rounded-full bg-white/40" />
-      <div className="h-1.5 w-1/2 rounded-full bg-white/25" />
-      <div className="mt-1.5 flex gap-1.5">
-        <div className="h-5 w-16 rounded-md bg-white/25" />
-        <div className="h-5 w-12 rounded-md bg-white/15" />
+    <div className="absolute inset-0 flex flex-col">
+      {/* Browser chrome */}
+      <div className="relative z-10 flex h-4 shrink-0 items-center gap-1 bg-[#0d0d12] px-2">
+        <div className="size-1.5 rounded-full bg-red-400/50" />
+        <div className="size-1.5 rounded-full bg-yellow-400/50" />
+        <div className="size-1.5 rounded-full bg-green-400/50" />
+        <div className="ml-1.5 h-1.5 flex-1 rounded-full bg-white/[0.06]" />
       </div>
-      {/* Feature row */}
-      <div className="mt-1 flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-6 w-10 rounded bg-white/10" />
-        ))}
+
+      {/* Scaled iframe content area */}
+      <div className="relative flex-1 overflow-hidden">
+        {/*
+          Strategy: render the iframe at 400% × 400% of this container,
+          then scale(0.25) back to fit. The iframe renders at desktop width
+          (~card-width × 4) automatically adapting to any card size.
+        */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '400%',
+            height: '400%',
+            transform: 'scale(0.25)',
+            transformOrigin: 'top left',
+            pointerEvents: 'none',
+          }}
+        >
+          <iframe
+            src={`/api/page-preview/${pageId}`}
+            title={`Preview of ${pageName}`}
+            tabIndex={-1}
+            sandbox="allow-same-origin"
+            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+          />
+        </div>
       </div>
     </div>
   )
