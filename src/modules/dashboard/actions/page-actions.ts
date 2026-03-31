@@ -5,6 +5,7 @@ import { and, eq, like } from 'drizzle-orm'
 
 import { auth } from '@/shared/lib/auth'
 import { createDefaultDocument } from '@/shared/lib/default-document'
+import { createDocumentFromTemplate } from '@/shared/lib/page-templates'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { logger } from '@/shared/lib/logger'
 import { db, pages } from '@/shared/db'
@@ -89,7 +90,11 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
     return { success: false, error: 'Page name must be 100 characters or less' }
   }
 
-  const document = createDefaultDocument()
+  const templateId = formData.get('templateId')
+  const document =
+    typeof templateId === 'string' && templateId.length > 0
+      ? createDocumentFromTemplate(templateId) ?? createDefaultDocument()
+      : createDefaultDocument()
   const maxInsertRetries = 3
 
   for (let attempt = 0; attempt < maxInsertRetries; attempt++) {
