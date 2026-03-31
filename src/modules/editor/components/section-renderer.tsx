@@ -25,6 +25,7 @@ interface SectionRendererProps {
   onEditEnd?: () => void
   onInlineSave?: (elementId: string, text: string) => void
   onAddElement?: (element: PageElement) => void
+  onAddChildElement?: (parentId: string, element: PageElement) => void
 }
 
 // ── Section type display config ─────────────────────────────────────────────
@@ -53,6 +54,7 @@ export function SectionRenderer({
   onEditEnd,
   onInlineSave,
   onAddElement,
+  onAddChildElement,
 }: SectionRendererProps): React.JSX.Element {
   const isDarkBg = isDarkBackground(section.background)
   const textColorClass = isDarkBg ? 'text-white' : 'text-gray-900'
@@ -128,6 +130,7 @@ export function SectionRenderer({
               onEditEnd={onEditEnd}
               onInlineSave={onInlineSave}
               onAddElement={onAddElement}
+              onAddChildElement={onAddChildElement}
             />
           ) : (
             <StackLayout
@@ -144,6 +147,7 @@ export function SectionRenderer({
               onEditEnd={onEditEnd}
               onInlineSave={onInlineSave}
               onAddElement={onAddElement}
+              onAddChildElement={onAddChildElement}
             />
           )
         ) : (

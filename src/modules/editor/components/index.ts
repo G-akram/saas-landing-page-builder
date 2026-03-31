@@ -1,3 +1,4 @@
+export { ContainerRenderer } from './container-renderer'
 export { EditorShell } from './editor-shell'
 export { EditorCanvas } from './editor-canvas'
 export { EditorTopBar } from './editor-top-bar'

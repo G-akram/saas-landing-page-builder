@@ -4,14 +4,14 @@ import { useRef } from 'react'
 import { icons, type LucideIcon } from 'lucide-react'
 import { ImageIcon } from 'lucide-react'
 
-import { type Element as PageElement, type TextMode } from '@/shared/types'
+import { type AtomicElement, type TextMode } from '@/shared/types'
 
 import { useInlineEditing } from '../hooks/use-inline-editing'
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
 interface ElementRendererProps {
-  element: PageElement
+  element: AtomicElement
   /** Fallback text color class when element has no explicit color */
   textColorClass: string
   isEditing?: boolean
@@ -40,7 +40,7 @@ function pxOrUndefined(value: number | undefined): string | undefined {
 
 // ── Shared style builder ────────────────────────────────────────────────────
 
-function buildBaseStyles(styles: PageElement['styles']): React.CSSProperties {
+function buildBaseStyles(styles: AtomicElement['styles']): React.CSSProperties {
   return {
     fontSize: pxOrUndefined(styles.fontSize),
     fontWeight: styles.fontWeight ?? undefined,
@@ -58,7 +58,7 @@ function buildBaseStyles(styles: PageElement['styles']): React.CSSProperties {
   }
 }
 
-function resolveTextMode(content: Extract<PageElement['content'], { type: 'text' }>): TextMode {
+function resolveTextMode(content: Extract<AtomicElement['content'], { type: 'text' }>): TextMode {
   return content.mode ?? 'multiline'
 }
 

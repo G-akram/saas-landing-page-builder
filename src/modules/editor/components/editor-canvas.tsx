@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useSelector } from '@xstate/react'
 
+import { findElementDeep } from '../store/document-store-helpers'
 import { useEditorActor } from '../context'
 import { useDocumentStore, useUIStore } from '../store'
 
@@ -90,9 +91,11 @@ export function EditorCanvas(): React.JSX.Element {
   function handleInlineSave(sectionId: string, elementId: string, text: string): void {
     if (!activeVariant) return
     const section = activeVariant.sections.find((s) => s.id === sectionId)
-    const element = section?.elements.find((el) => el.id === elementId)
-    if (!element) return
-    const { content } = element
+    if (!section) return
+    // Deep search — handles elements inside containers
+    const location = findElementDeep(section.elements, elementId)
+    if (!location) return
+    const { content } = location.element
     if (content.type === 'heading' || content.type === 'text' || content.type === 'button') {
       updateElement(activeVariant.id, sectionId, elementId, {
         content: { ...content, text },
@@ -176,6 +179,9 @@ export function EditorCanvas(): React.JSX.Element {
                     }}
                     onAddElement={(element) => {
                       addElement(activeVariant.id, section.id, element)
+                    }}
+                    onAddChildElement={(parentId, element) => {
+                      addElement(activeVariant.id, section.id, element, undefined, parentId)
                     }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)

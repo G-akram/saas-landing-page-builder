@@ -1,13 +1,16 @@
 'use client'
 
 import { useSelector } from '@xstate/react'
+import { CornerUpLeft } from 'lucide-react'
 
-import { type Element as PageElement } from '@/shared/types'
+import { type Element as PageElement, type AtomicElement, isContainerElement } from '@/shared/types'
 import { cn } from '@/shared/lib/utils'
 
+import { findElementDeep, findParentContainer } from '../store/document-store-helpers'
 import { useEditorActor } from '../context'
 import { useDocumentStore } from '../store'
 import {
+  ContainerControls,
   ContentControls,
   TypographyControls,
   AppearanceControls,
@@ -23,13 +26,10 @@ const ELEMENT_TYPE_LABEL: Record<PageElement['type'], string> = {
   button: 'Button',
   image: 'Image',
   icon: 'Icon',
+  container: 'Card',
 }
 
 interface StyleUpdateOptions {
-  pushHistory?: boolean
-}
-
-interface LinkUpdateOptions {
   pushHistory?: boolean
 }
 
@@ -70,10 +70,21 @@ export function PropertyPanel(): React.JSX.Element {
 
   const activeVariant = document?.variants.find((v) => v.id === document.activeVariantId)
   const section = activeVariant?.sections.find((s) => s.id === selectedSectionId)
-  const element = section?.elements.find((e) => e.id === selectedElementId)
+
+  // Deep lookup — finds element at top-level or inside a container
+  const elementLocation =
+    section && selectedElementId
+      ? findElementDeep(section.elements, selectedElementId)
+      : null
+  const element = elementLocation?.element ?? null
+
+  // Determine if element is nested inside a container
+  const parentContainer =
+    section && selectedElementId && element && !isContainerElement(element)
+      ? findParentContainer(section.elements, selectedElementId)
+      : null
 
   if (!element) {
-    // Section selected but no element — show section background controls
     if (section && activeVariant) {
       return (
         <aside className="flex h-full flex-col border-l border-white/10 bg-gray-900">
@@ -137,10 +148,41 @@ export function PropertyPanel(): React.JSX.Element {
     )
   }
 
-  // Capture IDs for closures (narrowed by the guard above)
   const variantId = activeVariant.id
   const sectionId = section.id
   const elementId = element.id
+
+  // ── Container selected ───────────────────────────────────────────────────
+
+  if (isContainerElement(element)) {
+    return (
+      <aside className="flex h-full flex-col border-l border-white/10 bg-gray-900">
+        <div className="flex h-10 shrink-0 items-center border-b border-white/10 px-3">
+          <h2 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
+            Properties
+          </h2>
+          <span className="ml-auto rounded bg-violet-500/20 px-1.5 py-0.5 text-[10px] text-violet-300">
+            Card
+          </span>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <PanelSection title="Card Layout">
+            <ContainerControls
+              container={element}
+              onUpdateContainerStyle={(updates) => {
+                updateElement(variantId, sectionId, elementId, { containerStyle: updates })
+              }}
+              onUpdateContainerLayout={(updates) => {
+                updateElement(variantId, sectionId, elementId, { containerLayout: updates })
+              }}
+            />
+          </PanelSection>
+        </div>
+      </aside>
+    )
+  }
+
+  // ── Atomic element selected ──────────────────────────────────────────────
 
   function handleUpdateStyles(
     styles: Partial<PageElement['styles']>,
@@ -149,11 +191,11 @@ export function PropertyPanel(): React.JSX.Element {
     updateElement(variantId, sectionId, elementId, { styles }, options)
   }
 
-  function handleUpdateContent(content: PageElement['content']): void {
+  function handleUpdateContent(content: AtomicElement['content']): void {
     updateElement(variantId, sectionId, elementId, { content })
   }
 
-  function handleUpdateLink(link: PageElement['link'], options?: LinkUpdateOptions): void {
+  function handleUpdateLink(link: PageElement['link'], options?: StyleUpdateOptions): void {
     updateElement(variantId, sectionId, elementId, { link }, options)
   }
 
@@ -169,6 +211,24 @@ export function PropertyPanel(): React.JSX.Element {
           {ELEMENT_TYPE_LABEL[element.type]}
         </span>
       </div>
+
+      {/* Breadcrumb when inside a container */}
+      {parentContainer ? (
+        <button
+          type="button"
+          onClick={() => {
+            actor.send({
+              type: 'SELECT_ELEMENT',
+              elementId: parentContainer.id,
+              sectionId: section.id,
+            })
+          }}
+          className="flex items-center gap-1.5 border-b border-white/10 px-3 py-1.5 text-[10px] text-gray-500 transition-colors hover:text-gray-300"
+        >
+          <CornerUpLeft className="h-3 w-3" />
+          Back to card
+        </button>
+      ) : null}
 
       <div className="flex-1 overflow-y-auto">
         <PanelSection title="Content">

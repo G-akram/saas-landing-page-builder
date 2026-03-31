@@ -1,11 +1,16 @@
 'use client'
 
-import { type Section, type Element as PageElement } from '@/shared/types'
+import {
+  type Section,
+  type Element as PageElement,
+  isContainerElement,
+} from '@/shared/types'
 
 import {
   ALIGN_CLASS,
   VERTICAL_ALIGN_CLASS,
 } from '../lib/section-render-utils'
+import { ContainerRenderer } from './container-renderer'
 import { ElementPicker } from './element-picker'
 import { ElementRenderer } from './element-renderer'
 import { SelectableElement } from './selectable-element'
@@ -26,6 +31,7 @@ export interface LayoutProps {
   onEditEnd: (() => void) | undefined
   onInlineSave: ((elementId: string, text: string) => void) | undefined
   onAddElement: ((element: PageElement) => void) | undefined
+  onAddChildElement: ((parentId: string, element: PageElement) => void) | undefined
 }
 
 function buildEditorSlotStyle(slotStyle: Section['slotStyle']): React.CSSProperties {
@@ -41,6 +47,62 @@ function buildEditorSlotStyle(slotStyle: Section['slotStyle']): React.CSSPropert
     paddingLeft: slotStyle.padding ? `${String(slotStyle.padding.left)}px` : undefined,
     paddingRight: slotStyle.padding ? `${String(slotStyle.padding.right)}px` : undefined,
   }
+}
+
+// ── Element or container renderer ──────────────────────────────────────────
+
+function renderElement(
+  element: PageElement,
+  props: Pick<
+    LayoutProps,
+    | 'textColorClass'
+    | 'selectedElementId'
+    | 'editingElementId'
+    | 'onSelectElement'
+    | 'onEditStart'
+    | 'onEditEnd'
+    | 'onInlineSave'
+    | 'onAddChildElement'
+  >,
+): React.JSX.Element {
+  if (isContainerElement(element)) {
+    return (
+      <ContainerRenderer
+        key={element.id}
+        container={element}
+        textColorClass={props.textColorClass}
+        selectedElementId={props.selectedElementId}
+        editingElementId={props.editingElementId}
+        isContainerSelected={props.selectedElementId === element.id}
+        onSelectContainer={props.onSelectElement}
+        onSelectElement={props.onSelectElement}
+        onEditStart={props.onEditStart}
+        onEditEnd={props.onEditEnd}
+        onInlineSave={props.onInlineSave}
+        onAddChild={props.onAddChildElement}
+      />
+    )
+  }
+
+  return (
+    <SelectableElement
+      key={element.id}
+      elementId={element.id}
+      isSelected={props.selectedElementId === element.id}
+      isEditing={props.editingElementId === element.id}
+      onSelect={props.onSelectElement}
+      onEditStart={props.onEditStart}
+      className={element.type === 'image' ? 'w-full' : ''}
+    >
+      <ElementRenderer
+        element={element}
+        textColorClass={props.textColorClass}
+        isEditing={props.editingElementId === element.id}
+        onInlineSave={(text) => props.onInlineSave?.(element.id, text)}
+        onEditEnd={props.onEditEnd}
+      />
+    </SelectableElement>
+  )
 }
 
 // ── Grid layout ────────────────────────────────────────────────────────────
@@ -59,6 +121,7 @@ export function GridLayout({
   onEditEnd,
   onInlineSave,
   onAddElement,
+  onAddChildElement,
 }: LayoutProps): React.JSX.Element {
   const columns = layout.columns ?? 1
   const effectiveColumns = isMobile ? 1 : columns
@@ -77,6 +140,17 @@ export function GridLayout({
     return allElements
   }
 
+  const elementProps = {
+    textColorClass,
+    selectedElementId,
+    editingElementId,
+    onSelectElement,
+    onEditStart,
+    onEditEnd,
+    onInlineSave,
+    onAddChildElement,
+  }
+
   return (
     <div
       className="grid"
@@ -93,25 +167,7 @@ export function GridLayout({
             className={`flex flex-col ${alignClass} ${vAlignClass}`}
             style={{ gap: `${String(Math.min(effectiveGap, 16))}px`, ...buildEditorSlotStyle(slotStyle) }}
           >
-            {elements.map((element) => (
-              <SelectableElement
-                key={element.id}
-                elementId={element.id}
-                isSelected={selectedElementId === element.id}
-                isEditing={editingElementId === element.id}
-                onSelect={onSelectElement}
-                onEditStart={onEditStart}
-                className={element.type === 'image' ? 'w-full' : ''}
-              >
-                <ElementRenderer
-                  element={element}
-                  textColorClass={textColorClass}
-                  isEditing={editingElementId === element.id}
-                  onInlineSave={(text) => onInlineSave?.(element.id, text)}
-                  onEditEnd={onEditEnd}
-                />
-              </SelectableElement>
-            ))}
+            {elements.map((element) => renderElement(element, elementProps))}
           </div>
         )
       })}
@@ -139,6 +195,7 @@ export function StackLayout({
   onEditEnd,
   onInlineSave,
   onAddElement,
+  onAddChildElement,
 }: LayoutProps): React.JSX.Element {
   const alignClass = ALIGN_CLASS[layout.align]
   const vAlignClass = VERTICAL_ALIGN_CLASS[layout.verticalAlign]
@@ -146,29 +203,23 @@ export function StackLayout({
 
   const allElements = [...slotGroups.values()].flat()
 
+  const elementProps = {
+    textColorClass,
+    selectedElementId,
+    editingElementId,
+    onSelectElement,
+    onEditStart,
+    onEditEnd,
+    onInlineSave,
+    onAddChildElement,
+  }
+
   return (
     <div
       className={`flex flex-col ${alignClass} ${vAlignClass}`}
       style={{ gap: `${String(effectiveGap)}px` }}
     >
-      {allElements.map((element) => (
-        <SelectableElement
-          key={element.id}
-          elementId={element.id}
-          isSelected={selectedElementId === element.id}
-          isEditing={editingElementId === element.id}
-          onSelect={onSelectElement}
-          onEditStart={onEditStart}
-        >
-          <ElementRenderer
-            element={element}
-            textColorClass={textColorClass}
-            isEditing={editingElementId === element.id}
-            onInlineSave={(text) => onInlineSave?.(element.id, text)}
-            onEditEnd={onEditEnd}
-          />
-        </SelectableElement>
-      ))}
+      {allElements.map((element) => renderElement(element, elementProps))}
       {isSelected && onAddElement ? (
         <div className="mt-2 flex justify-center">
           <ElementPicker slot={0} onAdd={onAddElement} />

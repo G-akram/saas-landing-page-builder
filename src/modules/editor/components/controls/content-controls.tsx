@@ -1,16 +1,16 @@
 'use client'
 
-import { type Element as PageElement } from '@/shared/types'
+import { type AtomicElement } from '@/shared/types'
 
 import { ImageUploadButton } from '../image-upload-button'
 import { FieldRow, BlurInput, BlurTextarea, SELECT_CLASS } from './field-row'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type ContentUpdater = (content: PageElement['content']) => void
+type ContentUpdater = (content: AtomicElement['content']) => void
 
 interface ContentControlsProps {
-  element: PageElement
+  element: AtomicElement
   onUpdateContent: ContentUpdater
 }
 

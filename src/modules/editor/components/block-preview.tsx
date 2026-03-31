@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 
-import { type Element as PageElement, type Section } from '@/shared/types'
+import { type Element as PageElement, type Section, isContainerElement } from '@/shared/types'
 
 import { type BlockTemplate } from '../lib/block-templates'
 import {
@@ -12,6 +12,7 @@ import {
   groupBySlot,
   isDarkBackground,
 } from '../lib/section-render-utils'
+import { ContainerRenderer } from './container-renderer'
 import { ElementRenderer } from './element-renderer'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -115,6 +116,30 @@ export function BlockPreview({ template }: BlockPreviewProps): React.JSX.Element
   )
 }
 
+// ── Preview element renderer ─────────────────────────────────────────────────
+
+function renderPreviewElement(element: PageElement, textColorClass: string): React.JSX.Element {
+  if (isContainerElement(element)) {
+    return (
+      <ContainerRenderer
+        key={element.id}
+        container={element}
+        textColorClass={textColorClass}
+        selectedElementId={null}
+        editingElementId={null}
+        isContainerSelected={false}
+        onSelectContainer={undefined}
+        onSelectElement={undefined}
+        onEditStart={undefined}
+        onEditEnd={undefined}
+        onInlineSave={undefined}
+        onAddChild={undefined}
+      />
+    )
+  }
+  return <ElementRenderer key={element.id} element={element} textColorClass={textColorClass} />
+}
+
 // ── Preview layouts (no SelectableElement, no event handlers) ───────────────
 
 interface PreviewLayoutProps {
@@ -149,9 +174,7 @@ function PreviewGridLayout({
             className={`flex flex-col ${alignClass} ${vAlignClass}`}
             style={{ gap: `${String(Math.min(layout.gap, 16))}px` }}
           >
-            {elements.map((element) => (
-              <ElementRenderer key={element.id} element={element} textColorClass={textColorClass} />
-            ))}
+            {elements.map((element) => renderPreviewElement(element, textColorClass))}
           </div>
         )
       })}
@@ -173,9 +196,7 @@ function PreviewStackLayout({
       className={`flex flex-col ${alignClass} ${vAlignClass}`}
       style={{ gap: `${String(layout.gap)}px` }}
     >
-      {allElements.map((element) => (
-        <ElementRenderer key={element.id} element={element} textColorClass={textColorClass} />
-      ))}
+      {allElements.map((element) => renderPreviewElement(element, textColorClass))}
     </div>
   )
 }
