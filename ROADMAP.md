@@ -346,7 +346,18 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Steps:**
 
 1. [x] **Design tokens system** — global color palettes, font pairings, spacing scale, with preset themes (e.g., "Startup", "Agency", "SaaS Dark"). Tokens feed into block rendering and published output. Done when: switching a theme re-skins all blocks on a page. See `decisions/039-design-tokens-system.md`.
-2. [ ] **Redesign block library to Creative Tim quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, fix published icon rendering (currently degrades to monograms). Done when: blocks are visually competitive with commercial page builders.
+2. [x] **Redesign block library to Creative Tim quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, `SlotStyle` for card grids, `badge()` eyebrow factory, new style fields (boxShadow, border, backdropFilter, letterSpacing, textTransform, backgroundGradient, opacity). Published icons now render as inline SVGs via a curated path map.
+2b. [ ] **Block library follow-up fixes** — three known issues discovered during manual testing of Step 2. Must be resolved before Step 3 because they affect publishing reliability and theme coherence:
+
+   **Problem A — Published icon rendering (regression):**
+   The current fix uses a curated 15-icon SVG path map. Any icon a user enters manually that is not in this map degrades to a gray circle in the published page. Root cause: `published-page-element.ts` added an `import { icons } from 'lucide-react'` (ESM), but the publishing pipeline renders via `require('react-dom/server.node')` (CJS). Two separate React instances cause `renderToStaticMarkup` to throw when invoking the ESM Lucide component. The correct fix is a `publish-lucide-icon-renderer.ts` module that uses `createRequire(import.meta.url)` + `require('react-dom/server.node').renderToStaticMarkup` to render each Lucide icon component via the **same CJS React instance** as the page renderer, then injects the resulting SVG string via `dangerouslySetInnerHTML`. This makes all ~1400 lucide icons work in published output without a curated map. Delete `publish-icon-utils.ts` once this is working. Done when: any valid Lucide icon name added via the property panel renders correctly in the published page.
+
+   **Problem B — Theme switching destroys gradient-based designs:**
+   The hybrid token system resolves `colorToken` → `color` and `backgroundColorToken` → `backgroundColor` on theme switch, but has no concept of a gradient token. Template elements that use `backgroundGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)'` keep their original blue gradient after switching to e.g. the "Startup" (indigo/purple) or "Agency" (orange) theme, while text colors and solid backgrounds update. This creates mismatched palettes. Fix: add `gradientToken: z.string().optional()` to `ElementStylesSchema`. Add `gradients` record to `ThemeDefinition` with keys like `primary-gradient`, `accent-gradient`, `dark-gradient`. Each preset theme defines its gradient values. The `resolveDocumentTheme` theme resolver handles `gradientToken` → `backgroundGradient` the same way it handles `colorToken`. Update all templates that use `backgroundGradient` to also carry a `gradientToken`. Done when: switching any preset theme produces a visually coherent page — gradients, text, and backgrounds all update together.
+
+   **Problem C — No way to add isolated components (blank section + element picker):**
+   Every section must be created from a pre-built template variant. There is no "blank section" option and no UI to add individual elements (heading, text, button, image, icon) to an existing section. The `addElement` store action exists but has no UI surface. Fix: add a `custom` section type with a blank template, add an element picker panel (accessible from the section toolbar or a + button within the section canvas), and add a basic layout type selector (stack vs grid) for custom sections. Done when: a user can create a blank section and build it from scratch by adding individual elements without picking a template variant.
+
 3. [ ] **Page templates gallery** — 4-6 full-page templates (SaaS, Agency, Portfolio, etc.) assembled from the redesigned blocks, selectable at page creation. Done when: "Create page" offers template selection and the result looks polished out of the box.
 4. [ ] **Form / lead-capture block** — email input, contact form, newsletter signup variants, with a simple submission handler (store to DB or webhook). Done when: users can add a working contact form to a published page.
 5. [ ] **Upgrade marketing/home page** — showcase the product using its own blocks, real copy, social proof section, live demo embed or screenshots. Done when: the home page looks like a real SaaS product page.
@@ -359,20 +370,23 @@ Steps are not strictly sequential — some can be parallelized. Here are the dep
 
 - **Group A (foundation, do first):** Step 1 (design tokens). Everything else looks better when theming exists.
 - **Group B (parallel, after Group A):** Steps 2 + 4. Block redesign and form block are independent of each other, both consume design tokens.
-- **Group C (parallel, after Step 2):** Steps 3 + 5. Templates and marketing page both depend on the redesigned blocks being done.
+- **Group B2 (must precede Group C):** Step 2b. Fixes publishing reliability (Problem A), theme coherence (Problem B), and editor flexibility (Problem C). Step 3 depends on all three being solid.
+- **Group C (parallel, after Step 2b):** Steps 3 + 5. Templates and marketing page both depend on the redesigned blocks being done.
 - **Group D (independent, anytime after Group A):** Step 6 (AI assistant). Only needs the property panel and Claude API — no dependency on block redesign.
 - **Group E (last):** Step 7 (editor micro-polish). Final pass after all new surface area is built.
 
 ```
-Group A:  [1 Design Tokens]
-               |
-         ┌─────┴─────┐
-Group B:  [2 Blocks]  [4 Forms]     Group D: [6 AI] (anytime after A)
-               |
-         ┌─────┴─────┐
-Group C:  [3 Templates] [5 Marketing]
-               |
-Group E:  [7 Editor Polish]
+Group A:   [1 Design Tokens]
+                |
+          ┌─────┴─────┐
+Group B:   [2 Blocks]  [4 Forms]     Group D: [6 AI] (anytime after A)
+                |
+Group B2:  [2b Fixes: icons + gradients + blank sections]
+                |
+          ┌─────┴─────┐
+Group C:   [3 Templates] [5 Marketing]
+                |
+Group E:   [7 Editor Polish]
 ```
 
 **Deliverables:**
