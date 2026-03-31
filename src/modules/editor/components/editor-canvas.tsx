@@ -33,6 +33,7 @@ export function EditorCanvas(): React.JSX.Element {
   const reorderSections = useDocumentStore((s) => s.reorderSections)
   const addSection = useDocumentStore((s) => s.addSection)
   const deleteSection = useDocumentStore((s) => s.deleteSection)
+  const addElement = useDocumentStore((s) => s.addElement)
   const updateElement = useDocumentStore((s) => s.updateElement)
   const isMobile = useUIStore((s) => s.previewViewport === 'mobile')
 
@@ -172,6 +173,9 @@ export function EditorCanvas(): React.JSX.Element {
                     onEditEnd={handleEditEnd}
                     onInlineSave={(elementId, text) => {
                       handleInlineSave(section.id, elementId, text)
+                    }}
+                    onAddElement={(element) => {
+                      addElement(activeVariant.id, section.id, element)
                     }}
                     onDelete={() => {
                       deleteSection(activeVariant.id, section.id)

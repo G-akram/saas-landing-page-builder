@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2 } from 'lucide-react'
 
-import { type Section } from '@/shared/types'
+import { type Section, type Element as PageElement } from '@/shared/types'
 
 import { SectionRenderer } from './section-renderer'
 
@@ -21,6 +21,7 @@ interface SortableSectionProps {
   onEditStart: (elementId: string) => void
   onEditEnd: () => void
   onInlineSave: (elementId: string, text: string) => void
+  onAddElement: (element: PageElement) => void
   onDelete: () => void
 }
 
@@ -37,6 +38,7 @@ export function SortableSection({
   onEditStart,
   onEditEnd,
   onInlineSave,
+  onAddElement,
   onDelete,
 }: SortableSectionProps): React.JSX.Element {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -99,6 +101,7 @@ export function SortableSection({
           onEditStart={onEditStart}
           onEditEnd={onEditEnd}
           onInlineSave={onInlineSave}
+          onAddElement={onAddElement}
         />
       )}
     </div>
