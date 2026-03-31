@@ -16,6 +16,18 @@ export const LinkConfigSchema = z.object({
 })
 
 export const TextModeSchema = z.enum(['inline', 'multiline'])
+export const FormVariantSchema = z.enum(['email', 'contact', 'newsletter'])
+export const FormSubmissionTargetSchema = z.enum(['database', 'webhook'])
+export const FormConfigSchema = z.object({
+    variant: FormVariantSchema,
+    submitLabel: z.string(),
+    successMessage: z.string(),
+    submitTarget: FormSubmissionTargetSchema,
+    webhookUrl: z.url().optional(),
+    emailPlaceholder: z.string().optional(),
+    namePlaceholder: z.string().optional(),
+    messagePlaceholder: z.string().optional(),
+  })
 
 // ── Element content — discriminated union keyed on `type` ──────────────────
 
@@ -29,6 +41,17 @@ export const AtomicElementContentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('button'), text: z.string() }),
   z.object({ type: z.literal('image'), src: z.string(), alt: z.string() }),
   z.object({ type: z.literal('icon'), name: z.string() }),
+  z.object({
+    type: z.literal('form'),
+    variant: FormVariantSchema,
+    submitLabel: z.string(),
+    successMessage: z.string(),
+    submitTarget: FormSubmissionTargetSchema,
+    webhookUrl: z.url().optional(),
+    emailPlaceholder: z.string().optional(),
+    namePlaceholder: z.string().optional(),
+    messagePlaceholder: z.string().optional(),
+  }),
 ])
 
 /** @deprecated Use AtomicElementContentSchema. Kept as alias for existing imports. */
@@ -99,7 +122,7 @@ export const ContainerStyleSchema = z.object({
 
 export const AtomicElementSchema = z.object({
   id: z.string(),
-  type: z.enum(['heading', 'text', 'button', 'image', 'icon']),
+  type: z.enum(['heading', 'text', 'button', 'image', 'icon', 'form']),
   slot: z.number().int().nonnegative(),
   content: AtomicElementContentSchema,
   styles: ElementStylesSchema,
@@ -118,11 +141,20 @@ export const ContainerElementSchema = z.object({
   containerLayout: ContainerLayoutSchema,
   children: z.array(AtomicElementSchema),
   link: LinkConfigSchema.optional(),
+  formConfig: FormConfigSchema.optional(),
 })
 
 // ── Element — union of atomic and container ────────────────────────────────
 
-export const ElementTypeSchema = z.enum(['heading', 'text', 'button', 'image', 'icon', 'container'])
+export const ElementTypeSchema = z.enum([
+  'heading',
+  'text',
+  'button',
+  'image',
+  'icon',
+  'form',
+  'container',
+])
 
 export const ElementSchema = z.union([AtomicElementSchema, ContainerElementSchema])
 
@@ -137,7 +169,10 @@ export function isContainerElement(element: Element): element is ContainerElemen
 export type SpacingConfig = z.infer<typeof SpacingConfigSchema>
 export type LinkConfig = z.infer<typeof LinkConfigSchema>
 export type TextMode = z.infer<typeof TextModeSchema>
+export type FormVariant = z.infer<typeof FormVariantSchema>
+export type FormSubmissionTarget = z.infer<typeof FormSubmissionTargetSchema>
 export type ElementContent = z.infer<typeof AtomicElementContentSchema>
+export type FormConfig = z.infer<typeof FormConfigSchema>
 export type ElementStyles = z.infer<typeof ElementStylesSchema>
 export type ElementType = z.infer<typeof ElementTypeSchema>
 export type ContainerLayout = z.infer<typeof ContainerLayoutSchema>

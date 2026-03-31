@@ -3,6 +3,8 @@ import {
   type ContainerElement,
   type ContainerStyle,
   type ContainerLayout,
+  type FormConfig,
+  type FormVariant,
 } from '@/shared/types'
 
 export function heading(
@@ -81,6 +83,93 @@ export function icon(slot: number, name: string, styles: AtomicElement['styles']
   }
 }
 
+// Bottom-border only via inset box-shadow — ElementStylesSchema has no borderBottom field
+const FORM_INPUT_STYLES: AtomicElement['styles'] = {
+  fontSize: 15,
+  color: '#cbd5e1',
+  backgroundColor: 'transparent',
+  boxShadow: 'inset 0 -1.5px 0 #e2e8f0',
+  padding: { top: 10, bottom: 10, left: 2, right: 2 },
+  maxWidth: '100%',
+  textAlign: 'left',
+  lineHeight: 1.5,
+}
+
+export function form(
+  slot: number,
+  variant: FormVariant,
+  styles: ContainerElement['styles'] = {},
+): ContainerElement {
+  const emailPlaceholder = variant === 'newsletter' ? 'Email address' : 'you@company.com'
+  const submitLabel =
+    variant === 'newsletter' ? 'Subscribe' : variant === 'contact' ? 'Send message' : 'Get access'
+  const successMessage =
+    variant === 'newsletter'
+      ? 'Thanks for subscribing. Check your inbox for updates.'
+      : 'Thanks. We received your message and will respond soon.'
+
+  const emailField = text(0, emailPlaceholder, FORM_INPUT_STYLES)
+  const submitButton = button(1, submitLabel, {
+    width: '100%',
+    fontSize: 15,
+    fontWeight: 600,
+    color: '#ffffff',
+    backgroundColor: '#2563eb',
+    backgroundColorToken: 'primary',
+    borderRadius: 10,
+    padding: { top: 14, bottom: 14, left: 20, right: 20 },
+    letterSpacing: '0.01em',
+  })
+
+  const layout: ContainerLayout = { direction: 'column', gap: 12 }
+  const containerStyle: ContainerStyle = {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    boxShadow: '0 0 0 1px rgba(15,23,42,0.06), 0 4px 6px -1px rgba(15,23,42,0.04), 0 10px 30px -5px rgba(15,23,42,0.06)',
+    padding: { top: 36, bottom: 36, left: 36, right: 36 },
+  }
+
+  if (variant === 'contact') {
+    const nameField = text(0, 'Your name', FORM_INPUT_STYLES)
+    const messageField = text(0, 'How can we help?', {
+      ...FORM_INPUT_STYLES,
+      padding: { top: 10, bottom: 44, left: 2, right: 2 },
+    })
+
+    return container(
+      slot,
+      [nameField, emailField, messageField, submitButton],
+      containerStyle,
+      layout,
+      styles,
+      {
+        variant,
+        submitLabel,
+        successMessage,
+        submitTarget: 'database',
+        emailPlaceholder,
+        namePlaceholder: 'Your name',
+        messagePlaceholder: 'How can we help?',
+      },
+    )
+  }
+
+  return container(
+    slot,
+    [emailField, submitButton],
+    containerStyle,
+    layout,
+    styles,
+    {
+      variant,
+      submitLabel,
+      successMessage,
+      submitTarget: 'database',
+      emailPlaceholder,
+    },
+  )
+}
+
 /**
  * Container element — groups atomic children as a visual card unit.
  * Children receive slot:0 since layout is controlled by containerLayout, not slot numbers.
@@ -91,6 +180,7 @@ export function container(
   containerStyle: ContainerStyle,
   containerLayout: ContainerLayout = { direction: 'column', gap: 16 },
   styles: ContainerElement['styles'] = {},
+  formConfig?: FormConfig,
 ): ContainerElement {
   return {
     id: crypto.randomUUID(),
@@ -101,6 +191,7 @@ export function container(
     containerStyle,
     containerLayout,
     children: children.map((child) => ({ ...child, slot: 0 })),
+    ...(formConfig ? { formConfig } : {}),
   }
 }
 

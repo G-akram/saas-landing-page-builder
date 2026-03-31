@@ -32,8 +32,8 @@ export function AppearanceControls({
   onUpdateStyles,
 }: AppearanceControlsProps): React.JSX.Element | null {
   const { styles } = element
-  const showBg = element.type === 'button'
-  const showRadius = element.type === 'button' || element.type === 'image'
+  const showBg = element.type === 'button' || element.type === 'form'
+  const showRadius = element.type === 'button' || element.type === 'image' || element.type === 'form'
   const hasLivePreviewSessionRef = useRef(false)
   const pendingColorRef = useRef<string | null>(null)
   const rafIdRef = useRef<number | null>(null)

@@ -280,6 +280,93 @@ function IconElement({ element }: ElementRendererProps): React.JSX.Element {
   )
 }
 
+function FormField({
+  label,
+  placeholder,
+  multiline,
+}: {
+  label: string
+  placeholder: string
+  multiline?: boolean
+}): React.JSX.Element {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+      {multiline ? (
+        <textarea
+          disabled
+          rows={3}
+          placeholder={placeholder}
+          className="w-full resize-none border-0 border-b border-slate-200 bg-transparent py-2 text-[15px] text-slate-600 placeholder:text-slate-300 focus:outline-none"
+        />
+      ) : (
+        <input
+          disabled
+          placeholder={placeholder}
+          className="w-full border-0 border-b border-slate-200 bg-transparent py-2 text-[15px] text-slate-600 placeholder:text-slate-300 focus:outline-none"
+        />
+      )}
+    </div>
+  )
+}
+
+function FormElement({ element }: ElementRendererProps): React.JSX.Element {
+  if (element.content.type !== 'form') throw new Error('Expected form')
+
+  const isContactForm = element.content.variant === 'contact'
+  const buttonBackground = element.styles.backgroundColor ?? '#2563eb'
+  const buttonColor = element.styles.color ?? '#ffffff'
+  const borderRadius = pxOrUndefined(element.styles.borderRadius) ?? '10px'
+  const buttonPadding = element.styles.padding ?? { top: 14, bottom: 14, left: 20, right: 20 }
+
+  return (
+    <div
+      className="w-full"
+      style={{
+        ...buildBaseStyles(element.styles),
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+      }}
+    >
+      {isContactForm ? (
+        <FormField label="Your name" placeholder={element.content.namePlaceholder ?? 'Your name'} />
+      ) : null}
+      <FormField
+        label="Email address"
+        placeholder={element.content.emailPlaceholder ?? 'you@company.com'}
+      />
+      {isContactForm ? (
+        <FormField
+          label="Message"
+          placeholder={element.content.messagePlaceholder ?? 'How can we help?'}
+          multiline
+        />
+      ) : null}
+      <button
+        type="button"
+        className="mt-2 cursor-default text-[15px] font-semibold tracking-wide"
+        style={{
+          background: buttonBackground,
+          color: buttonColor,
+          borderRadius,
+          paddingTop: `${String(buttonPadding.top)}px`,
+          paddingBottom: `${String(buttonPadding.bottom)}px`,
+          paddingLeft: `${String(buttonPadding.left)}px`,
+          paddingRight: `${String(buttonPadding.right)}px`,
+          alignSelf: 'stretch',
+          border: 'none',
+        }}
+      >
+        {element.content.submitLabel}
+      </button>
+      <p className="text-center text-[11px] uppercase tracking-wider text-slate-400">
+        Preview only — submissions work on published pages.
+      </p>
+    </div>
+  )
+}
+
 // ── Main renderer ───────────────────────────────────────────────────────────
 
 export function ElementRenderer(props: ElementRendererProps): React.JSX.Element {
@@ -294,5 +381,7 @@ export function ElementRenderer(props: ElementRendererProps): React.JSX.Element 
       return <ImageElement {...props} />
     case 'icon':
       return <IconElement {...props} />
+    case 'form':
+      return <FormElement {...props} />
   }
 }

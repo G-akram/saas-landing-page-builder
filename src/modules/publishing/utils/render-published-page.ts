@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 
 import { createElement, type ReactElement } from 'react'
 
-import { PageDocumentSchema } from '@/shared/types'
+import { PageDocumentSchema, isContainerElement, type Section } from '@/shared/types'
 
 import {
   type BuildSeoMetadataInput,
@@ -22,6 +22,7 @@ interface RenderStaticDocumentInput {
   metadata: PublishedSeoMetadata
   primaryGoalElementId: string | null
   variantId: string
+  hasLeadCapture: boolean
 }
 
 interface ReactDomServerNode {
@@ -76,6 +77,7 @@ export function renderPublishedPage(
       metadata,
       primaryGoalElementId: variant.primaryGoal?.elementId ?? null,
       variantId: variant.id,
+      hasLeadCapture: hasLeadCaptureForm(variant.sections),
     }),
   )
 }
@@ -86,6 +88,7 @@ function renderStaticDocument({
   metadata,
   primaryGoalElementId,
   variantId,
+  hasLeadCapture,
 }: RenderStaticDocumentInput): RenderPublishedPageResult {
   const markup = getRenderToStaticMarkup()(
     createElement(PublishedPageDocument, {
@@ -93,6 +96,7 @@ function renderStaticDocument({
       sections,
       metadata,
       primaryGoalElementId,
+      hasLeadCapture,
     }),
   )
 
@@ -111,4 +115,21 @@ function renderStaticDocument({
 function getRenderToStaticMarkup(): (element: ReactElement) => string {
   const { renderToStaticMarkup } = require('react-dom/server.node') as ReactDomServerNode
   return renderToStaticMarkup
+}
+
+function hasLeadCaptureForm(
+  sections: RenderPublishedPageInput['document']['variants'][number]['sections'],
+): boolean {
+  return sections.some((section) =>
+    section.elements.some((element) => elementHasForm(element)),
+  )
+}
+
+function elementHasForm(element: Section['elements'][number]): boolean {
+  if (element.content.type === 'form') return true
+  if (isContainerElement(element) && element.formConfig) return true
+  if (element.type === 'container') {
+    return element.children.some((child) => child.content.type === 'form')
+  }
+  return false
 }

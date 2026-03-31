@@ -1,0 +1,111 @@
+import { type BlockTemplate } from './block-template-types'
+import { badge, heading, text, form } from './block-element-factories'
+
+export const FORM_TEMPLATES: BlockTemplate[] = [
+  {
+    variantStyleId: 'form-1',
+    label: 'Email Capture',
+    layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
+    background: { type: 'color', value: '#f8fafc', valueToken: 'surface' },
+    padding: { top: 80, bottom: 80, left: 24, right: 24 },
+    createElements: () => [
+      badge(0, 'Early access'),
+      heading(1, 'Be the first to know', 2, {
+        fontSize: 36,
+        fontWeight: 700,
+        color: '#111827',
+        colorToken: 'text-primary',
+        textAlign: 'center',
+      }),
+      text(2, 'Leave your email and we will send launch notes and feature updates.', {
+        fontSize: 17,
+        color: '#6b7280',
+        colorToken: 'text-muted',
+        textAlign: 'center',
+        maxWidth: '560px',
+      }),
+      form(3, 'email', {
+        maxWidth: '480px',
+        width: '100%',
+        backgroundColor: '#2563eb',
+        backgroundColorToken: 'primary',
+        color: '#ffffff',
+        colorToken: 'primary-foreground',
+        borderRadius: 8,
+        padding: { top: 12, bottom: 12, left: 16, right: 16 },
+      }),
+    ],
+  },
+  {
+    variantStyleId: 'form-2',
+    label: 'Contact Form',
+    layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
+    background: { type: 'color', value: '#ffffff', valueToken: 'background' },
+    padding: { top: 88, bottom: 88, left: 24, right: 24 },
+    createElements: () => [
+      badge(0, 'Get in touch'),
+      heading(1, 'Talk to our team', 2, {
+        fontSize: 36,
+        fontWeight: 700,
+        color: '#111827',
+        colorToken: 'text-primary',
+        textAlign: 'center',
+      }),
+      text(2, 'Send us your use case. We respond within one business day.', {
+        fontSize: 17,
+        color: '#6b7280',
+        colorToken: 'text-muted',
+        textAlign: 'center',
+        maxWidth: '620px',
+      }),
+      form(3, 'contact', {
+        maxWidth: '580px',
+        width: '100%',
+        backgroundColor: '#111827',
+        backgroundColorToken: 'secondary',
+        color: '#ffffff',
+        colorToken: 'primary-foreground',
+        borderRadius: 10,
+        padding: { top: 12, bottom: 12, left: 20, right: 20 },
+      }),
+    ],
+  },
+  {
+    variantStyleId: 'form-3',
+    label: 'Newsletter Signup',
+    layout: { type: 'stack', gap: 16, align: 'center', verticalAlign: 'center' },
+    background: { type: 'gradient', value: 'linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%)' },
+    padding: { top: 88, bottom: 88, left: 24, right: 24 },
+    createElements: () => [
+      badge(0, 'Newsletter', {
+        color: '#93c5fd',
+        backgroundColor: 'rgba(255,255,255,0.10)',
+        borderRadius: 9999,
+        padding: { top: 4, bottom: 4, left: 12, right: 12 },
+      }),
+      heading(1, 'Stay ahead of the curve', 2, {
+        fontSize: 36,
+        fontWeight: 700,
+        color: '#ffffff',
+        colorToken: 'text-on-primary',
+        textAlign: 'center',
+      }),
+      text(2, 'Tactics, launch examples, and conversion teardowns every Friday.', {
+        fontSize: 17,
+        color: '#bfdbfe',
+        textAlign: 'center',
+        maxWidth: '600px',
+      }),
+      form(3, 'newsletter', {
+        maxWidth: '480px',
+        width: '100%',
+        backgroundColor: '#2563eb',
+        backgroundColorToken: 'primary',
+        color: '#ffffff',
+        colorToken: 'primary-foreground',
+        borderRadius: 8,
+        padding: { top: 12, bottom: 12, left: 20, right: 20 },
+      }),
+    ],
+  },
+]

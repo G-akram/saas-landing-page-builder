@@ -15,11 +15,13 @@ import {
 import { PublishedPageElement } from './published-page-element'
 
 interface PublishedPageSectionProps {
+  slug: string
   section: Section
   primaryGoalElementId: string | null
 }
 
 function renderGridSection(
+  slug: string,
   section: Section,
   defaultTextColor: string,
   primaryGoalElementId: string | null,
@@ -50,6 +52,7 @@ function renderGridSection(
         ...elements.map((element) =>
           createElement(PublishedPageElement, {
             key: element.id,
+            slug,
             element,
             defaultTextColor,
             primaryGoalElementId,
@@ -61,6 +64,7 @@ function renderGridSection(
 }
 
 function renderStackSection(
+  slug: string,
   section: Section,
   defaultTextColor: string,
   primaryGoalElementId: string | null,
@@ -76,6 +80,7 @@ function renderStackSection(
     ...allElements.map((element) =>
       createElement(PublishedPageElement, {
         key: element.id,
+        slug,
         element,
         defaultTextColor,
         primaryGoalElementId,
@@ -85,6 +90,7 @@ function renderStackSection(
 }
 
 export function PublishedPageSection({
+  slug,
   section,
   primaryGoalElementId,
 }: PublishedPageSectionProps): React.JSX.Element {
@@ -110,8 +116,8 @@ export function PublishedPageSection({
       'div',
       { className: 'pb-content' },
       section.layout.type === 'grid' && section.layout.columns
-        ? renderGridSection(section, defaultTextColor, primaryGoalElementId)
-        : renderStackSection(section, defaultTextColor, primaryGoalElementId),
+        ? renderGridSection(slug, section, defaultTextColor, primaryGoalElementId)
+        : renderStackSection(slug, section, defaultTextColor, primaryGoalElementId),
     ),
   )
 }

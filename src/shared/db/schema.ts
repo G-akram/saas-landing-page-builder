@@ -139,6 +139,36 @@ export const publishedPageEvents = pgTable(
   ],
 )
 
+export const leadSubmissions = pgTable(
+  'leadSubmissions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    pageId: text('pageId')
+      .notNull()
+      .references(() => pages.id, { onDelete: 'cascade' }),
+    slug: text('slug').notNull(),
+    variantId: text('variantId').notNull(),
+    elementId: text('elementId').notNull(),
+    formVariant: text('formVariant', { enum: ['email', 'contact', 'newsletter'] }).notNull(),
+    email: text('email').notNull(),
+    name: text('name'),
+    message: text('message'),
+    deliveryTarget: text('deliveryTarget', { enum: ['database', 'webhook'] }).notNull(),
+    deliveryStatus: text('deliveryStatus', {
+      enum: ['stored', 'delivered', 'delivery-failed', 'skipped'],
+    }).notNull(),
+    deliveryHttpStatus: integer('deliveryHttpStatus'),
+    webhookUrl: text('webhookUrl'),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (leadSubmission) => [
+    index('lead_submissions_page_variant_idx').on(leadSubmission.pageId, leadSubmission.variantId),
+    index('lead_submissions_slug_created_at_idx').on(leadSubmission.slug, leadSubmission.createdAt),
+  ],
+)
+
 export const rateLimitEvents = pgTable(
   'rateLimitEvents',
   {

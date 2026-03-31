@@ -6,6 +6,7 @@ import {
   type AtomicElement,
   type ContainerStyle,
   type ContainerLayout,
+  type FormConfig,
 } from '@/shared/types'
 
 export interface DocumentState {
@@ -51,6 +52,7 @@ export interface DocumentActions {
     updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>> & {
       containerStyle?: Partial<ContainerStyle>
       containerLayout?: Partial<ContainerLayout>
+      formConfig?: Partial<FormConfig>
     },
     options?: { pushHistory?: boolean },
   ) => void

@@ -49,6 +49,74 @@ img { display: block; max-width: 100%; height: auto; }
 .pb-container {
   box-sizing: border-box;
 }
+.pb-lead-form {
+  width: 100%;
+}
+.pb-form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.pb-form-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.pb-form-field {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid #e2e8f0;
+  border-radius: 0;
+  padding: 10px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #1e293b;
+  background: transparent;
+  font-family: inherit;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  resize: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+.pb-form-field:focus {
+  border-bottom: 2px solid #2563eb;
+}
+.pb-form-field::placeholder {
+  color: #cbd5e1;
+}
+.pb-form-submit {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+.pb-form-submit:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+.pb-form-submit:active {
+  transform: translateY(0);
+}
+.pb-form-status {
+  margin: 0;
+  min-height: 18px;
+  font-size: 13px;
+}
+.pb-form-privacy {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+}
 .pb-image-placeholder {
   display: flex;
   align-items: center;

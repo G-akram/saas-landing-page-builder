@@ -134,5 +134,101 @@ export function ContentControls({
           />
         </FieldRow>
       )
+    case 'form':
+      return (
+        <>
+          <FieldRow label="Variant">
+            <select
+              className={SELECT_CLASS}
+              value={content.variant}
+              onChange={(e) => {
+                onUpdateContent({
+                  ...content,
+                  variant: e.target.value as 'email' | 'contact' | 'newsletter',
+                })
+              }}
+            >
+              <option value="email">Email capture</option>
+              <option value="contact">Contact form</option>
+              <option value="newsletter">Newsletter signup</option>
+            </select>
+          </FieldRow>
+          <FieldRow label="Target">
+            <select
+              className={SELECT_CLASS}
+              value={content.submitTarget}
+              onChange={(e) => {
+                onUpdateContent({
+                  ...content,
+                  submitTarget: e.target.value as 'database' | 'webhook',
+                })
+              }}
+            >
+              <option value="database">Store to DB</option>
+              <option value="webhook">Send to webhook</option>
+            </select>
+          </FieldRow>
+          {content.submitTarget === 'webhook' ? (
+            <FieldRow label="Webhook">
+              <BlurInput
+                value={content.webhookUrl ?? ''}
+                placeholder="https://example.com/lead-webhook"
+                onCommit={(webhookUrl) => {
+                  const trimmed = webhookUrl.trim()
+                  onUpdateContent({ ...content, webhookUrl: trimmed.length > 0 ? trimmed : undefined })
+                }}
+              />
+            </FieldRow>
+          ) : null}
+          <FieldRow label="Email PH">
+            <BlurInput
+              value={content.emailPlaceholder ?? ''}
+              placeholder="you@company.com"
+              onCommit={(emailPlaceholder) => {
+                onUpdateContent({ ...content, emailPlaceholder })
+              }}
+            />
+          </FieldRow>
+          {content.variant === 'contact' ? (
+            <>
+              <FieldRow label="Name PH">
+                <BlurInput
+                  value={content.namePlaceholder ?? ''}
+                  placeholder="Your name"
+                  onCommit={(namePlaceholder) => {
+                    onUpdateContent({ ...content, namePlaceholder })
+                  }}
+                />
+              </FieldRow>
+              <FieldRow label="Message PH">
+                <BlurInput
+                  value={content.messagePlaceholder ?? ''}
+                  placeholder="How can we help?"
+                  onCommit={(messagePlaceholder) => {
+                    onUpdateContent({ ...content, messagePlaceholder })
+                  }}
+                />
+              </FieldRow>
+            </>
+          ) : null}
+          <FieldRow label="Button">
+            <BlurInput
+              value={content.submitLabel}
+              onCommit={(submitLabel) => {
+                onUpdateContent({ ...content, submitLabel })
+              }}
+            />
+          </FieldRow>
+          <FieldRow label="Success">
+            <BlurTextarea
+              rows={2}
+              value={content.successMessage}
+              onCommit={(successMessage) => {
+                onUpdateContent({ ...content, successMessage })
+              }}
+            />
+          </FieldRow>
+        </>
+      )
   }
 }

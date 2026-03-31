@@ -3,6 +3,7 @@ import { type SectionType } from '@/shared/types'
 import { CTA_TEMPLATES } from './block-templates-cta'
 import { CUSTOM_TEMPLATES } from './block-templates-custom'
 import { FEATURES_TEMPLATES } from './block-templates-features'
+import { FORM_TEMPLATES } from './block-templates-form'
 import { FOOTER_TEMPLATES } from './block-templates-footer'
 import { HERO_TEMPLATES } from './block-templates-hero'
 import { PRICING_TEMPLATES } from './block-templates-pricing'
@@ -18,6 +19,7 @@ export const BLOCK_TEMPLATES: Record<SectionType, BlockTemplate[]> = {
   pricing: PRICING_TEMPLATES,
   testimonials: TESTIMONIALS_TEMPLATES,
   footer: FOOTER_TEMPLATES,
+  form: FORM_TEMPLATES,
   custom: CUSTOM_TEMPLATES,
 }
 

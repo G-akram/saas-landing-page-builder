@@ -19,6 +19,7 @@ import {
   LinkControls,
   SpacingControls,
 } from './controls'
+import { FormControls } from './controls/form-controls'
 
 // ── Element type labels ─────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ const ELEMENT_TYPE_LABEL: Record<PageElement['type'], string> = {
   button: 'Button',
   image: 'Image',
   icon: 'Icon',
+  form: 'Form',
   container: 'Card',
 }
 
@@ -195,6 +197,18 @@ export function PropertyPanel(): React.JSX.Element {
               }}
             />
           </PanelSection>
+          {element.formConfig ? (
+            <PanelSection title="Form">
+              <FormControls
+                formConfig={element.formConfig}
+                onUpdateConfig={(updates) => {
+                  updateElement(variantId, sectionId, elementId, {
+                    formConfig: { ...element.formConfig, ...updates },
+                  })
+                }}
+              />
+            </PanelSection>
+          ) : null}
         </div>
       </aside>
     )
@@ -217,7 +231,7 @@ export function PropertyPanel(): React.JSX.Element {
     updateElement(variantId, sectionId, elementId, { link }, options)
   }
 
-  const showAppearance = element.type === 'button' || element.type === 'image'
+  const showAppearance = element.type === 'button' || element.type === 'image' || element.type === 'form'
   const isPrimaryGoal = activeVariant.primaryGoal?.elementId === element.id
   const hasLinkedElement = element.link !== undefined
 

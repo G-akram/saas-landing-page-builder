@@ -4,6 +4,7 @@ import {
   type Section,
   type ContainerStyle,
   type ContainerLayout,
+  type FormConfig,
   isContainerElement,
 } from '@/shared/types'
 
@@ -16,6 +17,7 @@ interface ElementUpdateInput {
   updates: Partial<Pick<PageElement, 'content' | 'styles' | 'slot' | 'link'>> & {
     containerStyle?: Partial<ContainerStyle>
     containerLayout?: Partial<ContainerLayout>
+    formConfig?: Partial<FormConfig>
   }
 }
 
@@ -65,6 +67,10 @@ export function updateElementInDocument(
     input.updates.containerLayout !== undefined &&
     isContainerElement(currentElement) &&
     hasPatchChanges(currentElement.containerLayout, input.updates.containerLayout)
+  const formConfigChanged =
+    input.updates.formConfig !== undefined &&
+    isContainerElement(currentElement) &&
+    hasPatchChanges(currentElement.formConfig ?? {}, input.updates.formConfig)
 
   if (
     !slotChanged &&
@@ -72,7 +78,8 @@ export function updateElementInDocument(
     !contentChanged &&
     !stylesChanged &&
     !containerStyleChanged &&
-    !containerLayoutChanged
+    !containerLayoutChanged &&
+    !formConfigChanged
   ) {
     return null
   }
@@ -96,6 +103,13 @@ export function updateElementInDocument(
         containerLayout: {
           ...currentElement.containerLayout,
           ...input.updates.containerLayout,
+        },
+      }),
+    ...(formConfigChanged &&
+      isContainerElement(currentElement) && {
+        formConfig: {
+          ...(currentElement.formConfig ?? {}),
+          ...input.updates.formConfig,
         },
       }),
   } as PageElement

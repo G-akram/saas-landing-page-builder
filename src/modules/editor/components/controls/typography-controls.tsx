@@ -33,7 +33,10 @@ export function TypographyControls({
 }: TypographyControlsProps): React.JSX.Element {
   const { styles } = element
   const showTextControls =
-    element.type === 'heading' || element.type === 'text' || element.type === 'button'
+    element.type === 'heading' ||
+    element.type === 'text' ||
+    element.type === 'button' ||
+    element.type === 'form'
   const hasLivePreviewSessionRef = useRef(false)
   const pendingColorRef = useRef<string | null>(null)
   const rafIdRef = useRef<number | null>(null)

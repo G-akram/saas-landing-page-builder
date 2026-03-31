@@ -39,6 +39,7 @@ const SECTION_LABELS: Record<Section['type'], string> = {
   pricing: 'Pricing',
   testimonials: 'Testimonials',
   footer: 'Footer',
+  form: 'Lead Capture',
   custom: 'Custom',
 }
 

@@ -1,5 +1,6 @@
 import {
   CreditCard,
+  Mail,
   LayoutGrid,
   Megaphone,
   PanelBottom,
@@ -54,6 +55,11 @@ export const SECTION_TEMPLATES: Record<SectionType, SectionTemplate> = {
     description: 'Links, copyright, and brand close',
     icon: PanelBottom,
   },
+  form: {
+    label: 'Lead Capture',
+    description: 'Email signup and contact forms',
+    icon: Mail,
+  },
   custom: {
     label: 'Blank Section',
     description: 'Start from scratch — add elements manually',
@@ -68,5 +74,6 @@ export const SECTION_TYPE_ORDER: SectionType[] = [
   'pricing',
   'testimonials',
   'footer',
+  'form',
   'custom',
 ]

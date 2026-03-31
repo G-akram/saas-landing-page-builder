@@ -1,7 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Heading, ImageIcon, MousePointerClick, Plus, Sparkles, Type } from 'lucide-react'
+import {
+  Heading,
+  ImageIcon,
+  Mail,
+  MousePointerClick,
+  Plus,
+  Sparkles,
+  Type,
+} from 'lucide-react'
 
 import { type Element as PageElement } from '@/shared/types'
 import {
@@ -12,7 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { heading, text, button, image, icon } from '../lib/block-element-factories'
+import { heading, text, button, image, icon, form } from '../lib/block-element-factories'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -70,6 +78,12 @@ const ELEMENT_OPTIONS: ElementOption[] = [
     description: 'Lucide icon (1,600+ options)',
     icon: Sparkles,
     create: (slot) => icon(slot, 'star'),
+  },
+  {
+    label: 'Form',
+    description: 'Lead-capture form with submit handling',
+    icon: Mail,
+    create: (slot) => form(slot, 'email'),
   },
 ]
 
