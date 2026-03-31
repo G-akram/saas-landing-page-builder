@@ -67,6 +67,7 @@ export const ElementStylesSchema = z.object({
   // Design token keys (hybrid approach — store token key + resolved value)
   colorToken: z.string().optional(),
   backgroundColorToken: z.string().optional(),
+  gradientToken: z.string().optional(), // maps to theme gradients (primary, accent, dark)
 })
 
 // ── Element ────────────────────────────────────────────────────────────────

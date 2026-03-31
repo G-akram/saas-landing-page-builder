@@ -1,6 +1,11 @@
 import { type PageDocument, type Section, type Element as PageElement } from '@/shared/types'
 
-import { type ColorToken, type ThemeDefinition, getTheme } from './design-tokens'
+import {
+  type ColorToken,
+  type GradientToken,
+  type ThemeDefinition,
+  getTheme,
+} from './design-tokens'
 
 // ── Single-value resolution ───────────────────────────────────────────────
 
@@ -9,17 +14,27 @@ function resolveColorToken(token: string | undefined, theme: ThemeDefinition): s
   return theme.colors[token as ColorToken]
 }
 
+function resolveGradientToken(
+  token: string | undefined,
+  theme: ThemeDefinition,
+): string | undefined {
+  if (!token) return undefined
+  return theme.gradients[token as GradientToken]
+}
+
 // ── Element resolution ────────────────────────────────────────────────────
 
 function resolveElementStyles(element: PageElement, theme: ThemeDefinition): PageElement {
   const { styles } = element
   const hasColorToken = styles.colorToken !== undefined
   const hasBgToken = styles.backgroundColorToken !== undefined
+  const hasGradientToken = styles.gradientToken !== undefined
 
-  if (!hasColorToken && !hasBgToken) return element
+  if (!hasColorToken && !hasBgToken && !hasGradientToken) return element
 
   const resolvedColor = resolveColorToken(styles.colorToken, theme)
   const resolvedBg = resolveColorToken(styles.backgroundColorToken, theme)
+  const resolvedGradient = resolveGradientToken(styles.gradientToken, theme)
 
   return {
     ...element,
@@ -27,6 +42,9 @@ function resolveElementStyles(element: PageElement, theme: ThemeDefinition): Pag
       ...styles,
       ...(hasColorToken && resolvedColor !== undefined ? { color: resolvedColor } : {}),
       ...(hasBgToken && resolvedBg !== undefined ? { backgroundColor: resolvedBg } : {}),
+      ...(hasGradientToken && resolvedGradient !== undefined
+        ? { backgroundGradient: resolvedGradient }
+        : {}),
     },
   }
 }
@@ -37,7 +55,14 @@ function resolveSectionBackground(section: Section, theme: ThemeDefinition): Sec
   const { background } = section
   if (!background.valueToken) return section
 
-  const resolved = resolveColorToken(background.valueToken, theme)
+  // For gradient backgrounds, resolve from theme.gradients first (full gradient string),
+  // then fall back to theme.colors. For color/image backgrounds, resolve from colors only.
+  const resolved =
+    background.type === 'gradient'
+      ? (resolveGradientToken(background.valueToken, theme) ??
+        resolveColorToken(background.valueToken, theme))
+      : resolveColorToken(background.valueToken, theme)
+
   if (resolved === undefined) return section
 
   return {

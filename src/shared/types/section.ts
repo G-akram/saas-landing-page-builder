@@ -44,6 +44,7 @@ export const SectionTypeSchema = z.enum([
   'pricing',
   'testimonials',
   'footer',
+  'custom',
 ])
 
 export const SectionSchema = z.object({

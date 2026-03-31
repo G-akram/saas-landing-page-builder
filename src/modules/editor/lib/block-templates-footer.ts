@@ -149,7 +149,7 @@ export const FOOTER_TEMPLATES: BlockTemplate[] = [
     background: {
       type: 'gradient',
       value: 'linear-gradient(to bottom, #f0f4ff 0%, #ffffff 40%)',
-      valueToken: 'surface',
+      valueToken: 'surface',  // resolves from theme.gradients for gradient backgrounds
     },
     padding: { top: 56, bottom: 48, left: 64, right: 64 },
     createElements: () => [

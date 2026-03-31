@@ -10,7 +10,7 @@ export const HERO_TEMPLATES: BlockTemplate[] = [
     background: {
       type: 'gradient',
       value: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 60%, #eef2ff 100%)',
-      valueToken: 'background',
+      valueToken: 'surface',
     },
     padding: { top: 112, bottom: 112, left: 24, right: 24 },
     createElements: () => [
@@ -34,6 +34,7 @@ export const HERO_TEMPLATES: BlockTemplate[] = [
         borderRadius: 10,
         padding: { top: 14, bottom: 14, left: 36, right: 36 },
         backgroundGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+        gradientToken: 'primary',
         backgroundColor: '#2563eb',
         backgroundColorToken: 'primary',
         color: '#ffffff',
@@ -76,6 +77,7 @@ export const HERO_TEMPLATES: BlockTemplate[] = [
         borderRadius: 8,
         padding: { top: 14, bottom: 14, left: 32, right: 32 },
         backgroundGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+        gradientToken: 'primary',
         backgroundColor: '#2563eb',
         backgroundColorToken: 'primary',
         color: '#ffffff',
@@ -93,7 +95,7 @@ export const HERO_TEMPLATES: BlockTemplate[] = [
     background: {
       type: 'gradient',
       value: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-      valueToken: 'surface',
+      valueToken: 'dark',
     },
     padding: { top: 120, bottom: 120, left: 24, right: 24 },
     createElements: () => [
@@ -131,6 +133,7 @@ export const HERO_TEMPLATES: BlockTemplate[] = [
         borderRadius: 10,
         padding: { top: 14, bottom: 14, left: 36, right: 36 },
         backgroundGradient: 'linear-gradient(135deg, #6366f1, #a855f7)',
+        gradientToken: 'accent',
         backgroundColor: '#6366f1',
         backgroundColorToken: 'accent',
         color: '#ffffff',

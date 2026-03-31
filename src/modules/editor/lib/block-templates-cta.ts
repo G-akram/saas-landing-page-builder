@@ -10,7 +10,7 @@ export const CTA_TEMPLATES: BlockTemplate[] = [
     background: {
       type: 'gradient',
       value: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%)',
-      valueToken: 'primary',
+      valueToken: 'primary',  // resolves from theme.gradients for gradient backgrounds
     },
     padding: { top: 96, bottom: 96, left: 24, right: 24 },
     createElements: () => [
@@ -77,6 +77,7 @@ export const CTA_TEMPLATES: BlockTemplate[] = [
         borderRadius: 10,
         padding: { top: 16, bottom: 16, left: 36, right: 36 },
         backgroundGradient: 'linear-gradient(135deg, #6366f1, #a855f7)',
+        gradientToken: 'accent',
         backgroundColor: '#6366f1',
         backgroundColorToken: 'accent',
         color: '#ffffff',

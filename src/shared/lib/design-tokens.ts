@@ -26,6 +26,9 @@ export type SpacingPreset = 'compact' | 'default' | 'spacious'
 /** Border radius presets */
 export type RadiusPreset = 'none' | 'sm' | 'md' | 'lg' | 'full'
 
+/** Gradient token keys — map to CSS gradient strings per theme */
+export type GradientToken = 'primary' | 'accent' | 'dark' | 'surface'
+
 // ── Theme definition shape ────────────────────────────────────────────────
 
 export interface ThemeDefinition {
@@ -33,6 +36,7 @@ export interface ThemeDefinition {
   name: string
   description: string
   colors: Record<ColorToken, string>
+  gradients: Record<GradientToken, string>
   fonts: Record<FontToken, string>
   spacing: Record<SpacingPreset, { top: number; bottom: number; left: number; right: number }>
   radius: Record<RadiusPreset, number>
@@ -62,6 +66,12 @@ const STARTER_THEME: ThemeDefinition = {
   id: 'starter',
   name: 'Starter',
   description: 'Clean and professional — blue accents on white',
+  gradients: {
+    primary: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+    accent: 'linear-gradient(135deg, #6366f1, #a855f7)',
+    dark: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+    surface: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 60%, #eef2ff 100%)',
+  },
   colors: {
     primary: '#2563eb',
     'primary-foreground': '#ffffff',
@@ -94,6 +104,12 @@ const STARTUP_THEME: ThemeDefinition = {
   id: 'startup',
   name: 'Startup',
   description: 'Vibrant indigo and purple — energetic and modern',
+  gradients: {
+    primary: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+    accent: 'linear-gradient(135deg, #a855f7, #ec4899)',
+    dark: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+    surface: 'linear-gradient(135deg, #ffffff 0%, #f5f3ff 60%, #ede9fe 100%)',
+  },
   colors: {
     primary: '#6366f1',
     'primary-foreground': '#ffffff',
@@ -126,6 +142,12 @@ const AGENCY_THEME: ThemeDefinition = {
   id: 'agency',
   name: 'Agency',
   description: 'Bold and dark — high contrast with editorial feel',
+  gradients: {
+    primary: 'linear-gradient(135deg, #f97316, #ef4444)',
+    accent: 'linear-gradient(135deg, #f59e0b, #f97316)',
+    dark: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+    surface: 'linear-gradient(135deg, #0f172a 0%, #1a1a2e 60%, #16213e 100%)',
+  },
   colors: {
     primary: '#f97316',
     'primary-foreground': '#ffffff',
@@ -158,6 +180,12 @@ const SAAS_DARK_THEME: ThemeDefinition = {
   id: 'saas-dark',
   name: 'SaaS Dark',
   description: 'Dark mode with teal accents — modern SaaS aesthetic',
+  gradients: {
+    primary: 'linear-gradient(135deg, #14b8a6, #06b6d4)',
+    accent: 'linear-gradient(135deg, #2dd4bf, #22d3ee)',
+    dark: 'linear-gradient(135deg, #0f172a 0%, #0c4a6e 100%)',
+    surface: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)',
+  },
   colors: {
     primary: '#14b8a6',
     'primary-foreground': '#042f2e',
@@ -198,6 +226,9 @@ export const DEFAULT_THEME_ID = 'starter'
 export function getTheme(themeId: string): ThemeDefinition {
   return THEME_REGISTRY[themeId] ?? STARTER_THEME
 }
+
+/** All valid gradient token keys, useful for validation and UI */
+export const GRADIENT_TOKEN_KEYS: GradientToken[] = ['primary', 'accent', 'dark', 'surface']
 
 /** All valid color token keys, useful for validation and UI */
 export const COLOR_TOKEN_KEYS: ColorToken[] = [

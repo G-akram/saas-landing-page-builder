@@ -190,7 +190,7 @@ export const FEATURES_TEMPLATES: BlockTemplate[] = [
         colorToken: 'text-muted',
         lineHeight: 1.6,
       }),
-      icon(1, 'bar-chart-2', { fontSize: 28, color: '#14b8a6', colorToken: 'primary' }),
+      icon(1, 'chart-column-increasing', { fontSize: 28, color: '#14b8a6', colorToken: 'primary' }),
       heading(1, 'Deep Analytics', 3, {
         fontSize: 18,
         fontWeight: 700,
@@ -232,7 +232,7 @@ export const FEATURES_TEMPLATES: BlockTemplate[] = [
     background: {
       type: 'gradient',
       value: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
-      valueToken: 'primary',
+      valueToken: 'accent',
     },
     padding: { top: 96, bottom: 96, left: 40, right: 40 },
     slotStyle: {

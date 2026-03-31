@@ -3,6 +3,7 @@ import {
   LayoutGrid,
   Megaphone,
   PanelBottom,
+  Plus,
   Quote,
   Zap,
   type LucideIcon,
@@ -53,6 +54,11 @@ export const SECTION_TEMPLATES: Record<SectionType, SectionTemplate> = {
     description: 'Links, copyright, and brand close',
     icon: PanelBottom,
   },
+  custom: {
+    label: 'Blank Section',
+    description: 'Start from scratch — add elements manually',
+    icon: Plus,
+  },
 }
 
 export const SECTION_TYPE_ORDER: SectionType[] = [
@@ -62,4 +68,5 @@ export const SECTION_TYPE_ORDER: SectionType[] = [
   'pricing',
   'testimonials',
   'footer',
+  'custom',
 ]

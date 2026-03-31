@@ -99,6 +99,7 @@ export const PRICING_TEMPLATES: BlockTemplate[] = [
         borderRadius: 8,
         padding: { top: 12, bottom: 12, left: 20, right: 20 },
         backgroundGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+        gradientToken: 'primary',
         backgroundColor: '#2563eb',
         backgroundColorToken: 'primary',
         color: '#ffffff',
@@ -227,6 +228,7 @@ export const PRICING_TEMPLATES: BlockTemplate[] = [
         borderRadius: 8,
         padding: { top: 12, bottom: 12, left: 24, right: 24 },
         backgroundGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+        gradientToken: 'primary',
         backgroundColor: '#2563eb',
         backgroundColorToken: 'primary',
         color: '#ffffff',
@@ -243,7 +245,7 @@ export const PRICING_TEMPLATES: BlockTemplate[] = [
     background: {
       type: 'gradient',
       value: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-      valueToken: 'background',
+      valueToken: 'dark',
     },
     padding: { top: 96, bottom: 96, left: 40, right: 40 },
     slotStyle: {
@@ -317,6 +319,7 @@ export const PRICING_TEMPLATES: BlockTemplate[] = [
         borderRadius: 8,
         padding: { top: 11, bottom: 11, left: 20, right: 20 },
         backgroundGradient: 'linear-gradient(135deg, #6366f1, #a855f7)',
+        gradientToken: 'accent',
         backgroundColor: '#6366f1',
         backgroundColorToken: 'primary',
         color: '#ffffff',
