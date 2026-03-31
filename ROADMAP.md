@@ -329,12 +329,12 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 **Status: in progress**
 
-**Why now:** MVP is functional but visually basic. The highest-leverage move is making the product look and feel premium — Creative Tim-level visual quality in block design, richer templates, and a polished first impression. AI assists the creative process rather than replacing it.
+**Why now:** MVP is functional but visually basic. The highest-leverage move is making the product look and feel premium — Excellent visual quality in block design, richer templates, and a polished first impression.
 
 **What we build:**
 
 - Design tokens system for cohesive theming across all blocks and templates
-- Creative Tim-quality block library with gradients, glassmorphism, depth, and transitions
+- Excellent block library with gradients, glassmorphism, depth, and transitions
 - Full-page templates gallery so users start from beauty, not a blank canvas
 - Form / lead-capture block type (highest-value new content capability)
 - Marketing page that sells the product convincingly
@@ -344,14 +344,13 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Steps:**
 
 - [x] **Design tokens system** — global color palettes, font pairings, spacing scale, with preset themes ("Startup", "Agency", "SaaS Dark"). Tokens feed into block rendering and published output. See `decisions/039-design-tokens-system.md`.
-- [x] **Redesign block library to Creative Tim quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, `SlotStyle` for card grids, `badge()` eyebrow factory, new style fields (boxShadow, border, backdropFilter, letterSpacing, textTransform, backgroundGradient, opacity). Published icons render as inline SVGs via a curated path map.
+- [x] **Redesign block library to Excellent quality** — gradient backgrounds, glassmorphism cards, richer typography, depth/shadow system, smooth CSS transitions, 3-4 variants per block type, `SlotStyle` for card grids, `badge()` eyebrow factory, new style fields (boxShadow, border, backdropFilter, letterSpacing, textTransform, backgroundGradient, opacity). Published icons render as inline SVGs via a curated path map.
 - [x] **Block library follow-up fixes** — published icon rendering (full Lucide icon support via CJS-compatible renderer, replacing the 15-icon curated map), gradient tokens (theme switching updates gradients alongside colors), blank section + element picker (custom section type with in-canvas element add UI).
 - [x] **Container element system (compound components)** — `container` element type holding atomic children (1 level of nesting). Schema: `ContainerElement` with `children: AtomicElement[]`, `containerStyle`, `containerLayout`. Store gains deep lookup. Editor renders styled card wrappers with selectable children and in-container element picker. Published output renders compound cards. Templates rewritten: feature cards, pricing tiers, testimonials use real containers. See `decisions/040-container-element-type.md`.
 - [x] **Redo page templates gallery with containers** — 5 full-page templates (SaaS, Agency, Startup, Minimal, SaaS Dark) fully rewritten with container-based card sections. Moved from `shared/lib` to `dashboard/lib` to allow factory imports. Testimonials block template card variants (testimonials-1, testimonials-3) upgraded from `slotStyle` to real container elements.
 - [x] **Form / lead-capture block** — email input, contact form, newsletter signup variants with a simple submission handler (store to DB or webhook).
 - [x] **Upgrade marketing/home page** — showcase the product using its own
-- [ ] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy.blocks, real copy, social proof section, live demo embed or screenshots.
-- [ ] **AI assistant (scoped)** — copy generation for headlines/CTAs/descriptions, template suggestions by industry, A/B variant copy ideas. Claude API, surfaced as inline suggestions in the property panel.
+- [x] **Editor UX micro-polish** — element hover/select animations, transition on panel open/close, keyboard shortcuts (Ctrl+Z, Del), better empty states, improved microcopy.blocks, real copy, social proof section, live demo embed or screenshots.
 
 **Deliverables:**
 
@@ -360,8 +359,6 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - Published pages have transitions, gradients, depth — not flat inline styles
 - AI helps generate copy and suggest variants without leaving the editor
 - Marketing page sells the product convincingly
-
-**You have:** A portfolio-worthy product with Creative Tim-level visual quality, AI-assisted content creation, and stronger "wow" appeal.
 
 ---
 
