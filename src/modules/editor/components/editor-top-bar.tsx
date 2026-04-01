@@ -10,11 +10,13 @@ import { type EditorPublishState } from '../hooks/use-publish'
 import { resolvePublishFeedback } from '../lib/publish-feedback'
 import { useDocumentStore, useUIStore } from '../store'
 import { useEditorActor } from '../context'
+import { PageNameInput } from './page-name-input'
 import { SaveStatusIndicator } from './save-status-indicator'
 import { ThemePicker } from './theme-picker'
 
 interface EditorTopBarProps {
   pageName: string
+  onRename: (name: string) => Promise<void>
   saveStatus: SaveStatus
   canManualSave: boolean
   onManualSave: () => Promise<void>
@@ -27,6 +29,7 @@ interface EditorTopBarProps {
 
 export function EditorTopBar({
   pageName,
+  onRename,
   saveStatus,
   canManualSave,
   onManualSave,
@@ -63,7 +66,7 @@ export function EditorTopBar({
           <span>Back</span>
         </Link>
         <div className="h-4 w-px bg-white/10" />
-        <h1 className="text-sm font-medium text-white">{pageName}</h1>
+        <PageNameInput pageName={pageName} onRename={onRename} />
       </div>
 
       <div className="flex items-center gap-3">

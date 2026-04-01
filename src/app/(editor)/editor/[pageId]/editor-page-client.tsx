@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 
 import { EditorShell } from '@/modules/editor'
+import { renamePage } from '@/modules/dashboard/actions/page-actions'
 import { type PageDocument } from '@/shared/types'
 
 const PUBLISH_ERROR_MESSAGES: Record<string, string> = {
@@ -72,6 +73,10 @@ export function EditorPageClient({
 }: EditorPageClientProps): React.JSX.Element {
   const initialLiveUrl = pageStatus === 'published' ? `/p/${pageSlug}` : null
 
+  const handleRename = useCallback(async (name: string) => {
+    return renamePage(pageId, name)
+  }, [pageId])
+
   const handlePublish = useCallback(async () => {
     const response = await fetch('/api/publish', {
       method: 'POST',
@@ -110,6 +115,7 @@ export function EditorPageClient({
       document={document}
       initialLiveUrl={initialLiveUrl}
       onPublish={handlePublish}
+      onRename={handleRename}
     />
   )
 }

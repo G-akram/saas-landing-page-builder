@@ -21,6 +21,11 @@ const deleteLimiter = createRateLimiter({
   maxRequests: 10,
   windowMs: 60_000,
 })
+const renameLimiter = createRateLimiter({
+  name: 'dashboard-rename-page',
+  maxRequests: 20,
+  windowMs: 60_000,
+})
 
 const SLUG_MAX_LENGTH = 80
 
@@ -129,6 +134,38 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
   }
 
   return { success: false, error: 'Failed to create a unique slug. Please try again.' }
+}
+
+export async function renamePage(pageId: string, name: string): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const { isAllowed } = await renameLimiter.check(session.user.id)
+  if (!isAllowed) {
+    return { success: false, error: 'Too many requests. Please wait a moment.' }
+  }
+
+  const trimmedName = name.trim()
+  if (trimmedName.length === 0) {
+    return { success: false, error: 'Page name is required' }
+  }
+  if (trimmedName.length > 100) {
+    return { success: false, error: 'Page name must be 100 characters or less' }
+  }
+
+  const result = await db
+    .update(pages)
+    .set({ name: trimmedName, updatedAt: new Date() })
+    .where(and(eq(pages.id, pageId), eq(pages.userId, session.user.id)))
+
+  if (result.rowCount === 0) {
+    return { success: false, error: 'Page not found' }
+  }
+
+  revalidatePath('/dashboard')
+  return { success: true }
 }
 
 export async function deletePage(formData: FormData): Promise<ActionResult> {

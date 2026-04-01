@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { type PageDocument, type Element as PageElement } from '@/shared/types'
 
@@ -23,6 +23,10 @@ const SIDEBAR_WIDTH = 240
 const RIGHT_PANEL_WIDTH = 280
 const MOBILE_VIEWPORT_WIDTH = 375
 
+interface RenameResult {
+  success: boolean
+}
+
 interface EditorShellProps {
   pageId: string
   pageName: string
@@ -30,6 +34,7 @@ interface EditorShellProps {
   document: PageDocument
   initialLiveUrl?: string | null
   onPublish?: (() => Promise<EditorPublishResult>) | null
+  onRename?: ((name: string) => Promise<RenameResult>) | null
 }
 
 interface EditorLayoutProps {
@@ -39,18 +44,29 @@ interface EditorLayoutProps {
   document: PageDocument
   initialLiveUrl?: string | null
   onPublish?: (() => Promise<EditorPublishResult>) | null
+  onRename?: ((name: string) => Promise<RenameResult>) | null
 }
 
 function EditorLayout({
   pageId,
-  pageName,
+  pageName: initialPageName,
   pageUpdatedAt,
   document,
   initialLiveUrl,
   onPublish,
+  onRename,
 }: EditorLayoutProps): React.JSX.Element {
   const actor = useEditorActor()
   const [isHydrated, setIsHydrated] = useState(false)
+  const [currentPageName, setCurrentPageName] = useState(initialPageName)
+
+  const handleRename = useCallback(async (name: string): Promise<void> => {
+    if (!onRename) return
+    const result = await onRename(name)
+    if (result.success) {
+      setCurrentPageName(name)
+    }
+  }, [onRename])
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
   // Session clipboard — not persisted, no re-render needed on copy
   const clipboardElementRef = useRef<PageElement | null>(null)
@@ -249,7 +265,8 @@ function EditorLayout({
         {showTopBar && (
           <div className="flex flex-col">
             <EditorTopBar
-              pageName={pageName}
+              pageName={currentPageName}
+              onRename={handleRename}
               saveStatus={saveStatus}
               onManualSave={triggerManualSave}
               canManualSave={canManualSave}
@@ -298,6 +315,7 @@ export function EditorShell({
   document,
   initialLiveUrl,
   onPublish,
+  onRename,
 }: EditorShellProps): React.JSX.Element {
   return (
     <EditorActorProvider>
@@ -308,6 +326,7 @@ export function EditorShell({
         document={document}
         initialLiveUrl={initialLiveUrl ?? null}
         onPublish={onPublish ?? null}
+        onRename={onRename ?? null}
       />
     </EditorActorProvider>
   )
