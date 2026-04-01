@@ -8,6 +8,7 @@ import {
   getPaginatedPagesByUser,
   PageCard,
 } from '@/modules/dashboard'
+import { getUserTier, UpgradeBanner } from '@/modules/billing'
 
 interface DashboardPageProps {
   searchParams?: Promise<{ cursor?: string }>
@@ -21,10 +22,12 @@ export default async function DashboardPage({
 
   const resolvedParams = searchParams ? await searchParams : undefined
   const currentCursor = resolvedParams?.cursor ?? null
-  const { pages: userPages, nextCursor } = await getPaginatedPagesByUser(session.user.id, {
-    cursor: currentCursor,
-  })
+  const [{ pages: userPages, nextCursor }, tier] = await Promise.all([
+    getPaginatedPagesByUser(session.user.id, { cursor: currentCursor }),
+    getUserTier(session.user.id),
+  ])
 
+  const isFreeTier = tier === 'free'
   const publishedCount = userPages.filter((p) => p.status === 'published').length
 
   return (
@@ -39,6 +42,12 @@ export default async function DashboardPage({
             <span className="text-sm font-semibold text-white">PageForge</span>
           </Link>
           <div className="flex items-center gap-4">
+            <Link
+              href="/settings"
+              className="text-sm text-white/40 transition-colors hover:text-white/70"
+            >
+              Settings
+            </Link>
             <span className="hidden text-sm text-white/40 sm:block">{session.user.email}</span>
             <form
               action={async () => {
@@ -59,6 +68,12 @@ export default async function DashboardPage({
 
       {/* Main content */}
       <main className="mx-auto max-w-6xl px-6 py-10">
+        {isFreeTier && (
+          <div className="mb-6">
+            <UpgradeBanner />
+          </div>
+        )}
+
         {/* Section header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
