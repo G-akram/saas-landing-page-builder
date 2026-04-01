@@ -62,7 +62,7 @@ export async function loginAction(formData: FormData): Promise<LoginResult> {
       success: false,
       error:
         'Please verify your email before signing in. Check your inbox for the verification link.',
-      redirectTo: `/verify-email?email=${encodeURIComponent(user.email)}`,
+      redirectTo: `/verify-email?email=${encodeURIComponent(email)}`,
     }
   }
 

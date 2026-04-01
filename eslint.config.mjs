@@ -83,7 +83,9 @@ export default tseslint.config(
         { type: 'auth', pattern: ['src/modules/auth/*'], capture: ['segment'] },
         { type: 'editor', pattern: ['src/modules/editor/*'], capture: ['segment'] },
         { type: 'publishing', pattern: ['src/modules/publishing/*'], capture: ['segment'] },
+        { type: 'billing', pattern: ['src/modules/billing/*'], capture: ['segment'] },
         { type: 'dashboard', pattern: ['src/modules/dashboard/*'], capture: ['segment'] },
+        { type: 'settings', pattern: ['src/modules/settings/*'], capture: ['segment'] },
         { type: 'app', pattern: ['src/app/*'], capture: ['segment'] },
         { type: 'ui', pattern: ['src/components/ui/*'], capture: ['segment'] },
       ],
@@ -108,6 +110,11 @@ export default tseslint.config(
               from: { type: 'publishing' },
               allow: { to: { type: ['shared', 'auth', 'editor', 'publishing', 'ui'] } },
             },
+            // billing → shared + auth
+            {
+              from: { type: 'billing' },
+              allow: { to: { type: ['shared', 'auth', 'billing', 'ui'] } },
+            },
             // dashboard → all modules + shared
             {
               from: { type: 'dashboard' },
@@ -115,11 +122,28 @@ export default tseslint.config(
                 to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'ui'] },
               },
             },
+            // settings → shared + auth + billing
+            {
+              from: { type: 'settings' },
+              allow: { to: { type: ['shared', 'auth', 'billing', 'settings', 'ui'] } },
+            },
             // app routes → everything (thin composition layer)
             {
               from: { type: 'app' },
               allow: {
-                to: { type: ['shared', 'auth', 'editor', 'publishing', 'dashboard', 'app', 'ui'] },
+                to: {
+                  type: [
+                    'shared',
+                    'auth',
+                    'editor',
+                    'publishing',
+                    'billing',
+                    'dashboard',
+                    'settings',
+                    'app',
+                    'ui',
+                  ],
+                },
               },
             },
           ],

@@ -10,7 +10,7 @@ import {
 const ROOT_PATHNAME = '/'
 const PUBLISH_ROUTE_PREFIX = '/p'
 const PUBLISH_ROOT_DOMAIN_ENV_KEY = 'PUBLISH_ROOT_DOMAIN'
-const PROTECTED_ROUTE_PREFIXES = ['/dashboard', '/editor']
+const PROTECTED_ROUTE_PREFIXES = ['/dashboard', '/editor', '/settings']
 
 const protectedRoutePassThrough: NextMiddleware = (_request, _event) => NextResponse.next()
 
@@ -37,7 +37,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent): P
 export default middleware
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/editor/:path*'],
+  matcher: ['/', '/dashboard/:path*', '/editor/:path*', '/settings/:path*'],
 }
 
 function createSubdomainRewriteResponse(request: NextRequest): Response | null {
