@@ -3,6 +3,7 @@ import {
   type CreatePublishStorageAdapterOptions,
   type PublishStorageAdapter,
 } from '../types/storage'
+import { BlobPublishStorageAdapter } from './blob-publish-storage-adapter'
 import { LocalPublishStorageAdapter } from './local-publish-storage-adapter'
 
 const PUBLISH_STORAGE_PROVIDER_ENV_KEY = 'PUBLISH_STORAGE_PROVIDER'
@@ -20,7 +21,7 @@ export function createPublishStorageAdapter(
     return new LocalPublishStorageAdapter()
   }
 
-  throw new Error('Publish storage provider "object-storage" is not implemented yet')
+  return new BlobPublishStorageAdapter()
 }
 
 function getPublishStorageProviderFromEnv(): PublishStorageProvider {

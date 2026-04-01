@@ -427,7 +427,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 **Steps:**
 
-- [ ] **Implement Vercel Blob storage adapter** — install `@vercel/blob`, implement `PublishStorageAdapter` for `object-storage` provider (`writeArtifact` → `put`, `readArtifact` → `fetch` from the blob URL stored as `storageKey`). Wire into `createPublishStorageAdapter`. Set `PUBLISH_STORAGE_PROVIDER=object-storage` in Vercel env vars.
+- [x] **Implement Vercel Blob storage adapter** — install `@vercel/blob`, implement `PublishStorageAdapter` for `object-storage` provider (`writeArtifact` → `put`, `readArtifact` → `fetch` from the blob URL stored as `storageKey`). Wire into `createPublishStorageAdapter`. Set `PUBLISH_STORAGE_PROVIDER=object-storage` in Vercel env vars.
 - [ ] **Deploy to Vercel** — create Vercel project linked to the repo, confirm build passes (`npm run build` clean), enable auto-deploy on `main`. Set `NODE_ENV=production`.
 - [ ] **Configure custom domain + wildcard subdomain** — register or point a domain to Vercel, add both the root domain and a `*.yourdomain.com` wildcard entry in Vercel's Domains panel, configure the DNS records (A/CNAME for root, CNAME for wildcard). Set `PUBLISH_ROOT_DOMAIN` and `PUBLISH_BASE_URL` env vars.
 - [ ] **Set all production env vars** — fill the full set in Vercel dashboard: `AUTH_SECRET`, `AUTH_GITHUB_ID/SECRET`, `AUTH_GOOGLE_ID/SECRET`, `DATABASE_URL` (Neon prod branch), `PUBLISH_ROOT_DOMAIN`, `PUBLISH_BASE_URL`, `PUBLISH_STORAGE_PROVIDER=object-storage`, `RATE_LIMIT_STORAGE=database`, Stripe keys + price IDs, `RESEND_API_KEY`, `NEXT_PUBLIC_APP_URL`.
