@@ -434,7 +434,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 - [x] **Stripe production setup** — keeping test mode for demo/portfolio purposes. Registered test webhook endpoint at `https://pageforge.akram-ghomari.com/api/stripe/webhook` with 5 events, updated `STRIPE_WEBHOOK_SECRET` in Vercel env vars.
 - [x] **Resend sender domain** — add and verify the sending domain in Resend dashboard (`mail.yourdomain.com` or root), update `FROM_EMAIL` / sender address in the email module if needed, send a test verification email end-to-end.
 - [x] **Update OAuth callback URLs** — add production callback URLs alongside dev ones in GitHub OAuth app and Google Cloud Console (see `docs/deployment.md` for exact URLs). Copy production client IDs/secrets to Vercel env vars.
-- [ ] **Smoke test the full flow** — register with email/password → receive and click verification email → log in → create a page from a template → publish → open `[slug].yourdomain.com` in incognito → confirm published page loads with correct styles → click "Upgrade" → complete Stripe checkout → confirm Pro tier unlocks → log into Stripe portal → cancel to confirm portal works.
+- [x] **Smoke test the full flow** — register with email/password → receive and click verification email → log in → create a page from a template → publish → open `[slug].yourdomain.com` in incognito → confirm published page loads with correct styles → click "Upgrade" → complete Stripe checkout → confirm Pro tier unlocks → log into Stripe portal → cancel to confirm portal works.
 
 **Deliverables:**
 

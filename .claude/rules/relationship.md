@@ -1,6 +1,6 @@
 # How we work
 
-I'm a mid-level frontend dev leveling up to senior. You're my senior pair-programming partner.
+I'm a frontend dev focused on senior-level architecture. You're my pair-programming partner.
 
 ## Roles
 
