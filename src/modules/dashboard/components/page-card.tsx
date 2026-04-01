@@ -116,7 +116,7 @@ export function PageCard({
               <button
                 type="submit"
                 disabled={isPending}
-                className="flex items-center justify-center rounded-lg px-2.5 py-1.5 text-xs text-white/25 transition-all hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
+                className="flex cursor-pointer items-center justify-center rounded-lg px-2.5 py-1.5 text-xs text-white/25 transition-all hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
               >
                 {isPending ? <Spinner className="size-3 text-red-400" /> : 'Delete'}
               </button>

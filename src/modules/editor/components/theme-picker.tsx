@@ -22,7 +22,7 @@ function ThemeSwatchRow({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm transition-colors',
+        'flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm transition-colors',
         isActive ? 'bg-white/10 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
       )}
     >
@@ -85,7 +85,7 @@ export function ThemePicker(): React.JSX.Element {
         aria-label="Change theme"
         aria-expanded={isOpen}
         className={cn(
-          'flex items-center gap-1.5 rounded px-2 py-1.5 text-sm transition-colors',
+          'flex cursor-pointer items-center gap-1.5 rounded px-2 py-1.5 text-sm transition-colors',
           isOpen
             ? 'bg-white/10 text-white'
             : 'text-gray-400 hover:bg-white/5 hover:text-white',

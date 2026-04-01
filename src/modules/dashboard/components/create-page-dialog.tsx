@@ -47,7 +47,7 @@ export function CreatePageDialog(): React.JSX.Element {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger
         render={
-          <button className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:opacity-90" />
+          <button className="cursor-pointer rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:opacity-90" />
         }
       >
         + New page

@@ -124,7 +124,7 @@ export function LoginForm(): React.JSX.Element {
           type="button"
           onClick={() => { void handleResendEmail() }}
           disabled={isResending}
-          className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full cursor-pointer rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isResending ? 'Sending...' : 'Resend verification email'}
         </button>
@@ -133,7 +133,7 @@ export function LoginForm(): React.JSX.Element {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-2 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:opacity-90 hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 w-full cursor-pointer rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:opacity-90 hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? 'Signing in...' : 'Sign in'}
       </button>

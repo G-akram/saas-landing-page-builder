@@ -254,7 +254,7 @@ export function PropertyPanel(): React.JSX.Element {
               sectionId: section.id,
             })
           }}
-          className="flex items-center gap-1.5 border-b border-white/10 px-3 py-1.5 text-[10px] text-gray-500 transition-colors hover:text-gray-300"
+          className="flex cursor-pointer items-center gap-1.5 border-b border-white/10 px-3 py-1.5 text-[10px] text-gray-500 transition-colors hover:text-gray-300"
         >
           <CornerUpLeft className="h-3 w-3" />
           Back to card
@@ -310,8 +310,8 @@ export function PropertyPanel(): React.JSX.Element {
                 'rounded px-3 py-2 text-left text-xs transition-colors',
                 hasLinkedElement
                   ? isPrimaryGoal
-                    ? 'bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
-                    : 'bg-white/10 text-white hover:bg-white/15'
+                    ? 'cursor-pointer bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
+                    : 'cursor-pointer bg-white/10 text-white hover:bg-white/15'
                   : 'cursor-not-allowed bg-white/5 text-gray-500',
               )}
             >

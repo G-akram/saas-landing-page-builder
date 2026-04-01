@@ -54,7 +54,7 @@ export function TemplateCard({
     <button
       type="button"
       onClick={onSelect}
-      className={`group relative flex flex-col overflow-hidden rounded-lg border text-left transition-all ${
+      className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border text-left transition-all ${
         isSelected
           ? 'border-blue-500 ring-2 ring-blue-500/30'
           : 'border-white/10 hover:border-white/25'

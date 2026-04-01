@@ -11,7 +11,7 @@ export function OAuthButtons(): React.JSX.Element {
       >
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white/80 transition-all hover:border-white/[0.18] hover:bg-white/[0.08] hover:text-white"
+          className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white/80 transition-all hover:border-white/[0.18] hover:bg-white/[0.08] hover:text-white"
         >
           <GitHubIcon />
           Continue with GitHub
@@ -26,7 +26,7 @@ export function OAuthButtons(): React.JSX.Element {
       >
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white/80 transition-all hover:border-white/[0.18] hover:bg-white/[0.08] hover:text-white"
+          className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white/80 transition-all hover:border-white/[0.18] hover:bg-white/[0.08] hover:text-white"
         >
           <GoogleIcon />
           Continue with Google

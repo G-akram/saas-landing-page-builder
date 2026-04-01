@@ -57,7 +57,7 @@ export function PricingCards(): React.JSX.Element {
           type="button"
           onClick={() => { setInterval('monthly') }}
           className={cn(
-            'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+            'cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors',
             interval === 'monthly'
               ? 'bg-white/10 text-white'
               : 'text-white/50 hover:text-white/70',
@@ -69,7 +69,7 @@ export function PricingCards(): React.JSX.Element {
           type="button"
           onClick={() => { setInterval('annual') }}
           className={cn(
-            'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+            'cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors',
             interval === 'annual'
               ? 'bg-white/10 text-white'
               : 'text-white/50 hover:text-white/70',

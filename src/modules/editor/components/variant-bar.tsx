@@ -159,7 +159,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
                   isActive
                     ? 'border-blue-500 bg-blue-500/15 text-white'
                     : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white',
-                  isDragging && 'cursor-not-allowed opacity-60',
+                  isDragging ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
                 )}
               >
                 <span className="text-sm font-medium">{variant.name}</span>
@@ -210,7 +210,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
             type="button"
             onClick={handleCreateVariant}
             disabled={isDragging}
-            className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs text-gray-300 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1.5 text-xs text-gray-300 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>New Variant</span>
@@ -220,7 +220,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
             type="button"
             onClick={handleDuplicateVariant}
             disabled={isDragging}
-            className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs text-gray-300 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1.5 text-xs text-gray-300 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Copy className="h-3.5 w-3.5" />
             <span>Duplicate</span>
@@ -232,7 +232,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
               setIsDeleteDialogOpen(true)
             }}
             disabled={variantCount <= 1 || isDragging}
-            className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:text-gray-500"
+            className="flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1.5 text-xs text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:text-gray-500"
           >
             <Trash2 className="h-3.5 w-3.5" />
             <span>Delete</span>

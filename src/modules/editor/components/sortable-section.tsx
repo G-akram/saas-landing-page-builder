@@ -75,7 +75,7 @@ export function SortableSection({
         type="button"
         onClick={onDelete}
         aria-label="Delete section"
-        className="absolute top-2 right-2 z-10 rounded p-1 text-gray-500 opacity-0 transition-opacity group-hover/sortable:opacity-100 hover:bg-red-500/20 hover:text-red-400"
+        className="absolute top-2 right-2 z-10 cursor-pointer rounded p-1 text-gray-500 opacity-0 transition-opacity group-hover/sortable:opacity-100 hover:bg-red-500/20 hover:text-red-400"
       >
         <Trash2 className="h-4 w-4" />
       </button>

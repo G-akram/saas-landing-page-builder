@@ -73,7 +73,7 @@ export function EditorTopBar({
             onClick={undo}
             disabled={!hasUndo}
             aria-label="Undo"
-            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+            className="cursor-pointer rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
           >
             <Undo2 className="h-4 w-4" />
           </button>
@@ -82,7 +82,7 @@ export function EditorTopBar({
             onClick={redo}
             disabled={!hasRedo}
             aria-label="Redo"
-            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+            className="cursor-pointer rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
           >
             <Redo2 className="h-4 w-4" />
           </button>
@@ -98,7 +98,7 @@ export function EditorTopBar({
             }}
             aria-label="Desktop view"
             className={cn(
-              'rounded p-1.5 transition-colors',
+              'cursor-pointer rounded p-1.5 transition-colors',
               previewViewport === 'desktop'
                 ? 'bg-white/10 text-white'
                 : 'text-gray-400 hover:bg-white/5 hover:text-white',
@@ -113,7 +113,7 @@ export function EditorTopBar({
             }}
             aria-label="Mobile view"
             className={cn(
-              'rounded p-1.5 transition-colors',
+              'cursor-pointer rounded p-1.5 transition-colors',
               previewViewport === 'mobile'
                 ? 'bg-white/10 text-white'
                 : 'text-gray-400 hover:bg-white/5 hover:text-white',
@@ -142,7 +142,7 @@ export function EditorTopBar({
             'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors',
             isManualSaveDisabled
               ? 'cursor-not-allowed bg-white/5 text-gray-500'
-              : 'bg-white/10 text-white hover:bg-white/20',
+              : 'cursor-pointer bg-white/10 text-white hover:bg-white/20',
           )}
         >
           <span>{saveStatus === 'saving' ? 'Saving...' : 'Save'}</span>
@@ -176,7 +176,7 @@ export function EditorTopBar({
             'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors',
             isPublishDisabled
               ? 'cursor-not-allowed bg-white/5 text-gray-500'
-              : 'bg-green-600 text-white hover:bg-green-500',
+              : 'cursor-pointer bg-green-600 text-white hover:bg-green-500',
           )}
         >
           <span>{publishState.status === 'publishing' ? 'Publishing...' : 'Publish'}</span>
@@ -187,7 +187,7 @@ export function EditorTopBar({
           onClick={handleTogglePreview}
           aria-label={isPreviewMode ? 'Exit preview' : 'Preview page'}
           className={cn(
-            'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors',
+            'cursor-pointer flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors',
             isPreviewMode
               ? 'bg-blue-600 text-white hover:bg-blue-500'
               : 'text-gray-400 hover:bg-white/5 hover:text-white',

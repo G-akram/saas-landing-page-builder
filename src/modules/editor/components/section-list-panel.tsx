@@ -73,7 +73,7 @@ function SortablePanelItem({
           onSelect(isSelected ? null : section.id)
         }}
         className={cn(
-          'flex flex-1 items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors',
+          'flex flex-1 cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors',
           isSelected
             ? 'bg-blue-600/20 text-blue-400'
             : 'text-gray-300 hover:bg-white/5 hover:text-white',

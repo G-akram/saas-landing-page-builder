@@ -46,7 +46,7 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`rounded p-0.5 transition-colors ${
+      className={`cursor-pointer rounded p-0.5 transition-colors ${
         danger
           ? 'text-gray-400 hover:bg-red-500/20 hover:text-red-400'
           : 'text-gray-400 hover:bg-white/10 hover:text-white'

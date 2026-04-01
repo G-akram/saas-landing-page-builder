@@ -16,7 +16,7 @@ interface SectionLayoutControlsProps {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const SEGMENT_BASE =
-  'flex-1 rounded px-1.5 py-1 text-[11px] font-medium transition-colors'
+  'flex-1 cursor-pointer rounded px-1.5 py-1 text-[11px] font-medium transition-colors'
 const SEGMENT_ACTIVE = 'bg-blue-600 text-white'
 const SEGMENT_INACTIVE = 'text-gray-400 hover:bg-white/10 hover:text-white'
 
