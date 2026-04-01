@@ -5,7 +5,7 @@ import { db, pages, publishedPages } from '@/shared/db'
 import { auth } from '@/shared/lib/auth'
 import { logger } from '@/shared/lib/logger'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
-import { checkPublishAllowed, checkVariantAllowed } from '@/shared/lib/tier-gate'
+import { checkPublishAllowed, checkPublishedVariantsAllowed } from '@/shared/lib/tier-gate'
 import { type PageDocument } from '@/shared/types'
 import { createPublishStorageAdapter } from '../storage'
 import {
@@ -69,8 +69,8 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
     }
   }
 
-  // Tier gate: check variant limit
-  const variantCheck = await checkVariantAllowed(session.user.id, page.document.variants.length)
+  // Tier gate: check variant limit (uses > not >= because every page has 1 variant by default)
+  const variantCheck = await checkPublishedVariantsAllowed(session.user.id, page.document.variants.length)
   if (!variantCheck.allowed) {
     return createPublishError('TIER_LIMIT', variantCheck.reason ?? 'Variant limit reached')
   }

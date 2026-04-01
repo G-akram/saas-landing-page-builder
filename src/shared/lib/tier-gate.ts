@@ -66,6 +66,7 @@ export async function checkPublishAllowed(userId: string): Promise<TierGateResul
   return ALLOWED
 }
 
+// Use when adding a new variant — blocks if already at or above the limit.
 export async function checkVariantAllowed(
   userId: string,
   currentVariantCount: number,
@@ -74,6 +75,25 @@ export async function checkVariantAllowed(
   const limits = getTierLimits(status)
 
   if (currentVariantCount >= limits.maxVariantsPerPage) {
+    return {
+      allowed: false,
+      reason: `Free plan does not support A/B testing. Upgrade to Pro to create up to ${String(limits.maxVariantsPerPage)} variants.`,
+    }
+  }
+
+  return ALLOWED
+}
+
+// Use when publishing — blocks only if the page already exceeds the limit.
+// Every page has at least 1 variant, so >= would falsely block free-tier pages.
+export async function checkPublishedVariantsAllowed(
+  userId: string,
+  variantCount: number,
+): Promise<TierGateResult> {
+  const status = await getStatus(userId)
+  const limits = getTierLimits(status)
+
+  if (variantCount > limits.maxVariantsPerPage) {
     return {
       allowed: false,
       reason: `Free plan does not support A/B testing. Upgrade to Pro to create up to ${String(limits.maxVariantsPerPage)} variants.`,
