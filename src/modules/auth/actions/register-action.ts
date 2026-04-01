@@ -13,6 +13,7 @@ import { generateVerificationToken } from '@/modules/auth/lib/verification-token
 interface RegisterResult {
   success: boolean
   error?: string
+  email?: string
 }
 
 export async function registerAction(formData: FormData): Promise<RegisterResult> {
@@ -80,7 +81,7 @@ export async function registerAction(formData: FormData): Promise<RegisterResult
 
   logger.info('User registered, verification email sent', { userId: newUser.id, email })
 
-  return { success: true }
+  return { success: true, email }
 }
 
 function buildVerificationEmail(name: string, verifyUrl: string): string {

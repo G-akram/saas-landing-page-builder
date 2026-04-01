@@ -47,7 +47,8 @@ export async function loginAction(formData: FormData): Promise<LoginResult> {
   if (!user.passwordHash) {
     return {
       success: false,
-      error: 'This email is registered via a social account. Use the GitHub or Google button to sign in.',
+      error:
+        'This email is registered via a social account. Use the GitHub or Google button to sign in.',
     }
   }
 
@@ -59,8 +60,9 @@ export async function loginAction(formData: FormData): Promise<LoginResult> {
   if (!user.emailVerified) {
     return {
       success: false,
-      error: 'Please verify your email before signing in. Check your inbox for the verification link.',
-      redirectTo: '/verify-email',
+      error:
+        'Please verify your email before signing in. Check your inbox for the verification link.',
+      redirectTo: `/verify-email?email=${encodeURIComponent(user.email)}`,
     }
   }
 

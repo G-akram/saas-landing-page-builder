@@ -1,22 +1,31 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import { registerAction } from '@/modules/auth/actions/register-action'
 
 interface RegisterFormState {
   success: boolean
   error?: string
+  email?: string
 }
 
 const INITIAL_STATE: RegisterFormState = { success: false }
 
 export function RegisterForm(): React.JSX.Element {
+  const router = useRouter()
   const [state, formAction, isPending] = useActionState(
     async (_prev: RegisterFormState, formData: FormData) => registerAction(formData),
     INITIAL_STATE,
   )
+
+  useEffect(() => {
+    if (state.success && state.email) {
+      router.push(`/verify-email?email=${encodeURIComponent(state.email)}`)
+    }
+  }, [state.success, state.email, router])
 
   if (state.success) {
     return (
@@ -52,7 +61,7 @@ export function RegisterForm(): React.JSX.Element {
           type="text"
           required
           autoComplete="name"
-          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/50 focus:bg-white/[0.07]"
+          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 transition-colors outline-none focus:border-indigo-500/50 focus:bg-white/[0.07]"
           placeholder="Your name"
         />
       </div>
@@ -67,7 +76,7 @@ export function RegisterForm(): React.JSX.Element {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/50 focus:bg-white/[0.07]"
+          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 transition-colors outline-none focus:border-indigo-500/50 focus:bg-white/[0.07]"
           placeholder="you@example.com"
         />
       </div>
@@ -82,16 +91,13 @@ export function RegisterForm(): React.JSX.Element {
           type="password"
           required
           autoComplete="new-password"
-          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/50 focus:bg-white/[0.07]"
+          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 transition-colors outline-none focus:border-indigo-500/50 focus:bg-white/[0.07]"
           placeholder="At least 8 characters"
         />
       </div>
 
       <div>
-        <label
-          htmlFor="confirmPassword"
-          className="mb-1.5 block text-sm font-medium text-white/60"
-        >
+        <label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-medium text-white/60">
           Confirm password
         </label>
         <input
@@ -100,7 +106,7 @@ export function RegisterForm(): React.JSX.Element {
           type="password"
           required
           autoComplete="new-password"
-          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/50 focus:bg-white/[0.07]"
+          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/25 transition-colors outline-none focus:border-indigo-500/50 focus:bg-white/[0.07]"
           placeholder="Repeat your password"
         />
       </div>
@@ -108,17 +114,14 @@ export function RegisterForm(): React.JSX.Element {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-2 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-2 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? 'Creating account...' : 'Create account'}
       </button>
 
       <p className="text-center text-sm text-white/30">
         Already have an account?{' '}
-        <Link
-          href="/login"
-          className="text-indigo-400 hover:text-indigo-300 transition-colors"
-        >
+        <Link href="/login" className="text-indigo-400 transition-colors hover:text-indigo-300">
           Sign in
         </Link>
       </p>
