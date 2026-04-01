@@ -253,6 +253,7 @@ async function writePublishedArtifacts({
         userId,
         variantId: renderResult.variantId,
         errorCode: writeResult.errorCode,
+        message: writeResult.message,
       })
 
       return {
