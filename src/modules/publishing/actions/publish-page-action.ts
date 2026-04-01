@@ -5,6 +5,7 @@ import { db, pages, publishedPages } from '@/shared/db'
 import { auth } from '@/shared/lib/auth'
 import { logger } from '@/shared/lib/logger'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
+import { checkPublishAllowed, checkVariantAllowed } from '@/shared/lib/tier-gate'
 import { type PageDocument } from '@/shared/types'
 import { createPublishStorageAdapter } from '../storage'
 import {
@@ -35,6 +36,7 @@ interface PageForPublish {
   id: string
   name: string
   slug: string
+  status: string
   document: PageDocument
 }
 
@@ -57,6 +59,20 @@ export async function publishPage(input: PublishInput): Promise<PublishResult> {
   const page = await getPageForPublish(input.pageId, session.user.id)
   if (!page) {
     return createPublishError('PAGE_NOT_FOUND', 'Page not found')
+  }
+
+  // Tier gate: check publish limit (skip if page is already published)
+  if (page.status === 'draft') {
+    const publishCheck = await checkPublishAllowed(session.user.id)
+    if (!publishCheck.allowed) {
+      return createPublishError('TIER_LIMIT', publishCheck.reason ?? 'Publish limit reached')
+    }
+  }
+
+  // Tier gate: check variant limit
+  const variantCheck = await checkVariantAllowed(session.user.id, page.document.variants.length)
+  if (!variantCheck.allowed) {
+    return createPublishError('TIER_LIMIT', variantCheck.reason ?? 'Variant limit reached')
   }
 
   const liveUrl = buildLiveUrl(page.slug)
@@ -118,6 +134,7 @@ async function getPageForPublish(pageId: string, userId: string): Promise<PageFo
       id: pages.id,
       name: pages.name,
       slug: pages.slug,
+      status: pages.status,
       document: pages.document,
     })
     .from(pages)

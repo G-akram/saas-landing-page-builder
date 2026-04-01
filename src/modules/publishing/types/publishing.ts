@@ -10,6 +10,7 @@ export const PUBLISH_ERROR_CODES = [
   'STORAGE_WRITE_FAILED',
   'PUBLISH_CONFLICT',
   'RATE_LIMITED',
+  'TIER_LIMIT',
   'UNKNOWN_ERROR',
 ] as const
 export type PublishErrorCode = (typeof PUBLISH_ERROR_CODES)[number]

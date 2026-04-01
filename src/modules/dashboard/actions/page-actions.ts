@@ -8,6 +8,7 @@ import { createDefaultDocument } from '@/shared/lib/default-document'
 import { createDocumentFromTemplate } from '@/modules/dashboard/lib/page-templates'
 import { createRateLimiter } from '@/shared/lib/rate-limiter'
 import { logger } from '@/shared/lib/logger'
+import { checkPageCreationAllowed } from '@/shared/lib/tier-gate'
 import { db, pages } from '@/shared/db'
 
 const createLimiter = createRateLimiter({
@@ -78,6 +79,11 @@ export async function createPage(formData: FormData): Promise<ActionResult> {
   const { isAllowed } = await createLimiter.check(session.user.id)
   if (!isAllowed) {
     return { success: false, error: 'Too many requests. Please wait a moment.' }
+  }
+
+  const tierCheck = await checkPageCreationAllowed(session.user.id)
+  if (!tierCheck.allowed) {
+    return { success: false, error: tierCheck.reason ?? 'Page limit reached' }
   }
 
   const name = formData.get('name')

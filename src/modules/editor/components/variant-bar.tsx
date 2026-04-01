@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
+import { checkVariantAllowedAction } from '../actions/check-variant-allowed-action'
 import { useEditorActor } from '../context'
 import { resolveVariantPublishNotice } from '../lib/variant-publish-notice'
 import { useDocumentStore } from '../store'
@@ -45,6 +46,7 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
     activeVariant ? getTrafficInputValue(activeVariant.trafficWeight) : '100',
   )
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [tierError, setTierError] = useState<string | null>(null)
 
   useEffect(() => {
     setTrafficInput(activeVariant ? getTrafficInputValue(activeVariant.trafficWeight) : '100')
@@ -75,20 +77,34 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
     clearSelection()
   }
 
-  function handleCreateVariant(): void {
+  async function handleCreateVariant(): Promise<void> {
     if (isDragging) {
       return
     }
 
+    const check = await checkVariantAllowedAction(variantCount)
+    if (!check.allowed) {
+      setTierError(check.reason ?? 'Variant limit reached')
+      return
+    }
+
+    setTierError(null)
     createVariant()
     clearSelection()
   }
 
-  function handleDuplicateVariant(): void {
+  async function handleDuplicateVariant(): Promise<void> {
     if (isDragging) {
       return
     }
 
+    const check = await checkVariantAllowedAction(variantCount)
+    if (!check.allowed) {
+      setTierError(check.reason ?? 'Variant limit reached')
+      return
+    }
+
+    setTierError(null)
     duplicateVariant(currentActiveVariant.id)
     clearSelection()
   }
@@ -230,6 +246,12 @@ export function VariantBar({ liveUrl }: VariantBarProps): React.JSX.Element | nu
           <>
             <span className="h-3 w-px bg-white/10" />
             <span className="text-amber-300">{publishNotice}</span>
+          </>
+        )}
+        {tierError && (
+          <>
+            <span className="h-3 w-px bg-white/10" />
+            <span className="text-red-400">{tierError}</span>
           </>
         )}
       </div>
