@@ -32,7 +32,7 @@ function serializeIconNodes(nodes: IconNode): string {
       const attrString = Object.entries(attrs)
         .filter(([key]) => key !== 'key')
         .map(([key, value]) => {
-          const escaped = String(value).replace(/"/g, '&quot;')
+          const escaped = value.replace(/"/g, '&quot;')
           return `${toSvgAttrName(key)}="${escaped}"`
         })
         .join(' ')
@@ -81,7 +81,7 @@ export function getLucideIconSvg(name: string): string | null {
       .render({}, null)
 
     const iconNode = element.props.iconNode
-    if (!iconNode || !Array.isArray(iconNode)) return null
+    if (!Array.isArray(iconNode)) return null
 
     const svg = serializeIconNodes(iconNode)
     svgPathCache.set(name, svg)
