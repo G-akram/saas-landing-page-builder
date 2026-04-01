@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { heading, text, button, image, icon, form } from '../lib/block-element-factories'
+import { heading, text, button, image, icon, form } from '@/shared/lib/block-element-factories'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

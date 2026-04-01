@@ -5,7 +5,7 @@ import {
   heading,
   image,
   text,
-} from '@/modules/editor/lib/block-element-factories'
+} from '@/shared/lib/block-element-factories'
 
 import { type PageTemplate } from './page-template-types'
 

@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { button, container, heading, text } from './block-element-factories'
+import { button, container, heading, text } from '@/shared/lib/block-element-factories'
 
 /** Minimal 2-tier pricing cards. */
 export const PRICING_TEMPLATE_2: BlockTemplate = {

@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { badge, container, image, text } from './block-element-factories'
+import { badge, container, image, text } from '@/shared/lib/block-element-factories'
 
 // ── Card style constants ──────────────────────────────────────────────────────
 

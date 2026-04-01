@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { badge, button, container, heading, text } from './block-element-factories'
+import { badge, button, container, heading, text } from '@/shared/lib/block-element-factories'
 
 /** 3-tier elevated pricing cards. */
 export const PRICING_TEMPLATE_1: BlockTemplate = {

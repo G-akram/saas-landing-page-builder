@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { badge, button, heading, text } from './block-element-factories'
+import { badge, button, heading, text } from '@/shared/lib/block-element-factories'
 
 export const CTA_TEMPLATES: BlockTemplate[] = [
   {

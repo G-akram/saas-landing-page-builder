@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { badge, container, heading, icon, text } from './block-element-factories'
+import { badge, container, heading, icon, text } from '@/shared/lib/block-element-factories'
 import { CARD_STYLE_DARK, CARD_STYLE_GLASS } from './block-templates-features-cards'
 
 /** Dark grid — 3 dark card containers. */

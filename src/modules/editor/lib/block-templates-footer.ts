@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { text } from './block-element-factories'
+import { text } from '@/shared/lib/block-element-factories'
 
 export const FOOTER_TEMPLATES: BlockTemplate[] = [
   {

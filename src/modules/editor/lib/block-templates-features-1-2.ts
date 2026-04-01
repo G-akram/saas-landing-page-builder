@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { container, heading, icon, text } from './block-element-factories'
+import { container, heading, icon, text } from '@/shared/lib/block-element-factories'
 import { CARD_STYLE_LIGHT } from './block-templates-features-cards'
 
 /** Icon cards with shadows — 3 columns. */

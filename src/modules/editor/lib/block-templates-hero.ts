@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { badge, button, heading, image, text } from './block-element-factories'
+import { badge, button, heading, image, text } from '@/shared/lib/block-element-factories'
 
 export const HERO_TEMPLATES: BlockTemplate[] = [
   {

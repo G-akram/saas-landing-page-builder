@@ -1,5 +1,5 @@
 import { type BlockTemplate } from './block-template-types'
-import { badge, heading, text, form } from './block-element-factories'
+import { badge, heading, text, form } from '@/shared/lib/block-element-factories'
 
 export const FORM_TEMPLATES: BlockTemplate[] = [
   {
