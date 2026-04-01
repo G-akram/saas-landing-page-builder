@@ -327,7 +327,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 7 - Wow Factor
 
-**Status: in progress**
+**Status: complete**
 
 **Why now:** MVP is functional but visually basic. The highest-leverage move is making the product look and feel premium — Excellent visual quality in block design, richer templates, and a polished first impression.
 
@@ -408,8 +408,49 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ---
 
+## Phase 9 — Production Deployment
+
+**Status: not started**
+
+**Why now:** The product is feature-complete through Phase 8. Auth, billing, and publishing all work locally. Before sharing a portfolio URL, the app must run on real infrastructure: a stateless host (Vercel), cloud artifact storage for published pages (Vercel Blob), a live domain with wildcard subdomain routing, and all third-party services (Stripe, Resend, OAuth) wired to production credentials.
+
+**What we build:**
+
+- Vercel Blob storage adapter — replaces the local FS adapter so published HTML artifacts survive deployments and work across serverless instances
+- Vercel project setup and deployment pipeline (auto-deploy on `main` push)
+- Custom domain with wildcard DNS so `[slug].yourdomain.com` serves published pages
+- Full production environment variable configuration in Vercel dashboard
+- Stripe production mode: live keys, webhook endpoint registered, smoke-tested checkout
+- Resend sender domain verified so verification and notification emails deliver
+- OAuth apps updated with production callback URLs (GitHub + Google)
+- End-to-end smoke test: register → verify email → build page → publish → share subdomain URL → upgrade to Pro
+
+**Steps:**
+
+- [ ] **Implement Vercel Blob storage adapter** — install `@vercel/blob`, implement `PublishStorageAdapter` for `object-storage` provider (`writeArtifact` → `put`, `readArtifact` → `fetch` from the blob URL stored as `storageKey`). Wire into `createPublishStorageAdapter`. Set `PUBLISH_STORAGE_PROVIDER=object-storage` in Vercel env vars.
+- [ ] **Deploy to Vercel** — create Vercel project linked to the repo, confirm build passes (`npm run build` clean), enable auto-deploy on `main`. Set `NODE_ENV=production`.
+- [ ] **Configure custom domain + wildcard subdomain** — register or point a domain to Vercel, add both the root domain and a `*.yourdomain.com` wildcard entry in Vercel's Domains panel, configure the DNS records (A/CNAME for root, CNAME for wildcard). Set `PUBLISH_ROOT_DOMAIN` and `PUBLISH_BASE_URL` env vars.
+- [ ] **Set all production env vars** — fill the full set in Vercel dashboard: `AUTH_SECRET`, `AUTH_GITHUB_ID/SECRET`, `AUTH_GOOGLE_ID/SECRET`, `DATABASE_URL` (Neon prod branch), `PUBLISH_ROOT_DOMAIN`, `PUBLISH_BASE_URL`, `PUBLISH_STORAGE_PROVIDER=object-storage`, `RATE_LIMIT_STORAGE=database`, Stripe keys + price IDs, `RESEND_API_KEY`, `NEXT_PUBLIC_APP_URL`.
+- [ ] **Stripe production setup** — switch to live mode in Stripe dashboard, create live Products and Prices matching dev price IDs (or update env vars to live price IDs), register the Vercel deployment URL as a webhook endpoint (`/api/stripe/webhook`), copy the live `STRIPE_WEBHOOK_SECRET` to Vercel env vars. Test checkout with a real card.
+- [ ] **Resend sender domain** — add and verify the sending domain in Resend dashboard (`mail.yourdomain.com` or root), update `FROM_EMAIL` / sender address in the email module if needed, send a test verification email end-to-end.
+- [ ] **Update OAuth callback URLs** — add production callback URLs alongside dev ones in GitHub OAuth app and Google Cloud Console (see `docs/deployment.md` for exact URLs). Copy production client IDs/secrets to Vercel env vars.
+- [ ] **Smoke test the full flow** — register with email/password → receive and click verification email → log in → create a page from a template → publish → open `[slug].yourdomain.com` in incognito → confirm published page loads with correct styles → click "Upgrade" → complete Stripe checkout → confirm Pro tier unlocks → log into Stripe portal → cancel to confirm portal works.
+
+**Deliverables:**
+
+- `https://yourdomain.com` loads the marketing page
+- Registration, email verification, and OAuth login all work in production
+- Build + publish + serve pipeline works end-to-end with cloud artifact storage
+- `[slug].yourdomain.com` serves published pages from Vercel edge
+- Stripe checkout and Customer Portal work with live keys
+- All quality checks (`lint`, `typecheck`, `build`) pass in CI
+
+**You have:** A live, shareable URL. Portfolio-ready — every feature from Phase 1 through Phase 8 is demonstrable on real infrastructure.
+
+---
+
 ## Later
 
-Custom domains, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), AI copy/variant assistant (Phase 9), broader component library (Phase 10), production deployment (Vercel, R2, custom domains), editor i18n.
+Custom domains per-page, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), AI copy/variant assistant, broader component library, editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
