@@ -364,7 +364,7 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ## Phase 8 — Auth + Payments
 
-**Status: in progress**
+**Status: complete**
 
 **Why now:** The app is a polished demo, but it can't acquire real users or generate revenue. Email/password auth removes the OAuth-only barrier. Stripe payments enable a sustainable business model. Together, they convert a portfolio project into a launchable product.
 
@@ -384,15 +384,15 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 **Steps:**
 
 - [x] **Lock architecture + write ADRs** — document email/password auth strategy (custom credential routes alongside NextAuth OAuth, avoiding Credentials provider's JWT-only limitation) and Stripe billing architecture (subscription model, webhook events, tier gating, credit system). See `decisions/042-email-password-auth-strategy.md`, `decisions/043-stripe-billing-architecture.md`.
-- [ ] **Schema changes + password/email infrastructure** — add `passwordHash` column to `users`, create `subscriptions`, `creditBalances`, `creditTransactions`, `stripeEvents` tables. Create `password.ts` (bcrypt hash/verify), `email.ts` (Resend in prod, logger in dev), `session.ts` (manual database session creation matching NextAuth cookie format). Install `bcryptjs`, `resend`, `stripe`.
-- [ ] **Registration flow** — Zod validation schemas for register/login, verification token generation/consumption via existing `verificationTokens` table, register server action (validate, hash, insert user, send verification email), `RegisterForm` client component, `/register` page, extract `OAuthButtons` from login page.
-- [ ] **Email verification + credential login** — GET route handler for verification link callback (`/api/auth/verify-email`), verification info page, login server action (verify password, check email verified, create database session, set cookie), `LoginForm` client component, update `/login` page to compose LoginForm + OAuthButtons.
-- [ ] **Stripe foundation** — Stripe client singleton, `getOrCreateStripeCustomer` helper, tier limit constants, price ID configuration from env vars, `createCheckoutAction` (subscription mode), `purchaseCreditsAction` (payment mode), `createPortalAction` (Customer Portal).
-- [ ] **Stripe webhook handler** — POST route at `/api/stripe/webhook` with signature verification, `stripeEvents` idempotency dedup, handlers for `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`, `invoice.paid`. Raw body parsing for signature verification.
-- [ ] **Tier gating** — `tier-gate.ts` with `checkPageCreationAllowed`, `checkPublishAllowed`, `checkVariantAllowed` utilities. Subscription query helpers. Modify `createPage`, `publishPage`, and variant creation server actions to enforce limits. Clear error messages directing users to upgrade.
-- [ ] **Pricing UI + upgrade prompts** — `PricingCards` component (Free vs Pro comparison with checkout CTA), `UpgradeBanner` for dashboard (contextual "X of Y pages used"), `SubscriptionStatus` component, dashboard integration showing upgrade prompts for free-tier users.
-- [ ] **Settings page** — `settings` module with profile section (name, email, avatar, auth provider), subscription section (plan info, manage billing via Stripe Portal, credit balance), danger zone section (delete account with cascade). Route at `/settings`, add to middleware protected routes.
-- [ ] **Hardening + polish** — resend verification action (rate-limited), error states (expired tokens, OAuth-user-trying-password, already-verified), "Built with PageForge" badge removal in published pages based on tier, typecheck + lint + format pass.
+- [x] **Schema changes + password/email infrastructure** — add `passwordHash` column to `users`, create `subscriptions`, `creditBalances`, `creditTransactions`, `stripeEvents` tables. Create `password.ts` (bcrypt hash/verify), `email.ts` (Resend in prod, logger in dev), `session.ts` (manual database session creation matching NextAuth cookie format). Install `bcryptjs`, `resend`, `stripe`.
+- [x] **Registration flow** — Zod validation schemas for register/login, verification token generation/consumption via existing `verificationTokens` table, register server action (validate, hash, insert user, send verification email), `RegisterForm` client component, `/register` page, extract `OAuthButtons` from login page.
+- [x] **Email verification + credential login** — GET route handler for verification link callback (`/api/auth/verify-email`), verification info page, login server action (verify password, check email verified, create database session, set cookie), `LoginForm` client component, update `/login` page to compose LoginForm + OAuthButtons.
+- [x] **Stripe foundation** — Stripe client singleton, `getOrCreateStripeCustomer` helper, tier limit constants, price ID configuration from env vars, `createCheckoutAction` (subscription mode), `purchaseCreditsAction` (payment mode), `createPortalAction` (Customer Portal).
+- [x] **Stripe webhook handler** — POST route at `/api/stripe/webhook` with signature verification, `stripeEvents` idempotency dedup, handlers for `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`, `invoice.paid`. Raw body parsing for signature verification.
+- [x] **Tier gating** — `tier-gate.ts` with `checkPageCreationAllowed`, `checkPublishAllowed`, `checkVariantAllowed` utilities. Subscription query helpers. Modify `createPage`, `publishPage`, and variant creation server actions to enforce limits. Clear error messages directing users to upgrade.
+- [x] **Pricing UI + upgrade prompts** — `PricingCards` component (Free vs Pro comparison with checkout CTA), `UpgradeBanner` for dashboard (contextual "X of Y pages used"), `SubscriptionStatus` component, dashboard integration showing upgrade prompts for free-tier users.
+- [x] **Settings page** — `settings` module with profile section (name, email, avatar, auth provider), subscription section (plan info, manage billing via Stripe Portal, credit balance), danger zone section (delete account with cascade). Route at `/settings`, add to middleware protected routes.
+- [x] **Hardening + polish** — resend verification action (rate-limited), error states (expired tokens, OAuth-user-trying-password, already-verified), "Built with PageForge" badge removal in published pages based on tier, typecheck + lint + format pass.
 
 **Deliverables:**
 

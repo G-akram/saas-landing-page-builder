@@ -13,7 +13,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
       subject: params.subject,
     })
     // Extract and log the verification link from HTML in development
-    const linkMatch = params.html.match(/href="([^"]*verify[^"]*)"/)
+    const linkMatch = /href="([^"]*verify[^"]*)"/.exec(params.html)
     if (linkMatch?.[1]) {
       logger.info('📧 Verification link for development', { link: linkMatch[1] })
     } else {

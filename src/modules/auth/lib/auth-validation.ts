@@ -5,10 +5,10 @@ const MIN_PASSWORD_LENGTH = 8
 export const registerSchema = z
   .object({
     name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
-    email: z.string().email('Invalid email address'),
+    email: z.email('Invalid email address'),
     password: z
       .string()
-      .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`),
+      .min(MIN_PASSWORD_LENGTH, `Password must be at least ${String(MIN_PASSWORD_LENGTH)} characters`),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -19,7 +19,7 @@ export const registerSchema = z
 export type RegisterInput = z.infer<typeof registerSchema>
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 })
 

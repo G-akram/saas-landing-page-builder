@@ -28,13 +28,12 @@ export async function resendEmailAction(email: string): Promise<ResendEmailResul
     .where(eq(users.email, normalizedEmail))
     .limit(1)
 
-  if (!user || user.length === 0) {
+  const userData = user[0]
+  if (!userData) {
     // Don't reveal if email exists or not (security)
     logger.warn('Resend email requested for non-existent user', { email: normalizedEmail })
     return { success: true } // Return success to prevent email enumeration
   }
-
-  const userData = user[0]!
 
   // If already verified, don't resend
   if (userData.emailVerified) {

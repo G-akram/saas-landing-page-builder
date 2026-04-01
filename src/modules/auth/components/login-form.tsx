@@ -32,10 +32,11 @@ export function LoginForm(): React.JSX.Element {
   } | null>(null)
 
   const isEmailNotVerifiedError =
-    state.error?.includes('verify your email') || state.error?.includes('verification link')
+    (state.error?.includes('verify your email') ?? false) ||
+    (state.error?.includes('verification link') ?? false)
 
   const handleResendEmail = async (): Promise<void> => {
-    const email = emailInputRef.current?.value?.trim()
+    const email = emailInputRef.current?.value.trim()
     if (!email) {
       setResendMessage({ type: 'error', text: 'Please enter your email address' })
       return
@@ -51,10 +52,10 @@ export function LoginForm(): React.JSX.Element {
       } else {
         setResendMessage({
           type: 'error',
-          text: result.error || 'Failed to resend email. Try again.',
+          text: result.error ?? 'Failed to resend email. Try again.',
         })
       }
-    } catch (error) {
+    } catch {
       setResendMessage({ type: 'error', text: 'An error occurred. Please try again.' })
     } finally {
       setIsResending(false)
@@ -121,7 +122,7 @@ export function LoginForm(): React.JSX.Element {
       {isEmailNotVerifiedError && (
         <button
           type="button"
-          onClick={handleResendEmail}
+          onClick={() => { void handleResendEmail() }}
           disabled={isResending}
           className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
         >

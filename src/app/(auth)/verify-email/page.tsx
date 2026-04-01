@@ -8,7 +8,7 @@ import { resendEmailAction } from '@/modules/auth/actions/resend-email-action'
 
 export default function VerifyEmailPage(): React.JSX.Element {
   const searchParams = useSearchParams()
-  const email = searchParams.get('email') || ''
+  const email = searchParams.get('email') ?? ''
 
   const [isResending, setIsResending] = useState(false)
   const [resendMessage, setResendMessage] = useState<{
@@ -32,10 +32,10 @@ export default function VerifyEmailPage(): React.JSX.Element {
       } else {
         setResendMessage({
           type: 'error',
-          text: result.error || 'Failed to resend email. Try again.',
+          text: result.error ?? 'Failed to resend email. Try again.',
         })
       }
-    } catch (error) {
+    } catch {
       setResendMessage({ type: 'error', text: 'An error occurred. Please try again.' })
     } finally {
       setIsResending(false)
@@ -79,7 +79,7 @@ export default function VerifyEmailPage(): React.JSX.Element {
 
           <div className="mt-6 space-y-3">
             <button
-              onClick={handleResend}
+              onClick={() => { void handleResend() }}
               disabled={isResending}
               className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
             >

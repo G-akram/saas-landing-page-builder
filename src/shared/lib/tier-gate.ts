@@ -18,7 +18,8 @@ async function getStatus(userId: string): Promise<SubscriptionStatus> {
     .where(eq(subscriptions.userId, userId))
     .limit(1)
 
-  return (row?.status as SubscriptionStatus) ?? 'free'
+  if (!row) return 'free'
+  return row.status as SubscriptionStatus
 }
 
 export async function checkPageCreationAllowed(userId: string): Promise<TierGateResult> {

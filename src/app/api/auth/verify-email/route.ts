@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 import { db } from '@/shared/db'
 import { users } from '@/shared/db/schema'
