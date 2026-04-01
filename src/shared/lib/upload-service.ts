@@ -2,6 +2,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 
+import { put, del } from '@vercel/blob'
+
 import { getFileExtensionForImageType, type AllowedImageType } from '@/shared/lib/upload-validation'
 
 // ── Interface ────────────────────────────────────────────────────────────────
@@ -62,8 +64,33 @@ function resolveUploadPath(key: string): string | null {
   return resolvedPath
 }
 
-// ── Factory — swap point for cloud adapters in Phase 4 ───────────────────────
+// ── Vercel Blob adapter ───────────────────────────────────────────────────────
+
+class BlobUploadAdapter implements UploadService {
+  async upload(file: Buffer, mimeType: AllowedImageType): Promise<UploadResult> {
+    const ext = getFileExtensionForImageType(mimeType)
+    const key = `uploads/${randomUUID()}${ext}`
+
+    const blob = await put(key, file, {
+      access: 'public',
+      contentType: mimeType,
+      addRandomSuffix: false,
+    })
+
+    return { url: blob.url, key: blob.url }
+  }
+
+  async delete(key: string): Promise<void> {
+    await del(key)
+  }
+}
+
+// ── Factory ───────────────────────────────────────────────────────────────────
 
 export function getUploadService(): UploadService {
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    return new BlobUploadAdapter()
+  }
+
   return new LocalUploadAdapter()
 }
