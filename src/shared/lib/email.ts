@@ -16,8 +16,10 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     const linkMatch = params.html.match(/href="([^"]*verify[^"]*)"/)
     if (linkMatch?.[1]) {
       logger.info('📧 Verification link for development', { link: linkMatch[1] })
+    } else {
+      // Fallback: log the entire HTML if link extraction failed
+      logger.info('Email HTML (link extraction failed)', { html: params.html })
     }
-    logger.debug('Email HTML content', { html: params.html })
     return
   }
 
