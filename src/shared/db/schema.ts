@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -21,6 +22,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
+  passwordHash: text('passwordHash'),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
 })
 
@@ -188,3 +190,77 @@ export const rateLimitEvents = pgTable(
     index('rate_limit_events_occurred_at_idx').on(rateLimitEvent.occurredAt),
   ],
 )
+
+// Billing tables
+
+export const subscriptions = pgTable(
+  'subscriptions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('userId')
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    stripeCustomerId: text('stripeCustomerId').notNull().unique(),
+    stripeSubscriptionId: text('stripeSubscriptionId'),
+    stripePriceId: text('stripePriceId'),
+    status: text('status', {
+      enum: ['free', 'active', 'canceled', 'past_due'],
+    })
+      .notNull()
+      .default('free'),
+    currentPeriodStart: timestamp('currentPeriodStart', { mode: 'date' }),
+    currentPeriodEnd: timestamp('currentPeriodEnd', { mode: 'date' }),
+    cancelAtPeriodEnd: boolean('cancelAtPeriodEnd').notNull().default(false),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (subscription) => [
+    index('subscriptions_stripe_customer_id_idx').on(subscription.stripeCustomerId),
+    index('subscriptions_stripe_subscription_id_idx').on(subscription.stripeSubscriptionId),
+  ],
+)
+
+export const creditBalances = pgTable('creditBalances', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('userId')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  balance: integer('balance').notNull().default(0),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+})
+
+export const creditTransactions = pgTable(
+  'creditTransactions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    amount: integer('amount').notNull(),
+    reason: text('reason', {
+      enum: ['monthly_grant', 'pack_purchase', 'ai_usage'],
+    }).notNull(),
+    stripePaymentIntentId: text('stripePaymentIntentId'),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (transaction) => [
+    index('credit_transactions_user_created_at_idx').on(
+      transaction.userId,
+      transaction.createdAt,
+    ),
+  ],
+)
+
+export const stripeEvents = pgTable('stripeEvents', {
+  id: text('id').primaryKey(),
+  eventType: text('eventType').notNull(),
+  processedAt: timestamp('processedAt', { mode: 'date' }).notNull().defaultNow(),
+})

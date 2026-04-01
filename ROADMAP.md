@@ -362,8 +362,54 @@ Items discovered during the Phase 2 audit (2026-03-27). Not blocking Phase 3, bu
 
 ---
 
+## Phase 8 — Auth + Payments
+
+**Status: in progress**
+
+**Why now:** The app is a polished demo, but it can't acquire real users or generate revenue. Email/password auth removes the OAuth-only barrier. Stripe payments enable a sustainable business model. Together, they convert a portfolio project into a launchable product.
+
+**What we build:**
+
+- Email/password sign-in with email verification (alongside existing OAuth)
+- Stripe subscriptions: Free tier with limits, Pro tier ($12/mo or $99/yr) unlocks everything
+- One-time credit pack purchases (AI credits for Phase 9)
+- Stripe Customer Portal for self-service billing
+- Webhook-driven subscription lifecycle management
+- Free/Pro tier gating on server actions (page limits, publish limits, variant limits)
+- User settings page (profile, subscription management, account deletion)
+- Upgrade prompts and pricing UI in dashboard
+
+**Implementation approach:** See `decisions/042-email-password-auth-strategy.md` and `decisions/043-stripe-billing-architecture.md` for rationale.
+
+**Steps:**
+
+- [x] **Lock architecture + write ADRs** — document email/password auth strategy (custom credential routes alongside NextAuth OAuth, avoiding Credentials provider's JWT-only limitation) and Stripe billing architecture (subscription model, webhook events, tier gating, credit system). See `decisions/042-email-password-auth-strategy.md`, `decisions/043-stripe-billing-architecture.md`.
+- [ ] **Schema changes + password/email infrastructure** — add `passwordHash` column to `users`, create `subscriptions`, `creditBalances`, `creditTransactions`, `stripeEvents` tables. Create `password.ts` (bcrypt hash/verify), `email.ts` (Resend in prod, logger in dev), `session.ts` (manual database session creation matching NextAuth cookie format). Install `bcryptjs`, `resend`, `stripe`.
+- [ ] **Registration flow** — Zod validation schemas for register/login, verification token generation/consumption via existing `verificationTokens` table, register server action (validate, hash, insert user, send verification email), `RegisterForm` client component, `/register` page, extract `OAuthButtons` from login page.
+- [ ] **Email verification + credential login** — GET route handler for verification link callback (`/api/auth/verify-email`), verification info page, login server action (verify password, check email verified, create database session, set cookie), `LoginForm` client component, update `/login` page to compose LoginForm + OAuthButtons.
+- [ ] **Stripe foundation** — Stripe client singleton, `getOrCreateStripeCustomer` helper, tier limit constants, price ID configuration from env vars, `createCheckoutAction` (subscription mode), `purchaseCreditsAction` (payment mode), `createPortalAction` (Customer Portal).
+- [ ] **Stripe webhook handler** — POST route at `/api/stripe/webhook` with signature verification, `stripeEvents` idempotency dedup, handlers for `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`, `invoice.paid`. Raw body parsing for signature verification.
+- [ ] **Tier gating** — `tier-gate.ts` with `checkPageCreationAllowed`, `checkPublishAllowed`, `checkVariantAllowed` utilities. Subscription query helpers. Modify `createPage`, `publishPage`, and variant creation server actions to enforce limits. Clear error messages directing users to upgrade.
+- [ ] **Pricing UI + upgrade prompts** — `PricingCards` component (Free vs Pro comparison with checkout CTA), `UpgradeBanner` for dashboard (contextual "X of Y pages used"), `SubscriptionStatus` component, dashboard integration showing upgrade prompts for free-tier users.
+- [ ] **Settings page** — `settings` module with profile section (name, email, avatar, auth provider), subscription section (plan info, manage billing via Stripe Portal, credit balance), danger zone section (delete account with cascade). Route at `/settings`, add to middleware protected routes.
+- [ ] **Hardening + polish** — resend verification action (rate-limited), error states (expired tokens, OAuth-user-trying-password, already-verified), "Built with PageForge" badge removal in published pages based on tier, typecheck + lint + format pass.
+
+**Deliverables:**
+
+- Users can register with email/password, verify email, and log in
+- OAuth login continues to work unchanged
+- Free-tier users hit limits (3 pages, 1 published) with clear upgrade prompts
+- Clicking "Upgrade" opens Stripe Checkout, webhook syncs subscription status
+- Pro users get unlimited pages, all templates/themes, A/B testing, no badge
+- Settings page shows profile, billing management, and account deletion
+- Credit system is schema-ready for Phase 9 AI features
+
+**You have:** A monetizable product with real auth and billing. Users can sign up, evaluate for free, and pay to unlock the full experience.
+
+---
+
 ## Later
 
-Custom domains, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), payments/subscriptions, free/premium content tiers (needs billing first), broader component system, editor i18n.
+Custom domains, per-breakpoint style overrides, version history, starter templates marketplace, Smart Traffic (AI-driven routing), AI copy/variant assistant (Phase 9), broader component library (Phase 10), production deployment (Vercel, R2, custom domains), editor i18n.
 
 See `decisions/001-mvp-features.md` for the full deferred feature list and rationale.
