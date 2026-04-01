@@ -1,5 +1,7 @@
 import { icons, type LucideIcon } from 'lucide-react'
 
+import { logger } from '@/shared/lib/logger'
+
 // ── SVG attribute name mapping ───────────────────────────────────────────────
 
 /** Convert React camelCase prop names to SVG attribute names. */
@@ -29,7 +31,10 @@ function serializeIconNodes(nodes: IconNode): string {
     .map(([tag, attrs]) => {
       const attrString = Object.entries(attrs)
         .filter(([key]) => key !== 'key')
-        .map(([key, value]) => `${toSvgAttrName(key)}="${String(value)}"`)
+        .map(([key, value]) => {
+          const escaped = String(value).replace(/"/g, '&quot;')
+          return `${toSvgAttrName(key)}="${escaped}"`
+        })
         .join(' ')
       return `<${tag} ${attrString}/>`
     })
@@ -69,13 +74,22 @@ export function getLucideIconSvg(name: string): string | null {
   // Lucide icons are forwardRef components. Calling `.render(props, ref)`
   // returns a React element whose `props.iconNode` contains the raw SVG data
   // as an array of [tagName, attributes] tuples.
-  const element = (Icon as unknown as { render: (props: object, ref: null) => { props: { iconNode: IconNode } } })
-    .render({}, null)
+  // Wrapped in try/catch because this depends on Lucide's internal forwardRef
+  // implementation — a library update could change the shape silently.
+  try {
+    const element = (Icon as unknown as { render: (props: object, ref: null) => { props: { iconNode: IconNode } } })
+      .render({}, null)
 
-  const iconNode = element.props.iconNode
-  if (!iconNode || !Array.isArray(iconNode)) return null
+    const iconNode = element.props.iconNode
+    if (!iconNode || !Array.isArray(iconNode)) return null
 
-  const svg = serializeIconNodes(iconNode)
-  svgPathCache.set(name, svg)
-  return svg
+    const svg = serializeIconNodes(iconNode)
+    svgPathCache.set(name, svg)
+    return svg
+  } catch {
+    logger.warn('Failed to extract Lucide icon SVG — library internals may have changed', {
+      iconName: name,
+    })
+    return null
+  }
 }

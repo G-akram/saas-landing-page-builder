@@ -1,9 +1,8 @@
 'use client'
 
-import { ChevronDown, ChevronUp, X } from 'lucide-react'
-
 import { type ContainerElement, type Element as PageElement } from '@/shared/types'
 
+import { ContainerToolbar } from './container-toolbar'
 import { ElementPicker } from './element-picker'
 import { ElementRenderer } from './element-renderer'
 import { SelectableElement } from './selectable-element'
@@ -30,7 +29,6 @@ function buildContainerWrapperStyle(container: ContainerElement): React.CSSPrope
     gap: `${String(containerLayout.gap)}px`,
     alignItems: containerLayout.direction === 'column' ? alignItems : undefined,
     justifyContent: containerLayout.direction === 'row' ? 'flex-start' : undefined,
-    // Container visual styles
     background:
       containerStyle.backgroundGradient ?? containerStyle.backgroundColor ?? undefined,
     borderRadius: pxOrUndefined(containerStyle.borderRadius),
@@ -43,7 +41,6 @@ function buildContainerWrapperStyle(container: ContainerElement): React.CSSPrope
       : undefined,
     paddingLeft: containerStyle.padding ? `${String(containerStyle.padding.left)}px` : undefined,
     paddingRight: containerStyle.padding ? `${String(containerStyle.padding.right)}px` : undefined,
-    // Outer spacing from element styles
     marginTop: pxOrUndefined(styles.marginTop),
     marginBottom: pxOrUndefined(styles.marginBottom),
     width: styles.width ?? undefined,
@@ -66,11 +63,9 @@ interface ContainerRendererProps {
   onEditEnd: (() => void) | undefined
   onInlineSave: ((elementId: string, text: string) => void) | undefined
   onAddChild: ((parentId: string, element: PageElement) => void) | undefined
-  // Container-level actions (move/delete the container within the section)
   onDeleteContainer?: (() => void) | undefined
   onMoveContainerUp?: (() => void) | undefined
   onMoveContainerDown?: (() => void) | undefined
-  // Child-level actions
   onDeleteChild?: ((childId: string) => void) | undefined
   onMoveChild?: ((childId: string, direction: 'up' | 'down') => void) | undefined
 }
@@ -101,58 +96,12 @@ export function ContainerRenderer({
 
   return (
     <div className="relative">
-      {/* Container-level toolbar */}
       {isContainerSelected && hasContainerAction ? (
-        <div className="absolute -top-7 right-0 z-20 flex items-center gap-0.5 rounded border border-white/10 bg-gray-800 px-1 py-0.5 shadow-lg">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              onMoveContainerUp?.()
-            }}
-            disabled={!onMoveContainerUp}
-            aria-label="Move card up"
-            className={`rounded p-0.5 transition-colors ${
-              onMoveContainerUp
-                ? 'text-gray-400 hover:bg-white/10 hover:text-white'
-                : 'cursor-default text-gray-700'
-            }`}
-          >
-            <ChevronUp className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              onMoveContainerDown?.()
-            }}
-            disabled={!onMoveContainerDown}
-            aria-label="Move card down"
-            className={`rounded p-0.5 transition-colors ${
-              onMoveContainerDown
-                ? 'text-gray-400 hover:bg-white/10 hover:text-white'
-                : 'cursor-default text-gray-700'
-            }`}
-          >
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
-          {onDeleteContainer ? (
-            <>
-              <div className="mx-0.5 h-3 w-px bg-white/10" />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDeleteContainer()
-                }}
-                aria-label="Delete card"
-                className="rounded p-0.5 text-gray-400 transition-colors hover:bg-red-500/20 hover:text-red-400"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </>
-          ) : null}
-        </div>
+        <ContainerToolbar
+          onMoveUp={onMoveContainerUp}
+          onMoveDown={onMoveContainerDown}
+          onDelete={onDeleteContainer}
+        />
       ) : null}
 
       <div
@@ -176,7 +125,6 @@ export function ContainerRenderer({
           }
         }}
       >
-        {/* Children */}
         {container.children.map((child, childIndex) => (
           <SelectableElement
             key={child.id}
@@ -208,7 +156,6 @@ export function ContainerRenderer({
           </SelectableElement>
         ))}
 
-        {/* Add child picker — shown when container is selected */}
         {isContainerSelected && onAddChild ? (
           <div className="mt-2 flex justify-center">
             <ElementPicker
