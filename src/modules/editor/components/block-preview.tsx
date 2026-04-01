@@ -125,15 +125,11 @@ function renderPreviewElement(element: PageElement, textColorClass: string): Rea
         key={element.id}
         container={element}
         textColorClass={textColorClass}
-        selectedElementId={null}
-        editingElementId={null}
-        isContainerSelected={false}
-        onSelectContainer={undefined}
-        onSelectElement={undefined}
-        onEditStart={undefined}
-        onEditEnd={undefined}
-        onInlineSave={undefined}
-        onAddChild={undefined}
+        selection={{
+          selectedElementId: null,
+          editingElementId: null,
+          isContainerSelected: false,
+        }}
       />
     )
   }

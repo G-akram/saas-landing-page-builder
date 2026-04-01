@@ -86,20 +86,24 @@ function renderElement(
         key={element.id}
         container={element}
         textColorClass={props.textColorClass}
-        selectedElementId={props.selectedElementId}
-        editingElementId={props.editingElementId}
-        isContainerSelected={props.selectedElementId === element.id}
-        onSelectContainer={props.onSelectElement}
-        onSelectElement={props.onSelectElement}
-        onEditStart={props.onEditStart}
-        onEditEnd={props.onEditEnd}
-        onInlineSave={props.onInlineSave}
-        onAddChild={props.onAddChildElement}
-        onDeleteContainer={actions.onDelete}
-        onMoveContainerUp={actions.onMoveUp}
-        onMoveContainerDown={actions.onMoveDown}
-        onDeleteChild={actions.onDeleteChild}
-        onMoveChild={actions.onMoveChild}
+        selection={{
+          selectedElementId: props.selectedElementId,
+          editingElementId: props.editingElementId,
+          isContainerSelected: props.selectedElementId === element.id,
+        }}
+        actions={{
+          onSelectContainer: props.onSelectElement,
+          onSelectElement: props.onSelectElement,
+          onEditStart: props.onEditStart,
+          onEditEnd: props.onEditEnd,
+          onInlineSave: props.onInlineSave,
+          onAddChild: props.onAddChildElement,
+          onDeleteContainer: actions.onDelete,
+          onMoveContainerUp: actions.onMoveUp,
+          onMoveContainerDown: actions.onMoveDown,
+          onDeleteChild: actions.onDeleteChild,
+          onMoveChild: actions.onMoveChild,
+        }}
       />
     )
   }

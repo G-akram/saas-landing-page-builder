@@ -51,18 +51,19 @@ function buildContainerWrapperStyle(container: ContainerElement): React.CSSPrope
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
-interface ContainerRendererProps {
-  container: ContainerElement
-  textColorClass: string
+export interface ContainerSelection {
   selectedElementId: string | null | undefined
   editingElementId: string | null | undefined
   isContainerSelected: boolean
-  onSelectContainer: ((elementId: string) => void) | undefined
-  onSelectElement: ((elementId: string) => void) | undefined
-  onEditStart: ((elementId: string) => void) | undefined
-  onEditEnd: (() => void) | undefined
-  onInlineSave: ((elementId: string, text: string) => void) | undefined
-  onAddChild: ((parentId: string, element: PageElement) => void) | undefined
+}
+
+export interface ContainerActions {
+  onSelectContainer?: ((elementId: string) => void) | undefined
+  onSelectElement?: ((elementId: string) => void) | undefined
+  onEditStart?: ((elementId: string) => void) | undefined
+  onEditEnd?: (() => void) | undefined
+  onInlineSave?: ((elementId: string, text: string) => void) | undefined
+  onAddChild?: ((parentId: string, element: PageElement) => void) | undefined
   onDeleteContainer?: (() => void) | undefined
   onMoveContainerUp?: (() => void) | undefined
   onMoveContainerDown?: (() => void) | undefined
@@ -70,37 +71,33 @@ interface ContainerRendererProps {
   onMoveChild?: ((childId: string, direction: 'up' | 'down') => void) | undefined
 }
 
+interface ContainerRendererProps {
+  container: ContainerElement
+  textColorClass: string
+  selection: ContainerSelection
+  actions?: ContainerActions
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function ContainerRenderer({
   container,
   textColorClass,
-  selectedElementId,
-  editingElementId,
-  isContainerSelected,
-  onSelectContainer,
-  onSelectElement,
-  onEditStart,
-  onEditEnd,
-  onInlineSave,
-  onAddChild,
-  onDeleteContainer,
-  onMoveContainerUp,
-  onMoveContainerDown,
-  onDeleteChild,
-  onMoveChild,
+  selection,
+  actions = {},
 }: ContainerRendererProps): React.JSX.Element {
+  const { selectedElementId, editingElementId, isContainerSelected } = selection
   const isContainerEditing = editingElementId === container.id
-  const hasContainerAction = onDeleteContainer ?? onMoveContainerUp ?? onMoveContainerDown
+  const hasContainerAction = actions.onDeleteContainer ?? actions.onMoveContainerUp ?? actions.onMoveContainerDown
   const childCount = container.children.length
 
   return (
     <div className="relative">
       {isContainerSelected && hasContainerAction ? (
         <ContainerToolbar
-          onMoveUp={onMoveContainerUp}
-          onMoveDown={onMoveContainerDown}
-          onDelete={onDeleteContainer}
+          onMoveUp={actions.onMoveContainerUp}
+          onMoveDown={actions.onMoveContainerDown}
+          onDelete={actions.onDeleteContainer}
         />
       ) : null}
 
@@ -115,13 +112,13 @@ export function ContainerRenderer({
         style={buildContainerWrapperStyle(container)}
         onClick={(e) => {
           e.stopPropagation()
-          onSelectContainer?.(container.id)
+          actions.onSelectContainer?.(container.id)
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             e.stopPropagation()
-            onSelectContainer?.(container.id)
+            actions.onSelectContainer?.(container.id)
           }
         }}
       >
@@ -131,17 +128,17 @@ export function ContainerRenderer({
             elementId={child.id}
             isSelected={selectedElementId === child.id}
             isEditing={editingElementId === child.id && !isContainerEditing}
-            onSelect={onSelectElement}
-            onEditStart={onEditStart}
-            onDelete={onDeleteChild ? () => onDeleteChild(child.id) : undefined}
+            onSelect={actions.onSelectElement}
+            onEditStart={actions.onEditStart}
+            onDelete={actions.onDeleteChild ? () => actions.onDeleteChild?.(child.id) : undefined}
             onMoveUp={
-              onMoveChild && childIndex > 0
-                ? () => onMoveChild(child.id, 'up')
+              actions.onMoveChild && childIndex > 0
+                ? () => actions.onMoveChild?.(child.id, 'up')
                 : undefined
             }
             onMoveDown={
-              onMoveChild && childIndex < childCount - 1
-                ? () => onMoveChild(child.id, 'down')
+              actions.onMoveChild && childIndex < childCount - 1
+                ? () => actions.onMoveChild?.(child.id, 'down')
                 : undefined
             }
             className={child.type === 'image' ? 'w-full' : ''}
@@ -150,18 +147,18 @@ export function ContainerRenderer({
               element={child}
               textColorClass={textColorClass}
               isEditing={editingElementId === child.id && !isContainerEditing}
-              onInlineSave={(text) => onInlineSave?.(child.id, text)}
-              onEditEnd={onEditEnd}
+              onInlineSave={(text) => actions.onInlineSave?.(child.id, text)}
+              onEditEnd={actions.onEditEnd}
             />
           </SelectableElement>
         ))}
 
-        {isContainerSelected && onAddChild ? (
+        {isContainerSelected && actions.onAddChild ? (
           <div className="mt-2 flex justify-center">
             <ElementPicker
               slot={0}
               onAdd={(element) => {
-                onAddChild(container.id, element)
+                actions.onAddChild?.(container.id, element)
               }}
             />
           </div>
