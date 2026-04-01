@@ -153,6 +153,12 @@ export function PricingCards(): React.JSX.Element {
             </Button>
           </div>
 
+          <div className="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-center">
+            <p className="text-[10px] font-medium text-white/40">Test card</p>
+            <p className="mt-0.5 font-mono text-xs text-white/60">4242 4242 4242 4242</p>
+            <p className="text-[10px] text-white/30">Any future date · Any CVC</p>
+          </div>
+
           {error && <p className="mt-2 text-center text-xs text-red-400">{error}</p>}
         </div>
       </div>

@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { auth } from '@/shared/lib/auth'
 import { OAuthButtons, AuthDivider } from '@/modules/auth/components/oauth-buttons'
+import { DemoLoginButtons } from '@/modules/auth/components/demo-login-buttons'
 import { LoginForm } from '@/modules/auth/components/login-form'
 
 interface LoginPageProps {
@@ -78,6 +79,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps): Promi
             </div>
           )}
 
+          <DemoLoginButtons />
           <LoginForm />
 
           <AuthDivider label="or continue with" />
