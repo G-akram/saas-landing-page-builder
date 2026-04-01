@@ -136,6 +136,7 @@ export function buildButtonStyle(styles: PageElement['styles']): CSSProperties {
     ...buildBaseElementStyle(styles),
     display: 'inline-block',
     textDecoration: 'none',
+    cursor: 'pointer',
     // backgroundGradient overrides backgroundColor for gradient buttons
     background: styles.backgroundGradient ?? styles.backgroundColor ?? undefined,
     borderRadius: toPx(styles.borderRadius),

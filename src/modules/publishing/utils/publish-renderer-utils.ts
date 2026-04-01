@@ -6,6 +6,7 @@ const DEFAULT_SECTION_HORIZONTAL_PADDING_PX = 24
 
 export const PUBLISHED_PAGE_BASE_CSS = `
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
