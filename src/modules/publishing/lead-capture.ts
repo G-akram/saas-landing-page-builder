@@ -101,10 +101,7 @@ export async function capturePublishedLead({
     return { success: false, errorCode: 'INVALID_PAYLOAD' }
   }
 
-  const normalizedName = name?.trim()
-  const normalizedMessage = message?.trim()
-
-  if (formConfig.variant === 'contact' && (!normalizedName || !normalizedMessage)) {
+  if (formConfig.variant === 'contact' && (!name || !message)) {
     return { success: false, errorCode: 'INVALID_PAYLOAD' }
   }
 
@@ -126,8 +123,8 @@ export async function capturePublishedLead({
         elementId,
         formVariant: formConfig.variant,
         email: normalizedEmail.data,
-        name: normalizedName ?? null,
-        message: normalizedMessage ?? null,
+        name: name ?? null,
+        message: message ?? null,
       })
       deliveryStatus = webhookResult.status
       deliveryHttpStatus = webhookResult.httpStatus
@@ -141,8 +138,8 @@ export async function capturePublishedLead({
     elementId,
     formVariant: formConfig.variant,
     email: normalizedEmail.data,
-    name: normalizedName ?? null,
-    message: normalizedMessage ?? null,
+    name: name ?? null,
+    message: message ?? null,
     deliveryTarget,
     deliveryStatus,
     deliveryHttpStatus,

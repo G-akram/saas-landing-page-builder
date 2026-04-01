@@ -6,8 +6,8 @@ import { logger } from '@/shared/lib/logger'
 const LeadSubmissionRequestSchema = z.object({
   elementId: z.string().min(1),
   email: z.string().min(1),
-  name: z.string().optional(),
-  message: z.string().optional(),
+  name: z.string().trim().min(1).optional(),
+  message: z.string().trim().min(1).optional(),
 })
 
 interface PublishedPageLeadRouteContext {
