@@ -8,10 +8,10 @@ import {
   getPaginatedPagesByUser,
   PageCard,
 } from '@/modules/dashboard'
-import { getUserTier, UpgradeBanner } from '@/modules/billing'
+import { getUserTier, UpgradeBanner, UpgradeSuccessModal } from '@/modules/billing'
 
 interface DashboardPageProps {
-  searchParams?: Promise<{ cursor?: string }>
+  searchParams?: Promise<{ cursor?: string; upgraded?: string }>
 }
 
 export default async function DashboardPage({
@@ -22,6 +22,7 @@ export default async function DashboardPage({
 
   const resolvedParams = searchParams ? await searchParams : undefined
   const currentCursor = resolvedParams?.cursor ?? null
+  const isUpgraded = resolvedParams?.upgraded === 'true'
   const [{ pages: userPages, nextCursor }, tier] = await Promise.all([
     getPaginatedPagesByUser(session.user.id, { cursor: currentCursor }),
     getUserTier(session.user.id),
@@ -65,6 +66,8 @@ export default async function DashboardPage({
           </div>
         </div>
       </header>
+
+      <UpgradeSuccessModal isOpen={isUpgraded} />
 
       {/* Main content */}
       <main className="mx-auto max-w-6xl px-6 py-10">

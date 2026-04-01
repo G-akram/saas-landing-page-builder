@@ -4,4 +4,4 @@ export { createPortalAction } from '@/modules/billing/actions/create-portal-acti
 export { purchaseCreditsAction } from '@/modules/billing/actions/purchase-credits-action'
 export { getSubscription, getUserTier, getCreditBalance } from '@/modules/billing/lib/subscription-queries'
 export { getPriceId, type PricingInterval } from '@/modules/billing/lib/stripe-products'
-export { PricingCards, SubscriptionStatus, UpgradeBanner } from '@/modules/billing/components'
+export { PricingCards, SubscriptionStatus, UpgradeBanner, UpgradeSuccessModal } from '@/modules/billing/components'

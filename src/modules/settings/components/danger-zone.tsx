@@ -75,6 +75,7 @@ export function DangerZone(): React.JSX.Element {
                     setIsOpen(false)
                     setConfirmation('')
                   }}
+                  className="border-white/[0.08] bg-transparent text-white/70 hover:bg-white/[0.08] hover:text-white"
                 >
                   Cancel
                 </Button>
@@ -82,6 +83,7 @@ export function DangerZone(): React.JSX.Element {
                   type="submit"
                   variant="destructive"
                   disabled={isPending || confirmation !== 'DELETE'}
+                  className="bg-red-600 text-white hover:bg-red-500 disabled:bg-red-900 disabled:text-red-300"
                 >
                   {isPending ? 'Deleting...' : 'Delete permanently'}
                 </Button>

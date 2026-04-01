@@ -79,7 +79,7 @@ export function SubscriptionStatus({
             size="sm"
             onClick={handleManageBilling}
             disabled={isPending}
-            className="border-white/[0.08] text-white/60 hover:text-white"
+            className="border-white/[0.08] bg-transparent text-white/60 hover:bg-white/[0.05] hover:text-white"
           >
             {isPending ? 'Opening...' : 'Manage billing'}
             <ExternalLink className="ml-1.5 h-3 w-3" />
